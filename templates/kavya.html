@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropdown Filter Example</title>
+
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <script src="static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <script src="static/jquery/jquery-3.7.1.min.js"></script>
+    <script src="static/js/kavya_process.js"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container mt-5">
+        <div class="row dropdown-row">
+            <div class="col-md-4">
+                <select id="dropdown1" class="form-select">
+                    <option selected>Choose option 1</option>
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="dropdown2" class="form-select">
+                    <option selected>Choose option 2</option>
+                    <option value="A">Option A</option>
+                    <option value="B">Option B</option>
+                    <option value="C">Option C</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="dropdown3" class="form-select">
+                    <option selected>Choose option 3</option>
+                    <option value="X">Option X</option>
+                    <option value="Y">Option Y</option>
+                    <option value="Z">Option Z</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <textarea id="result" class="form-control" rows="10" placeholder="Filtered data will appear here..."></textarea>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
