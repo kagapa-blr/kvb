@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Request
-from fastapi.templating import Jinja2Templates
-from starlette.responses import HTMLResponse
+from flask import Blueprint, render_template
 
-router = APIRouter()
-templates = Jinja2Templates(directory='templates')
-@router.get('/prastavane', response_class=HTMLResponse)
-async def prastavane_page(request: Request):
-    return templates.TemplateResponse('prastavane.html', {'request': request})
+# Create a Blueprint for the 'prastavane' routes
+prastavane = Blueprint('prastavane', __name__, template_folder='templates')
+
+# Define a route for the prastavane page
+@prastavane.route('/prastavane')
+def prastavane_page():
+    return render_template('prastavane.html')

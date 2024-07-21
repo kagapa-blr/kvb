@@ -46,3 +46,24 @@ body {
   display: block;
   margin: 0 auto; /* This centers the image horizontally */
 }
+
+
+
+  .container {
+            width: 100%;
+            padding: 10px;
+        }
+        .row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .col {
+            flex: 1;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .col:not(:last-child) {
+            margin-right: 10px;
+        }

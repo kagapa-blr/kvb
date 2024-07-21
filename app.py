@@ -1,24 +1,25 @@
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+from flask import Flask, render_template
+from model.models import db
+from routers.parvya import parvya_bp
 
-from routers import kavya, prastavane
+app = Flask(__name__, static_folder='static', template_folder='templates')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:@localhost/kvb'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
-app = FastAPI()
-# Mount static files directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Register Blueprint
+app.register_blueprint(parvya_bp, url_prefix='/api')
 
-# Configure Jinja2 templates
-templates = Jinja2Templates(directory="templates")
 
-# Example route for index page
-@app.get("/")
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-# Include the kavya router
-app.include_router(kavya.router)
-app.include_router(prastavane.router)
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+@app.route('/')
+def index():
+    return render_template('index.html')  # Make sure you have an index.html file in your templates folder
 
+
+@app.route('/kavya')
+def kavya():
+    return render_template('kavya.html')  # Make sure you have an index.html file in your templates folder
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
