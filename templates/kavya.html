@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,77 +15,105 @@
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
     <script src="static/js/kavya_process.js"></script>
 </head>
+
 <body>
     {% include 'navbar.html' %}
     <div class="container mt-4">
-        <h1 class="mb-4">Select Options</h1>
-        <div class="row">
-            <div class="col-md-3">
-                <label for="parvaDropdown" class="form-label">Parva</label>
+        <h1 class="mb-4">ಆಯ್ಕೆಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ</h1>
+        <div class="dropdowns">
+            <div class="dropdown">
+                <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
                 <select id="parvaDropdown" class="form-select">
-                    <option selected>Select Parva</option>
+                    <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label for="sandhiDropdown" class="form-label">Sandhi</label>
+            <div class="dropdown">
+                <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
                 <select id="sandhiDropdown" class="form-select" disabled>
-                    <option selected>Select Sandhi</option>
+                    <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label for="padyaDropdown" class="form-label">Padya</label>
-                <select id="padyaDropdown" class="form-select" disabled>
-                    <option selected>Select Padya</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="padyaNumberDropdown" class="form-label">Padya Number</label>
+            <div class="dropdown">
+                <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
                 <select id="padyaNumberDropdown" class="form-select" disabled>
-                    <option selected>Select Padya Number</option>
+                    <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
                 </select>
             </div>
         </div>
-        <div id="padyaContent" class="mt-4">
-            result:
+    </div>
+    <div class="container">
+        <div class="grid-container">
+            <div class="padya">1</div>
+            <div class="pathantar">2</div>
+            <div class="gadya">3</div>
+            <div class="tippani">4</div>
+            <div class="artha">5</div>
         </div>
     </div>
-     <div class="container">
-        <!-- First div (full width) -->
-        <div class="row">
-            <div class="col padya">1</div>
+
+    <div class="data-insert container mt-2">
+        <h2 class="mb-4">ಮಾಹಿತಿ ಸೇರಿಸಿ</h2>
+        <div id="insertParva" class="mb-3">
+            <label for="newParvaName" class="form-label">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</label>
+            <input type="text" id="newParvaName" class="form-control" placeholder="ಪರ್ವದ ಹೆಸರು ಸೇರಿಸಿ">
+            <button id="insertParvaBtn" class="btn btn-primary mt-2">ಪರ್ವ ಸೇರಿಸಿ</button>
+            <div id="parvaMessage" class="mt-2"></div>
         </div>
 
-        <!-- Second and third divs (same row) -->
-        <div class="row">
-            <div class="col pathantar">2</div>
-            <div class="col gadya">3</div>
-        </div>
+        <div id="insertSandhi" class="mb-3">
+            <h2 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h2>
+            <label for="parvaId" class="form-label">ಪರ್ವ ಐಡಿ</label>
+            <input type="number" id="parvaId" class="form-control" placeholder="ಪರ್ವ ಐಡಿ ನಮೂದಿಸಿ">
 
-        <!-- Fourth and fifth divs (same row) -->
-        <div class="row">
-            <div class="col tippani">4</div>
-            <div class="col artha">5</div>
-        </div>
+            <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
+            <input type="text" id="newSandhiName" class="form-control" placeholder="ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ">
 
+            <button id="insertSandhiBtn" class="btn btn-primary mt-2">ಸಂಧಿ ಸೇರಿಸಿ</button>
+            <div id="sandhiMessage" class="mt-2"></div>
+        </div>
+        <div id="insertPadya" class="mb-3">
+            <h2 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h2>
+
+            <label for="sandhiId" class="form-label">ಸಂಧಿ ಐಡಿ</label>
+            <input type="number" id="sandhiId" class="form-control" placeholder="ಸಂಧಿ ಐಡಿ ನಮೂದಿಸಿ">
+
+            <label for="padyaNumber" class="form-label mt-2">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+            <input type="number" id="padyaNumber" class="form-control" placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ">
+
+            <label for="padya" class="form-label mt-2">ಪದ್ಯ</label>
+            <input type="text" id="padya" class="form-control" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ">
+
+            <label for="pathantar" class="form-label mt-2">ಪಥಾಂತರ</label>
+            <textarea id="pathantar" class="form-control" rows="3" placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
+
+            <label for="gadya" class="form-label mt-2">ಗದ್ಯ</label>
+            <textarea id="gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
+
+            <label for="tippani" class="form-label mt-2">ಟಿಪ್ಪಣಿ</label>
+            <textarea id="tippani" class="form-control" rows="3" placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
+
+            <label for="artha" class="form-label mt-2">ಅರ್ಥ</label>
+            <textarea id="artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
+
+            <button id="insertPadyaBtn" class="btn btn-primary mt-2">ಪದ್ಯ ಸೇರಿಸಿ</button>
+            <div id="padyaMessage" class="mt-2"></div>
+        </div>
     </div>
-
     <script>
-        $(document).ready(function() {
-            $('#parvaDropdown').change(function() {
-                // Enable the next dropdown
+        $(document).ready(function () {
+            $('#parvaDropdown').change(function () {
                 $('#sandhiDropdown').prop('disabled', false);
             });
 
-            $('#sandhiDropdown').change(function() {
-                // Enable the next dropdown
+            $('#sandhiDropdown').change(function () {
                 $('#padyaDropdown').prop('disabled', false);
             });
 
-            $('#padyaDropdown').change(function() {
-                // Enable the next dropdown
+            $('#padyaDropdown').change(function () {
                 $('#padyaNumberDropdown').prop('disabled', false);
             });
         });
     </script>
 </body>
+
 </html>

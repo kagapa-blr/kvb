@@ -1,30 +1,34 @@
-CREATE DATABASE kvb;
+-- Create the database if it doesn't exist with UTF-8 character set and collation
+CREATE DATABASE IF NOT EXISTS kvb
+    DEFAULT CHARACTER SET utf8mb4
+    DEFAULT COLLATE utf8mb4_unicode_ci;
 
+-- Switch to the newly created or existing database
 USE kvb;
 
 -- Table to store options for the first dropdown (Parva)
-CREATE TABLE parva (
+CREATE TABLE IF NOT EXISTS parva (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Table to store options for the second dropdown (Sandhi)
-CREATE TABLE sandhi (
+CREATE TABLE IF NOT EXISTS sandhi (
     id INT AUTO_INCREMENT PRIMARY KEY,
     parva_id INT,
     name VARCHAR(255) NOT NULL,
     FOREIGN KEY (parva_id) REFERENCES parva(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Table to store options for the third dropdown (Padya)
-CREATE TABLE padya (
+CREATE TABLE IF NOT EXISTS padya (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sandhi_id INT,
-    name VARCHAR(255) NOT NULL,
     padya_number INT NOT NULL,
     pathantar TEXT,
     gadya TEXT,
     tippani TEXT,
     artha TEXT,
+    padya TEXT,  -- New column added
     FOREIGN KEY (sandhi_id) REFERENCES sandhi(id)
-);
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
