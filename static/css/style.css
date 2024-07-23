@@ -6,6 +6,7 @@ body {
   font-family: Arial, sans-serif;
   overflow-y: scroll;
   height: 100vh;
+  background-color: rgb(240, 221, 188);
 }
 
 .background-image {
@@ -78,6 +79,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow-y: auto; /* Make content scrollable if it overflows */
+
 }
 
 .grid-container > .pathantar,
