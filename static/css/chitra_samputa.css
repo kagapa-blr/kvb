@@ -1,0 +1,15 @@
+.image-viewer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#image {
+    max-width: 100%;
+    max-height: 80vh;
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn {
+    margin: 0 5px;
+}
