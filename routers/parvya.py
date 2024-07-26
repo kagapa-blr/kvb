@@ -11,8 +11,12 @@ parvya_bp = Blueprint('parvya', __name__)
 # Parva API endpoints
 @parvya_bp.route('/parva', methods=['GET'])
 def get_parva():
-    parvas = Parva.query.all()
-    return jsonify([{'id': p.id, 'name': p.name} for p in parvas])
+    try:
+        parvas = Parva.query.all()
+        return jsonify([{'id': p.id, 'name': p.name} for p in parvas])
+    except Exception as e:
+        print(f"unable connect database, please check database server, {str(e)}")
+        return jsonify({'error': str(e)}), 503
 
 
 @parvya_bp.route('/parva/<int:id>', methods=['GET'])

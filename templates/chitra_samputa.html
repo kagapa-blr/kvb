@@ -14,19 +14,32 @@
     <script src="/static/js/chitra_samputa.js"></script>
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
 </head>
+
+
 <body>
     {% include 'navbar.html' %}
-    <div class="container mt-4">
-        <h1>Image Viewer</h1>
+
+
+
+    <div class="container mt-4 text-center">
+        <h1>ಚಿತ್ರ ಸಂಪುಟ </h1>
         <div class="image-viewer">
-            <button id="prevBtn" class="btn btn-primary">Previous</button>
-            <img id="image" src="{{ url_for('get_image', filename=images[0]) }}" class="img-fluid" alt="Image">
-            <button id="nextBtn" class="btn btn-primary">Next</button>
+            <button id="prevBtn" class="btn btn-primary">ಹಿಂದಿನ</button>
+            <div class="image-container">
+                <img id="image" src="{{ url_for('get_image', filename=images[0]) }}" class="img-fluid" alt="Image">
+            </div>
+            <button id="nextBtn" class="btn btn-primary">ಮುಂದಿನ</button>
         </div>
         <div class="mt-3">
-            <button id="zoomInBtn" class="btn btn-secondary">Zoom In</button>
-            <button id="zoomOutBtn" class="btn btn-secondary">Zoom Out</button>
+            <button id="zoomInBtn" class="btn btn-secondary">ಜೂಮ್ ಇನ್</button>
+            <button id="zoomOutBtn" class="btn btn-secondary">ಜೂಮ್ ಔಟ್</button>
         </div>
     </div>
+
+
+    <script>
+        const images = {{ images|tojson|safe }};
+    </script>
 </body>
+
 </html>
