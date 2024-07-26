@@ -1,42 +1,54 @@
 <!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ಮುಖಪುಟ</title>
     <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
 
-<body>
+  <body>
     {% include 'navbar.html' %}
 
-
-
-    <audio class="background-audio" autoplay loop controls>
+    <!-- <audio class="background-audio" autoplay loop controls>
         <source src="/static/audio/back_music.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
-    </audio>
+    </audio> -->
     <div class="container mt-4 content">
-    <a href="/"><img class="main-image" src="/static/images/main.jpg"></a>
-        <h1>ಆದಿಪರ್ವ</h1>
+      <h4
+        class="btn"
+        style="
+          height: 35px;
+          line-height: 35px;
+          padding: 0 10px;
+          background-color: #f3c0b4;
+          color: black;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        ಕರ್ನಾಟಕ ಭಾರತ ಕಥಾಮಂಜರಿ
+      </h4>
 
-        ಸಂಧಿ ೧ ಪದ್ಯ ೧ ಸನಕಾದಿ ಸಜ್ಜನನಿಕರ - ಸನಕ, ಸನತ್ಕುಮಾರ, ಸನತ್ಸುಜಾತ, ಸನನ್ದನ - ಈ ಬ್ರಹ್ಮಮಾನಸಪುತ್ರರು.
-        ಪದ್ಯದ ವಿಶ್ಲೇಷಣೆ: “ರಕ್ಕಸನಾದ ರಾವಣನನ್ನು ಸಂಹಾರಮಾಡಿದ, ಕೇಳಲು ಅಮೃತಪ್ರಾಯವಾದ, ಹೊಸದಾದ, (ರಾಮಾಯಣ) ಕಥೆಗೆ ಕಾರಣನಾದವನೇ”
-        ಎಂಬುದಕ್ಕೆ ಪರ್ಯಾಯವಾಗಿ, “ರಾವಣಾಸುರನನ್ನು ವಧಿಸಿ ದವನೇ, ಕಿವಿಗಳಿಗೆ ಕೇಳಲು ಅಮೃತಪ್ರಾಯವಾದ ಹೊಸದಾದ ಕಥೆಗೆ ಕಾರಣನಾದವನೇ” ಎಂದು
-        ಪ್ರತ್ಯೇಕಿಸಿ ಅರ್ಥ ಹೇಳುವುದು ಕೆಲವರಿಗೆ ಸಮ್ಮತವಾದ್ದು.
-        (ಚರ್ಚೆಗೆ ನೋಡಿ: ಕುಮಾರವ್ಯಾಸಭಾರತದ ಮಂಗಳಾಚರಣೆಯ ಪದ್ಯ, ಸಾಹಿತ್ಯಕಲ್ಪ: ಶಾಸ್ತ್ರೀಯ ಸಂಪುಟ ೮, ೨೦೧೧, ಪುಟ ೭೦-೭೩,)
+      <h1>ಆದಿಪರ್ವ</h1>
 
+      ಸಂಧಿ ೧ ಪದ್ಯ ೧ ಸನಕಾದಿ ಸಜ್ಜನನಿಕರ - ಸನಕ, ಸನತ್ಕುಮಾರ, ಸನತ್ಸುಜಾತ, ಸನನ್ದನ - ಈ
+      ಬ್ರಹ್ಮಮಾನಸಪುತ್ರರು. ಪದ್ಯದ ವಿಶ್ಲೇಷಣೆ: “ರಕ್ಕಸನಾದ ರಾವಣನನ್ನು ಸಂಹಾರಮಾಡಿದ, ಕೇಳಲು
+      ಅಮೃತಪ್ರಾಯವಾದ, ಹೊಸದಾದ, (ರಾಮಾಯಣ) ಕಥೆಗೆ ಕಾರಣನಾದವನೇ” ಎಂಬುದಕ್ಕೆ ಪರ್ಯಾಯವಾಗಿ,
+      “ರಾವಣಾಸುರನನ್ನು ವಧಿಸಿ ದವನೇ, ಕಿವಿಗಳಿಗೆ ಕೇಳಲು ಅಮೃತಪ್ರಾಯವಾದ ಹೊಸದಾದ ಕಥೆಗೆ
+      ಕಾರಣನಾದವನೇ” ಎಂದು ಪ್ರತ್ಯೇಕಿಸಿ ಅರ್ಥ ಹೇಳುವುದು ಕೆಲವರಿಗೆ ಸಮ್ಮತವಾದ್ದು. (ಚರ್ಚೆಗೆ
+      ನೋಡಿ: ಕುಮಾರವ್ಯಾಸಭಾರತದ ಮಂಗಳಾಚರಣೆಯ ಪದ್ಯ, ಸಾಹಿತ್ಯಕಲ್ಪ: ಶಾಸ್ತ್ರೀಯ ಸಂಪುಟ ೮,
+      ೨೦೧೧, ಪುಟ ೭೦-೭೩,)
 
-        <!-- Add more content here to make the page scrollable -->
+      <!-- Add more content here to make the page scrollable -->
     </div>
 
     <div class="background-image"></div>
-
-</body>
-
+  </body>
 </html>
