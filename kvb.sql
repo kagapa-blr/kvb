@@ -32,3 +32,14 @@ CREATE TABLE IF NOT EXISTS padya (
     padya TEXT,  -- New column added
     FOREIGN KEY (sandhi_id) REFERENCES sandhi(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Table to store user details
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE
+    password VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(20),
+    email VARCHAR(255),
+    -- Add any additional optional fields if needed
+    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+);

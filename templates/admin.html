@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ಕಾವ್ಯ ಪ್ರವೇಶ</title>
+    <!-- Bootstrap CSS via CDN -->
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- jQuery via CDN -->
+    <script src="static/jquery/jquery-3.7.1.js"></script>
+    <script src="static/jquery/jquery-3.7.1.min.js"></script>
+    <!-- JavaScript -->
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/kavya_process.js"></script>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="data-insert container mt-1">
+        <h5 class="mb-4 text-center">ಮಾಹಿತಿ ಸೇರಿಸಿ</h5>
+
+        <div id="insertParva" class="mb-3">
+            <label for="newParvaName" class="form-label">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</label>
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="newParvaName" class="form-control" placeholder="ಪರ್ವದ ಹೆಸರು ಸೇರಿಸಿ">
+                </div>
+            </div>
+            <button id="insertParvaBtn" class="btn btn-primary mt-2">ಪರ್ವ ಸೇರಿಸಿ</button>
+            <div id="parvaMessage" class="mt-2"></div>
+        </div>
+
+        <div id="insertSandhi" class="mb-3">
+            <h5 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="parvaId" class="form-label">ಪರ್ವ ಐಡಿ</label>
+                    <input type="number" id="parvaId" class="form-control" placeholder="ಪರ್ವ ಐಡಿ ನಮೂದಿಸಿ">
+                </div>
+                <div class="col-md-6">
+                    <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
+                    <input type="text" id="newSandhiName" class="form-control" placeholder="ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ">
+                </div>
+            </div>
+            <button id="insertSandhiBtn" class="btn btn-primary mt-2">ಸಂಧಿ ಸೇರಿಸಿ</button>
+            <div id="sandhiMessage" class="mt-2"></div>
+        </div>
+
+        <div id="insertPadya" class="mb-3">
+            <h5 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="sandhiId" class="form-label">ಸಂಧಿ ಐಡಿ</label>
+                    <input type="number" id="sandhiId" class="form-control" placeholder="ಸಂಧಿ ಐಡಿ ನಮೂದಿಸಿ">
+                </div>
+                <div class="col-md-6">
+                    <label for="padyaNumber" class="form-label mt-2">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                    <input type="number" id="padyaNumber" class="form-control" placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="padya" class="form-label">ಪದ್ಯ</label>
+                    <textarea type="text" id="padya" class="form-control" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="pathantar" class="form-label">ಪಾಠಾಂತರ</label>
+                    <textarea id="pathantar" class="form-control" rows="3" placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label for="gadya" class="form-label">ಗದ್ಯ</label>
+                    <textarea id="gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label for="tippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
+                    <textarea id="tippani" class="form-control" rows="3" placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label for="artha" class="form-label">ಅರ್ಥ</label>
+                    <textarea id="artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
+                </div>
+            </div>
+            <button id="insertPadyaBtn" class="btn btn-primary mt-2">ಪದ್ಯ ಸೇರಿಸಿ</button>
+            <div id="padyaMessage" class="mt-2"></div>
+        </div>
+    </div>
+
+
+
+    <script>
+        $(document).ready(function () {
+            $('#parvaDropdown').change(function () {
+                $('#sandhiDropdown').prop('disabled', false);
+            });
+
+            $('#sandhiDropdown').change(function () {
+                $('#padyaDropdown').prop('disabled', false);
+            });
+
+            $('#padyaDropdown').change(function () {
+                $('#padyaNumberDropdown').prop('disabled', false);
+            });
+        });
+    </script>
+</body>
+
+</html>
