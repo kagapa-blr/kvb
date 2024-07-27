@@ -9,15 +9,62 @@
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <!-- jQuery via CDN -->
-    <script src="static/jquery/jquery-3.7.1.js"></script>
-    <script src="static/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
     <!-- JavaScript -->
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <script src="static/js/kavya_process.js"></script>
+    <script src="/static/js/users.js"></script>
 </head>
 
 <body>
     {% include 'navbar.html' %}
+
+<!-- Add User Button -->
+<div class="container mt-3">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userModal">
+        ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ 
+    </button>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="userModalLabel">ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-add">
+                    <div class="message"></div>
+        
+
+                    <div class="container p-4 border rounded">
+                        <form id="userForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">ಬಳಕೆದಾರರ ಹೆಸರು:</label>
+                                <input type="text" id="username" name="username" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">ಪಾಸ್ವರ್ಡ್:</label>
+                                <input type="password" id="password" name="password" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">ಫೋನ್ ಸಂಖ್ಯೆ:</label>
+                                <input type="number" id="phone_number" name="phone_number" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">ಇಮೇಲ್:</label>
+                                <input type="email" id="email" name="email" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">ಸೇರಿಸಿ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div class="data-insert container mt-1">
         <h5 class="mb-4 text-center">ಮಾಹಿತಿ ಸೇರಿಸಿ</h5>
@@ -92,23 +139,6 @@
         </div>
     </div>
 
-
-
-    <script>
-        $(document).ready(function () {
-            $('#parvaDropdown').change(function () {
-                $('#sandhiDropdown').prop('disabled', false);
-            });
-
-            $('#sandhiDropdown').change(function () {
-                $('#padyaDropdown').prop('disabled', false);
-            });
-
-            $('#padyaDropdown').change(function () {
-                $('#padyaNumberDropdown').prop('disabled', false);
-            });
-        });
-    </script>
 </body>
 
 </html>
