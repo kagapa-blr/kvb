@@ -1,2 +1,3 @@
 .idea
-__pyca
+__pycache__/
+venv
