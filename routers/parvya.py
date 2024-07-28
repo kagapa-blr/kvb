@@ -46,7 +46,6 @@ def create_parva():
         return jsonify({'error': str(e)}), 500
 
 
-
 @parvya_bp.route('/parva/<int:id>', methods=['PUT'])
 def update_parva(id):
     data = request.json
@@ -104,7 +103,6 @@ def create_sandhi():
         return jsonify({'error': str(e)}), 500
 
 
-
 @parvya_bp.route('/sandhi/<int:id>', methods=['PUT'])
 def update_sandhi(id):
     data = request.json
@@ -134,7 +132,6 @@ def get_padya():
     return jsonify([{
         'id': p.id,
         'sandhi_id': p.sandhi_id,
-        'name': p.name,
         'padya_number': p.padya_number,
         'pathantar': p.pathantar,
         'gadya': p.gadya,
@@ -204,6 +201,7 @@ def get_padya_by_sandhi_and_number(sandhi_id, padya_number):
         logging.error(f"Error occurred while fetching Padya: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
+
 @parvya_bp.route('/padya', methods=['POST'])
 def create_padya():
     try:
@@ -215,7 +213,8 @@ def create_padya():
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         # Check for existing padya with the same sandhi_id and padya_number
-        existing_padya_number = Padya.query.filter_by(sandhi_id=data['sandhi_id'], padya_number=data['padya_number']).first()
+        existing_padya_number = Padya.query.filter_by(sandhi_id=data['sandhi_id'],
+                                                      padya_number=data['padya_number']).first()
         if existing_padya_number:
             return jsonify({'error': 'Padya number already exists for this Sandhi'}), 400
 

@@ -1,0 +1,15 @@
+.scrollable-table {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.scrollable-table table {
+    width: 100%;
+}
+
+.scrollable-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 1;
+}

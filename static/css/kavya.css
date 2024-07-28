@@ -32,7 +32,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  overflow-y: auto; /* Make content scrollable if it overflows */
+  overflow-y: auto;
 }
 
 .grid-item .label {
@@ -40,34 +40,56 @@
   margin-bottom: 5px;
 }
 
+.padya-container {
+  grid-column: 1 / -1; /* Span full width */
+  text-align: center; /* Center the content */
+  margin-bottom: 20px; /* Space below */
+  max-width: 600px; /* Reduced width */
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .padya, .pathantar, .gadya, .tippani, .artha {
   width: 100%; /* Ensure full width */
   height: 100px; /* Fixed height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 10px; /* Add padding for better visibility */
+  padding-top: 0; /* Remove top padding */
+  display: flex; /* Use flexbox */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
   overflow-y: auto; /* Make content scrollable if it overflows */
+  box-sizing: border-box; /* Ensure padding is included in height */
 }
 
-.grid-container > .pathantar,
-.grid-container > .gadya {
-  grid-row: 2; /* Row 2 */
+.pathantar {
+  text-align: left; /* Left align */
 }
 
-.grid-container > .tippani,
-.grid-container > .artha {
-  grid-row: 3; /* Row 3 */
+.gadya {
+  text-align: right; /* Right align */
 }
 
-/* Container to ensure full width of padya */
-.padya-container {
-  grid-column: 1 / -1; /* Span full width */
-  margin-bottom: 20px; /* Space below */
+.tippani {
+  text-align: left; /* Left align */
+  grid-column: 1 / 2; /* First column */
 }
 
-.content {
-  position: relative;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 20px;
+.artha {
+  text-align: right; /* Right align */
+  grid-column: 2 / 3; /* Second column */
+}
+
+/* Ensure the content is styled appropriately */
+.editable {
+  border: 1px dashed #ccc; /* Dashed border to indicate editability */
+  padding: 5px;
+  border-radius: 4px;
+  width: 100%; /* Ensure full width */
+  height: 100%; /* Ensure full height */
+  box-sizing: border-box; /* Include padding in width and height */
+  overflow-y: auto; /* Make content scrollable */
+  outline: none; /* Remove default outline when focused */
+  display: flex; /* Use flexbox */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
 }
