@@ -7,7 +7,9 @@ $(document).ready(function () {
         padyaContent: '/api/padya',
         insertParva: '/api/parva',
         insertSandhi: '/api/sandhi',
-        insertPadya: '/api/padya'
+        insertPadya: '/api/padya',
+        getAllSandhi: '/api/sandhi'
+
     };
 
     // Cache for dropdown options
@@ -58,7 +60,7 @@ $(document).ready(function () {
     }
 
     // Function to post data to API with error handling
-    async function postData(url, data) {
+    async function postData(url, cacheKey, data) {
         try {
             const response = await $.ajax({
                 url: url,
@@ -67,9 +69,10 @@ $(document).ready(function () {
                 data: JSON.stringify(data),
                 dataType: 'json'
             });
+            cache[cacheKey] = response;
             return response;
         } catch (jqXHR) {
-            handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, 'post');
+            handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, cacheKey);
             throw jqXHR;
         }
     }
@@ -80,10 +83,9 @@ $(document).ready(function () {
             try {
                 const data = await fetchData(apiEndpoints.parva, 'parva');
                 populateDropdown('#parvaDropdown', data, 'id', 'name');
-                // Use this data to show in Bootstrap modal table upon clicking on view table.
-                populateModalTable(data);
+                allParvaTable(data);
             } catch (e) {
-                console.log(e);
+                // Handle fetch error
             }
         } else {
             populateDropdown('#parvaDropdown', cache.parva, 'id', 'name');
@@ -95,18 +97,17 @@ $(document).ready(function () {
         if (!cache.sandhi[parvaId]) {
             try {
                 const data = await fetchData(apiEndpoints.sandhiByParva, 'sandhi', `/${parvaId}`);
-                cache.sandhi[parvaId] = data;
                 populateDropdown('#sandhiDropdown', data, 'id', 'name');
                 $('#sandhiDropdown').prop('disabled', false);
             } catch (e) {
-                console.log(e);
+                // Handle fetch error
             }
         } else {
             populateDropdown('#sandhiDropdown', cache.sandhi[parvaId], 'id', 'name');
             $('#sandhiDropdown').prop('disabled', false);
         }
         $('#padyaNumberDropdown').prop('disabled', true).empty(); // Reset Padya Number dropdown
-        $('.padya, .pathantar, .gadya, .artha, .tippani').empty(); // Clear content
+        $('#padyaContent').empty(); // Clear content
     }
 
     // Fetch and populate Padya Number dropdown based on selected Sandhi
@@ -114,17 +115,16 @@ $(document).ready(function () {
         if (!cache.padya[sandhiId]) {
             try {
                 const data = await fetchData(apiEndpoints.padyaBySandhi, 'padya', `/${sandhiId}`);
-                cache.padya[sandhiId] = data;
                 populateDropdown('#padyaNumberDropdown', data, 'padya_number', 'padya_number');
                 $('#padyaNumberDropdown').prop('disabled', false);
             } catch (e) {
-                console.log(e);
+                // Handle fetch error
             }
         } else {
             populateDropdown('#padyaNumberDropdown', cache.padya[sandhiId], 'padya_number', 'padya_number');
             $('#padyaNumberDropdown').prop('disabled', false);
         }
-        $('.padya, .pathantar, .gadya, .artha, .tippani').empty(); // Clear content
+        $('#padyaContent').empty(); // Clear content
     }
 
     // Handle changes in Parva dropdown
@@ -135,7 +135,7 @@ $(document).ready(function () {
         } else {
             $('#sandhiDropdown').prop('disabled', true).empty();
             $('#padyaNumberDropdown').prop('disabled', true).empty();
-            $('.padya, .pathantar, .gadya, .artha, .tippani').empty(); // Clear content
+            $('#padyaContent').empty(); // Clear content
         }
     }, 300));
 
@@ -146,7 +146,7 @@ $(document).ready(function () {
             await fetchPadya(selectedSandhi);
         } else {
             $('#padyaNumberDropdown').prop('disabled', true).empty();
-            $('.padya, .pathantar, .gadya, .artha, .tippani').empty(); // Clear content
+            $('#padyaContent').empty(); // Clear content
         }
     }, 300));
 
@@ -156,17 +156,23 @@ $(document).ready(function () {
         const selectedSandhi = $('#sandhiDropdown').val();
         if (selectedPadyaNumber) {
             try {
+                //const data = await fetchData(apiEndpoints.padyaContent, 'padyaContent', `/${selectedPadyaNumber}`);
                 const data = await fetchData(apiEndpoints.padyaContent, 'padyaContent', `/${selectedSandhi}/${selectedPadyaNumber}`);
+
                 $('.padya').text(data['padya']);
                 $('.pathantar').text(data['pathantar']);
                 $('.gadya').text(data['gadya']);
                 $('.artha').text(data['artha']);
                 $('.tippani').text(data['tippani']);
             } catch (e) {
-                console.log(e);
+                // Handle fetch error
             }
         } else {
-            $('.padya, .pathantar, .gadya, .artha, .tippani').empty();
+            $('.padya').empty();
+            $('.pathantar').empty();
+            $('.gadya').empty();
+            $('.artha').empty();
+            $('.tippani').empty();
         }
     }, 300));
 
@@ -211,103 +217,125 @@ $(document).ready(function () {
         postPadya(sandhiId, padyaNumber, padya, pathantar, gadya, tippani, artha);
     });
 
-    // // Show modal when button is clicked
-    // $('#viewParvaBtn').on('click', function () {
-    //     $('#parvaModal').modal('show');
-    // });
+// Function to populate modal table with Parva data
+function allParvaTable(data) {
+    const tableBody = $('#parvaTableBodyContent');
+    tableBody.empty(); // Clear the table body
+    $.each(data, function (index, parva) {
+        const row = $('<tr>');
+        row.append($('<td>').text(parva.id));
+        row.append($('<td>').text(parva.name));
+        tableBody.append(row);
+    });
+}
 
+
+
+
+
+// Function to populate modal table with all Sandhi data
+async function allSandhiTable() {
+    try {
+        const data = await fetchData(apiEndpoints.getAllSandhi, 'getAllSandhi');
+
+        const tableBody = $('#sandhiTableBodyContent');
+        tableBody.empty(); // Clear the table body
+        $.each(data, function (index, sandhi) {
+            const row = $('<tr>');
+            row.append($('<td>').text(sandhi.id));
+            row.append($('<td>').text(sandhi.name));
+            row.append($('<td>').text(sandhi.parva_id));
+            
+            tableBody.append(row);
+        });
+    } catch (error) {
+        console.error('Error fetching all Sandhi data:', error);
+        alert('Failed to fetch all Sandhi data. Please try again.');
+    }
+}
+
+
+
+    allSandhiTable();
     // Initialize dropdowns
     fetchAndPopulateParva();
 });
 
 // Function to post a new Parva
 function postParva(newParvaName) {
-    postData(apiEndpoints.insertParva, { name: newParvaName })
-        .then(response => {
+    $.ajax({
+        url: '/api/parva',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ name: newParvaName }),
+        success: function (response) {
             if (response.id && response.name) {
-                $('#parvaMessage').text(`ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${response.name}`).css('color', 'green');
-                $('#newParvaName').val('');
-                fetchAndPopulateParva(); // Refresh Parva dropdown
+                $('#parvaMessage').text(`ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ. ಐಡಿ: ${response.id}, ಹೆಸರು: ${response.name}`).css('color', 'green');
             } else {
-                $('#parvaMessage').text('ಪರ್ವ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
+                $('#parvaMessage').text('ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ').css('color', 'green');
             }
-        })
-        .catch(error => {
-            console.error('Error inserting Parva:', error);
-            $('#parvaMessage').text('ಪರ್ವ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
-        });
+            $('#newParvaName').val(''); // Clear input field
+            fetchAndPopulateParva(); // Refresh Parva dropdown
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error('Error inserting Parva:', textStatus, errorThrown);
+            $('#parvaMessage').text('ಪರ್ವ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.').css('color', 'red');
+        }
+    });
 }
 
 // Function to post a new Sandhi
 function postSandhi(parvaId, newSandhiName) {
-    postData(apiEndpoints.insertSandhi, { parva_id: parvaId, name: newSandhiName })
-        .then(response => {
+    $.ajax({
+        url: '/api/sandhi',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ parva_id: parvaId, name: newSandhiName }),
+        success: function (response) {
             if (response.id && response.name) {
-                $('#sandhiMessage').text(`ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${response.name}`).css('color', 'green');
-                $('#newSandhiName').val('');
-                $('#parvaId').val('');
-                fetchSandhi(parvaId); // Refresh Sandhi dropdown
+                $('#sandhiMessage').text(`ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ. ಐಡಿ: ${response.id}, ಹೆಸರು: ${response.name}`).css('color', 'green');
             } else {
-                $('#sandhiMessage').text('ಸಂಧಿ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
+                $('#sandhiMessage').text('ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ').css('color', 'green');
             }
-        })
-        .catch(error => {
-            console.error('Error inserting Sandhi:', error);
-            $('#sandhiMessage').text('ಸಂಧಿ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
-        });
+            $('#newSandhiName').val(''); // Clear input field
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error('Error inserting Sandhi:', textStatus, errorThrown);
+            $('#sandhiMessage').text('ಸಂಧಿ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.').css('color', 'red');
+        }
+    });
 }
 
 // Function to post a new Padya
 function postPadya(sandhiId, padyaNumber, padya, pathantar, gadya, tippani, artha) {
-    postData(apiEndpoints.insertPadya, {
-        sandhi_id: sandhiId,
-        padya_number: padyaNumber,
-        padya: padya,
-        pathantar: pathantar,
-        gadya: gadya,
-        tippani: tippani,
-        artha: artha
-    })
-        .then(response => {
-            if (response.id && response.padya_number) {
-                $('#padyaMessage').text(`ಪದ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${response.padya_number}`).css('color', 'green');
-                $('#padyaForm')[0].reset();
-                fetchPadya(sandhiId); // Refresh Padya dropdown
-            } else {
-                $('#padyaMessage').text('ಪದ್ಯ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
-            }
-        })
-        .catch(error => {
-            console.error('Error inserting Padya:', error);
-            $('#padyaMessage').text('ಪದ್ಯ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ').css('color', 'red');
-        });
-}
-
-
-
-
-// Function to populate the modal table with data
-function populateModalTable(data) {
-    const tableBody = $('#parvaTableBodyContent'); // The tbody element in the modal table
-    tableBody.empty(); // Clear any existing rows
-
-    // Check if data is an array and has items
-    if (Array.isArray(data) && data.length > 0) {
-        // Append rows to the table
-        data.forEach(item => {
-            tableBody.append(
-                `<tr>
-                    <td>${item.id}</td>
-                    <td>${item.name}</td>
-                </tr>`
-            );
-        });
-    } else {
-        // Display a message if no data is available
-        tableBody.append(
-            '<tr><td colspan="2">No data available</td></tr>'
-        );
-    }
+    $.ajax({
+        url: '/api/padya',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            sandhi_id: sandhiId,
+            padya_number: padyaNumber,
+            padya: padya,
+            pathantar: pathantar,
+            gadya: gadya,
+            tippani: tippani,
+            artha: artha
+        }),
+        success: function (response) {
+            $('#padyaMessage').text('ಪದ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ').css('color', 'green');
+            $('#sandhiId').val(''); // Clear input fields
+            $('#padyaNumber').val('');
+            $('#padya').val('');
+            $('#pathantar').val('');
+            $('#gadya').val('');
+            $('#tippani').val('');
+            $('#artha').val('');
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error('Error inserting Padya:', textStatus, errorThrown);
+            $('#padyaMessage').text('ಪದ್ಯ ಸೇರಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.').css('color', 'red');
+        }
+    });
 }
 
 
