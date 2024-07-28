@@ -1,4 +1,3 @@
-$(document).ready(function () {
     // Define API endpoints
     const apiEndpoints = {
         parva: '/api/parva',
@@ -11,6 +10,8 @@ $(document).ready(function () {
         getAllSandhi: '/api/sandhi'
 
     };
+
+$(document).ready(function () {
 
     // Cache for dropdown options
     const cache = {
@@ -150,7 +151,10 @@ $(document).ready(function () {
         }
     }, 300));
 
-    // Handle changes in Padya Number dropdown
+
+
+
+  // Handle changes in Padya Number dropdown
     $('#padyaNumberDropdown').change(debounce(async function () {
         const selectedPadyaNumber = $(this).val();
         const selectedSandhi = $('#sandhiDropdown').val();
@@ -159,11 +163,15 @@ $(document).ready(function () {
                 //const data = await fetchData(apiEndpoints.padyaContent, 'padyaContent', `/${selectedPadyaNumber}`);
                 const data = await fetchData(apiEndpoints.padyaContent, 'padyaContent', `/${selectedSandhi}/${selectedPadyaNumber}`);
 
-                $('.padya').text(data['padya']);
-                $('.pathantar').text(data['pathantar']);
-                $('.gadya').text(data['gadya']);
-                $('.artha').text(data['artha']);
-                $('.tippani').text(data['tippani']);
+                function formatText(text) {
+                    return text.replace(/\n/g, '<br>');
+                }
+
+                $('.padya').html(formatText(data['padya']));
+                $('.pathantar').html(formatText(data['pathantar']));
+                $('.gadya').html(formatText(data['gadya']));
+                $('.artha').html(formatText(data['artha']));
+                $('.tippani').html(formatText(data['tippani']));
             } catch (e) {
                 // Handle fetch error
             }
@@ -175,6 +183,8 @@ $(document).ready(function () {
             $('.tippani').empty();
         }
     }, 300));
+
+
 
     // Handle inserting a new Parva
     $('#insertParvaBtn').click(function () {
@@ -264,7 +274,7 @@ async function allSandhiTable() {
 // Function to post a new Parva
 function postParva(newParvaName) {
     $.ajax({
-        url: '/api/parva',
+        url: apiEndpoints.insertParva,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ name: newParvaName }),
@@ -287,7 +297,7 @@ function postParva(newParvaName) {
 // Function to post a new Sandhi
 function postSandhi(parvaId, newSandhiName) {
     $.ajax({
-        url: '/api/sandhi',
+        url: apiEndpoints.insertSandhi,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ parva_id: parvaId, name: newSandhiName }),
@@ -309,7 +319,7 @@ function postSandhi(parvaId, newSandhiName) {
 // Function to post a new Padya
 function postPadya(sandhiId, padyaNumber, padya, pathantar, gadya, tippani, artha) {
     $.ajax({
-        url: '/api/padya',
+        url: apiEndpoints.insertPadya,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({
