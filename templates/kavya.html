@@ -10,81 +10,105 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/kavya.css">
     <!-- jQuery via CDN -->
-    <script src="static/jquery/jquery-3.7.1.js"></script>
-    <script src="static/jquery/jquery-3.7.1.min.js"></script>
+    <script src="/static/jquery/jquery-3.7.1.js"></script>
+    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
     <!-- JavaScript -->
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <script src="static/js/kavya_process.js"></script>
+    <script src="/static/js/kavya_process.js"></script>
 </head>
 
 <body>
-    {% include 'navbar.html' %}
-    <div class="container mt-4">
-        <h5 class="mb-4 text-center">ಆಯ್ಕೆಮಾಡಿ</h5>
-        <div class="dropdowns">
-            <div class="dropdown">
-                <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
-                <select id="parvaDropdown" class="form-select">
-                    <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
-                </select>
+{% include 'navbar.html' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="left-column">
+            <div class="dropdowns">
+                <div class="dropdown">
+                    <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
+                    <select id="parvaDropdown" class="form-select">
+                        <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
+                    <select id="sandhiDropdown" class="form-select" disabled>
+                        <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                    <select id="padyaNumberDropdown" class="form-select" disabled>
+                        <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
             </div>
-            <div class="dropdown">
-                <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
-                <select id="sandhiDropdown" class="form-select" disabled>
-                    <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
-                </select>
-            </div>
-            <div class="dropdown">
-                <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                <select id="padyaNumberDropdown" class="form-select" disabled>
-                    <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
-                </select>
+        </div>
+        <div class="right-column">
+            <div class="button-list">
+                <button>ಹೆಚ್ಚಿನ ಶೋಧನೆ</button>
+                <button>ಅಕಾರಾದಿ ಸೂಚಿ</button>
+                <button>ಗಾದೆಗಳ ಸೂಚಿ</button>
+                <button>ಲೇಖನ ಸೂಚಿ</button>
+                <button>ಅರ್ಥ ಕೋಶ</button>
+                <button>ವಿಷಯ ಪರಿವಿಡಿ</button>
+                <button>ಗಮಕ</button>
+                <button>ಅನುಬಂಧ</button>
+                <button>ಟಿಪ್ಪಣಿ</button>
             </div>
         </div>
     </div>
 
 
+    <div class="audio-player-container">
+        <div class="audio-player">
+            <audio id="audio" controls>
+                <source src="static/audio/Adi_1_1.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+
     <div class="container">
         <div class="grid-container">
-          <div class="grid-item padya-container">
-            <span class="label">ಪದ್ಯ:</span>
-            <div class="padya editable">1</div>
-          </div>
-          <div class="grid-item">
-            <span class="label">ಪಾಠಾಂತರ:</span>
-            <div class="pathantar editable">2</div>
-          </div>
-          <div class="grid-item">
-            <span class="label">ಗದ್ಯ:</span>
-            <div class="gadya editable">3</div>
-          </div>
-          <div class="grid-item">
-            <span class="label">ಟಿಪ್ಪಣಿ:</span>
-            <div class="tippani editable">4</div>
-          </div>
-          <div class="grid-item">
-            <span class="label">ಅರ್ಥ:</span>
-            <div class="artha editable">5</div>
-          </div>
+            <div class="grid-item padya-container">
+                <span class="label">ಪದ್ಯ:</span>
+                <div class="padya editable">1</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಪಾಠಾಂತರ:</span>
+                <div class="pathantar editable">2</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಗದ್ಯ:</span>
+                <div class="gadya editable">3</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಟಿಪ್ಪಣಿ:</span>
+                <div class="tippani editable">4</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಅರ್ಥ:</span>
+                <div class="artha editable">5</div>
+            </div>
         </div>
-      </div>
-    
+    </div>
+</div>
 
-    <script>
-        $(document).ready(function () {
-            $('#parvaDropdown').change(function () {
-                $('#sandhiDropdown').prop('disabled', false);
-            });
-
-            $('#sandhiDropdown').change(function () {
-                $('#padyaNumberDropdown').prop('disabled', false);
-            });
-
-            $('#padyaNumberDropdown').change(function () {
-                // Add any required functionality here
-            });
+<script>
+    $(document).ready(function () {
+        $('#parvaDropdown').change(function () {
+            $('#sandhiDropdown').prop('disabled', false);
         });
-    </script>
+
+        $('#sandhiDropdown').change(function () {
+            $('#padyaNumberDropdown').prop('disabled', false);
+        });
+
+        $('#padyaNumberDropdown').change(function () {
+            // Add any required functionality here
+        });
+    });
+</script>
 </body>
 
 </html>

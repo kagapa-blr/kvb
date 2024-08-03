@@ -1,3 +1,12 @@
+## Git repository commands
+
+```bash
+git rm -r --cached . 
+git add .
+git commit -m "Clear cache"
+
+```
+
 # Flask Database Migration Guide
 
 This guide provides the steps to set up and manage database migrations using Flask-Migrate in a Flask application.
