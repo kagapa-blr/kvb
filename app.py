@@ -1,8 +1,10 @@
 import os
 import secrets
-from flask import Flask, render_template, send_from_directory, request, jsonify, redirect, url_for, session
+
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session
 from flask_migrate import Migrate
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
+
 from model.models import db, User
 from routers.parvya import parvya_bp
 from routers.users import users_bp
@@ -21,9 +23,11 @@ migrate = Migrate(app, db)
 app.register_blueprint(parvya_bp, url_prefix='/api')
 app.register_blueprint(users_bp)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/chitra/samputa')
 def chitra_samputa():
@@ -31,13 +35,16 @@ def chitra_samputa():
     image_files = [f for f in os.listdir(image_folder) if os.path.isfile(os.path.join(image_folder, f))]
     return render_template('chitra_samputa.html', images=image_files)
 
+
 @app.route('/static/images/chitra_samputa/<filename>')
 def get_image(filename):
     return send_from_directory('static/images/chitra_samputa', filename)
 
+
 @app.route('/kavya')
 def kavya():
     return render_template('kavya.html')
+
 
 @app.route('/admin')
 def admin():
@@ -45,25 +52,33 @@ def admin():
         return redirect(url_for('login'))
     return render_template('admin.html')
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            return redirect(url_for('admin'))
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user and check_password_hash(user.password, password):
+                session['user_id'] = user.id
+                return redirect(url_for('admin'))
+            error = 'Invalid username or password'
+        except Exception as e:
+            # Log the error here if needed
+            error = 'An error occurred while accessing the database. Please try again later.' + str(e)
 
-        return render_template('login.html', error='Invalid username or password')
+        return render_template('login.html', error=error)
 
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('index'))
+
 
 # Add other routes here...
 

@@ -78,16 +78,24 @@ def delete_parva(id):
 # Sandhi API endpoints
 @parvya_bp.route('/sandhi', methods=['GET'])
 def get_sandhi():
-    sandhis = Sandhi.query.all()
-    return jsonify([{'id': s.id, 'parva_id': s.parva_id, 'name': s.name} for s in sandhis])
+    try:
+        sandhis = Sandhi.query.all()
+        return jsonify([{'id': s.id, 'parva_id': s.parva_id, 'name': s.name} for s in sandhis])
+    except Exception as e:
+        print(f"Unable connect database, please check database server, {str(e)}")
+        return jsonify({'error': str(e)}), 503
 
 
 @parvya_bp.route('/sandhi/<int:id>', methods=['GET'])
 def get_sandhi_by_id(id):
-    sandhi = Sandhi.query.get(id)
-    if sandhi:
-        return jsonify({'id': sandhi.id, 'parva_id': sandhi.parva_id, 'name': sandhi.name})
-    return jsonify({'error': 'Sandhi not found'}), 404
+    try:
+        sandhi = Sandhi.query.get(id)
+        if sandhi:
+            return jsonify({'id': sandhi.id, 'parva_id': sandhi.parva_id, 'name': sandhi.name})
+        return jsonify({'error': 'Sandhi not found'}), 404
+    except Exception as e:
+        print(f"Unable connect database, please check database server, {str(e)}")
+        return jsonify({'error': str(e)}), 503
 
 
 @parvya_bp.route('/sandhi', methods=['POST'])
