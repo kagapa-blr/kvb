@@ -88,7 +88,7 @@ df = pd.DataFrame(classified_paragraphs)
 df['parva'] = 'ಆದಿಪರ್ವ'
 
 # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
-# df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
+df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
 
 # Save the DataFrame to a CSV file
 csv_file_path = 'ಆದಿಪರ್ವ.csv'

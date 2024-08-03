@@ -1,5 +1,6 @@
 import logging
 
+import sqlalchemy
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -61,9 +62,16 @@ def update_parva(id):
 def delete_parva(id):
     parva = Parva.query.get(id)
     if parva:
-        db.session.delete(parva)
-        db.session.commit()
-        return jsonify({'message': 'Parva deleted'})
+        try:
+            db.session.delete(parva)
+            db.session.commit()
+            return jsonify({'message': 'Parva deleted'})
+        except sqlalchemy.exc.IntegrityError as e:
+            db.session.rollback()
+            return jsonify({'error': 'Cannot delete this Parva due to related records', 'details': str(e)}), 400
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
     return jsonify({'error': 'Parva not found'}), 404
 
 
@@ -119,9 +127,24 @@ def update_sandhi(id):
 def delete_sandhi(id):
     sandhi = Sandhi.query.get(id)
     if sandhi:
-        db.session.delete(sandhi)
-        db.session.commit()
-        return jsonify({'message': 'Sandhi deleted'})
+        try:
+            # Handle the related padya records here
+            # Optionally, update or delete related padya records
+            # Example: Setting sandhi_id to NULL if the schema allows
+            Padya.query.filter_by(sandhi_id=id).update({'sandhi_id': None})
+            db.session.commit()
+
+            # Now delete the sandhi record
+            db.session.delete(sandhi)
+            db.session.commit()
+            return jsonify({'message': 'Sandhi deleted'})
+        except sqlalchemy.exc.IntegrityError as e:
+            db.session.rollback()
+            return jsonify(
+                {'error': 'Cannot delete this Sandhi as related Padya records are present', 'details': str(e)}), 400
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
     return jsonify({'error': 'Sandhi not found'}), 404
 
 
@@ -257,6 +280,42 @@ def create_padya():
 
 @parvya_bp.route('/padya', methods=['PUT'])
 def update_padya():
+    data = request.json
+    sandhi_id = data.get('sandhi_id')
+    padya_number = data.get('padya_number')
+
+    # Find the Padya record by both sandhi_id and padya_number
+    padya = Padya.query.filter_by(sandhi_id=sandhi_id, padya_number=padya_number).first()
+
+    if padya:
+        padya.sandhi_id = sandhi_id
+        padya.name = data.get('name', padya.name)
+        padya.padya_number = padya_number
+        padya.pathantar = data.get('pathantar', padya.pathantar)
+        padya.gadya = data.get('gadya', padya.gadya)
+        padya.tippani = data.get('tippani', padya.tippani)
+        padya.artha = data.get('artha', padya.artha)
+        padya.padya = data.get('padya', padya.padya)  # Include the new column
+
+        db.session.commit()
+
+        return jsonify({
+            'id': padya.id,
+            'sandhi_id': padya.sandhi_id,
+            'name': padya.name,
+            'padya_number': padya.padya_number,
+            'pathantar': padya.pathantar,
+            'gadya': padya.gadya,
+            'tippani': padya.tippani,
+            'artha': padya.artha,
+            'padya': padya.padya  # Include the new column
+        })
+
+    return jsonify({'error': 'Padya not found'}), 404
+
+
+@parvya_bp.route('/padya', methods=['PATCH'])
+def update_padya_field():
     data = request.json
     sandhi_id = data.get('sandhi_id')
     padya_number = data.get('padya_number')
