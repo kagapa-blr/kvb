@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-        <!-- Bootstrap CSS via CDN -->
+    <!-- Bootstrap CSS via CDN -->
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
+
     <!-- jQuery via CDN -->
-    <script src="static/jquery/jquery-3.7.1.js"></script>
-    <script src="static/jquery/jquery-3.7.1.min.js"></script>
+    <!-- <script src="static/jquery/jquery-3.7.1.js"></script> -->
     <!-- JavaScript -->
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <script src="static/js/kavya_process.js"></script>
+    <!--    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>-->
+    <!--    <script src="static/js/kavya_process.js"></script>-->
 </head>
 <body>
 {% include 'navbar.html' %}
-<div class="container">
+<div class="container login-form">
     <h1>Login</h1>
     <form action="/login" method="POST">
         <label for="username">Username:</label>
@@ -26,7 +26,7 @@
         <button type="submit" class="btn bg-primary text-lg-center">Login</button>
     </form>
     {% if error %}
-        <p style="color: red;">{{ error }}</p>
+    <p style="color: red;">{{ error }}</p>
     {% endif %}
 </div>
 

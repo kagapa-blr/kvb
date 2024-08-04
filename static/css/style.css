@@ -28,3 +28,7 @@ body {
   display: none;
 }
 
+.login-form{
+  text-align: center;
+  padding-top: 15px;
+  }
