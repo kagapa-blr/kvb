@@ -4,10 +4,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+
 class Parva(db.Model):
     __tablename__ = 'parva'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
+
 
 class Sandhi(db.Model):
     __tablename__ = 'sandhi'
@@ -16,6 +18,7 @@ class Sandhi(db.Model):
     name = db.Column(db.String(255), nullable=False)
     parva = db.relationship('Parva', backref=db.backref('sandhis', lazy=True))
     __table_args__ = (UniqueConstraint('parva_id', 'name', name='uix_1'),)
+
 
 class Padya(db.Model):
     __tablename__ = 'padya'
@@ -35,6 +38,7 @@ class Padya(db.Model):
 
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)

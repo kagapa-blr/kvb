@@ -24,7 +24,7 @@ def classify_paragraph(paragraph):
         return "patantar"
     elif text.startswith("ಟಿಪ್ಪಣಿ"):
         return "tippani"
-    elif text.startswith("ಸೂಚನೆ") or text.startswith("ಸೂ"):
+    elif text.startswith("ಸೂಚನೆ"):
         return "suchane"
     elif text.startswith("ಅರ್ಥ"):
         return "artha"
@@ -83,7 +83,7 @@ classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
 
 # Convert the list of dictionaries to a DataFrame
 df = pd.DataFrame(classified_paragraphs)
-
+# ಹೇಮಖುರಶೃಂಗಾಭರಣದಲಿ
 # Fill 'parva' column with the constant value 'parva' for all rows
 df['parva'] = 'ಆದಿಪರ್ವ'
 

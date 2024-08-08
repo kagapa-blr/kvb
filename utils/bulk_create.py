@@ -31,7 +31,7 @@ all_sandhi = get_all_sandhi()
 # Function to make a POST request to the Parva API
 def save_parva(name):
     for parva in all_parvs:
-        if parva['name'] == name:
+        if parva['name'] == name.strip():
             print(f"Parva '{name}' already exists.")
             return parva
     response = requests.post(BASE_URL + '/api/parva', json={'name': name})
@@ -46,7 +46,11 @@ def save_parva(name):
 def save_sandhi(parva_name, name):
     try:
         parva_id = save_parva(name=parva_name)
-
+        if parva_id is None:
+            return None
+        for sandhi in all_sandhi:
+            if sandhi['name'] == name.strip():
+                return sandhi
         response = requests.post(BASE_URL + '/api/sandhi', json={'parva_id': parva_id['id'], 'name': name})
         response = response.json()
         response['parva_name'] = parva_name
@@ -62,7 +66,7 @@ def save_padya(parvaname, sandhi, padya_number, pathantar, gadya, tippani, artha
     parva_id = None
     sandhi_id = None
     for parva in all_parvs:
-        if parva['name'] == parvaname:
+        if parva['name'] == parvaname.strip():
             parva_id = parva['id']
             print(f'matching parva found in existing parvas {parva} and id {parva_id}')
             break
@@ -87,7 +91,8 @@ def save_padya(parvaname, sandhi, padya_number, pathantar, gadya, tippani, artha
             'artha': artha,
             'padya': padya
         })
-        print(response.json())
+        if response.status_code == 201:
+            print(f"Successfully inserted padya {padya_number} in sandhi : {sandhi_id}")
         return response.json()
     except Exception as e:
         print(f"Error saving padya '{padya}': error: {str(e)}")
@@ -98,11 +103,16 @@ def save_padya(parvaname, sandhi, padya_number, pathantar, gadya, tippani, artha
 def process_csv(file_path):
     entry = 0
     # Read the CSV file and collect unique parvas, sandhis, and padya entries
-
     with open(file_path, 'r') as file:
         reader = csv.DictReader(file)
         padya_number = 1
         track_sandhi = []
+
+        # for row in reader:
+        #     parva_name = row['parva']
+        #     sandhi_name = row['sandhi']
+        #     save_sandhi(parva_name=parva_name, name=sandhi_name)
+        print('parva and sandhi insertion completed')
         for row in reader:
             entry += 1
             parva_name = row['parva']
@@ -131,8 +141,6 @@ def process_csv(file_path):
                        artha=artha
                        )
             time.sleep(0.100)
-        # for sandhi in unique_snadhi:
-        #     save_sandhi(parva_name='ಸಭಾಪರ್ವ', name=sandhi.strip())
 
 
-process_csv('ಸಭಾಪರ್ವ.csv')
+process_csv('Parva.csv')
