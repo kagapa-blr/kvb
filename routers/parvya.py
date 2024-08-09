@@ -297,7 +297,6 @@ def update_padya():
 
     if padya:
         padya.sandhi_id = sandhi_id
-        padya.name = data.get('name', padya.name)
         padya.padya_number = padya_number
         padya.pathantar = data.get('pathantar', padya.pathantar)
         padya.gadya = data.get('gadya', padya.gadya)
@@ -310,7 +309,6 @@ def update_padya():
         return jsonify({
             'id': padya.id,
             'sandhi_id': padya.sandhi_id,
-            'name': padya.name,
             'padya_number': padya.padya_number,
             'pathantar': padya.pathantar,
             'gadya': padya.gadya,

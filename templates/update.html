@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ಕಾವ್ಯ ಪ್ರವೇಶ</title>
+    <!-- Bootstrap CSS via CDN -->
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <link rel="stylesheet" href="/static/css/kavya.css"/>
+    <!-- jQuery via CDN -->
+    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
+    <!-- JavaScript -->
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/kavya_process.js"></script>
+    <script src="/static/js/additional-buttons.js"></script>
+</head>
+
+<body>
+{% include 'navbar.html' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="left-column">
+            <div class="dropdowns">
+                <div class="dropdown">
+                    <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
+                    <select id="parvaDropdown" class="form-select">
+                        <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
+                    <select id="sandhiDropdown" class="form-select" disabled>
+                        <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                    <select id="padyaNumberDropdown" class="form-select" disabled>
+                        <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <p>
+                    <strong>ಪರ್ವ</strong>, <strong>ಸಂಧಿ</strong> ಮತ್ತು
+                    <strong>ಪದ್ಯ ಸಂಖ್ಯೆ</strong> ಆಯ್ಕೆ ಮಾಡಲು ಮೂರು ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
+                    ನೀಡಲಾಗಿದೆ. ಆರಂಭದಲ್ಲಿ, ಸಂಧಿ ಮತ್ತು ಪದ್ಯ ಸಂಖ್ಯೆ ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
+                    ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಬಲಗಡೆ ಬಟನ್‌ಗಳ ಪಟ್ಟಿಯನ್ನು ನೀಡಲಾಗಿದೆ,
+                    ಪ್ರತಿಯೊಂದೂ ವಿವಿಧ ಹುಡುಕಾಟಗಳು ಮತ್ತು ಸೂಚ್ಯಂಕಗಳಿಗಾಗಿ ವಿಭಿನ್ನ ಮಾದರಿ
+                    ಸಂವಾದವನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ. ಈ ಕಾಲಮ್‌ಗಳ ಕೆಳಗೆ, ಆಡಿಯೊ ಫೈಲ್ ಅನ್ನು ಪ್ಲೇ
+                    ಮಾಡಲು ಆಡಿಯೊ ಪ್ಲೇಯರ್ ಇದೆ. ಅಂತಿಮವಾಗಿ, ಗ್ರಿಡ್ ವಿನ್ಯಾಸವು ಐದು
+                    ವಿಭಾಗಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ: ಪದ್ಯ, ಪಠಾಂತರ,ಗದ್ಯ, ತಿಪ್ಪಾನಿ ಮತ್ತು
+                    ಅರ್ಥ, ಪ್ರತಿಯೊಂದನ್ನು ಲೇಬಲ್ ಮಾಡಲಾಗಿದೆ ಮತ್ತು ಸಂಪಾದಿಸಬಹುದಾಗಿದೆ.
+                    ಒಟ್ಟಾರೆ ವಿನ್ಯಾಸವು ನಿರ್ದಿಷ್ಟ ಸಾಹಿತ್ಯ ವಿಭಾಗಗಳ ಆಯ್ಕೆ ಮತ್ತು ಪ್ರದರ್ಶನ,
+                    ಆಡಿಯೊ ಪ್ಲೇಬ್ಯಾಕ್ ಮತ್ತು ವಿವರವಾದ ಹುಡುಕಾಟ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು
+                    ಸುಗಮಗೊಳಿಸುತ್ತದೆ.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="audio-player-container">
+        <div class="audio-player">
+            <audio id="audio" controls>
+                <source src="static/audio/Adi_1_1.mp3" type="audio/mpeg"/>
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid-container">
+            <div class="grid-item padya-container">
+                <span class="label">ಪದ್ಯ:</span>
+                <div class="padya editable" contenteditable="true">1</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಪಾಠಾಂತರ:</span>
+                <div class="pathantar editable" contenteditable="true">2</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಗದ್ಯ:</span>
+                <div class="gadya editable" contenteditable="true">3</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಟಿಪ್ಪಣಿ:</span>
+                <div class="tippani editable" contenteditable="true">4</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಅರ್ಥ:</span>
+                <div class="artha editable" contenteditable="true">5</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button id="updateButton" class="btn btn-success">Update</button>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#parvaDropdown").change(function () {
+            $("#sandhiDropdown").prop("disabled", false);
+        });
+
+        $("#sandhiDropdown").change(function () {
+            $("#padyaNumberDropdown").prop("disabled", false);
+        });
+
+        $("#padyaNumberDropdown").change(function () {
+            // Add any required functionality here
+        });
+    });
+
+
+
+</script>
+
+{% include 'footer.html' %}
+
+</body>
+
+</html>

@@ -53,6 +53,13 @@ def admin():
     return render_template('admin.html')
 
 
+@app.route('/update')
+def update():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('update.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'user_id' in session:

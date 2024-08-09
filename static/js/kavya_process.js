@@ -231,6 +231,9 @@ $(document).ready(function () {
     allSandhiTable();
     // Initialize dropdowns
     fetchAndPopulateParva();
+
+    //update padya
+    updatePadya()
 });
 
 // Function to post a new Parva
@@ -314,5 +317,50 @@ function postPadya(sandhiId, padyaNumber, padya, pathantar, gadya, tippani, arth
             $('#padyaMessage').text('ಪದ್ಯ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ').css('color', 'red');
             handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, apiEndpoints.insertPadya);
         }
+    });
+}
+function updatePadya() {
+    document.getElementById('updateButton').addEventListener('click', () => {
+        // Collect the data from the editable fields
+        const sandhiId = parseInt(document.getElementById('sandhiDropdown').value, 10);
+        const padyaNumber = parseInt(document.getElementById('padyaNumberDropdown').value, 10);
+        const pathantar = document.querySelector('.pathantar.editable').textContent.trim();
+        const gadya = document.querySelector('.gadya.editable').textContent.trim();
+        const tippani = document.querySelector('.tippani.editable').textContent.trim();
+        const artha = document.querySelector('.artha.editable').textContent.trim();
+        const padya = document.querySelector('.padya.editable').textContent.trim();
+    
+        // Create the data object
+        const data = {
+            sandhi_id: sandhiId,
+            padya_number: padyaNumber,
+            pathantar: pathantar,
+            gadya: gadya,
+            tippani: tippani,
+            artha: artha,
+            padya: padya
+        };
+    
+        // Make the PUT request using fetch API
+        fetch('/api/padya', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+            } else {
+                alert('Padya updated successfully!');
+                // Optionally update the UI with the new data
+                console.log('Updated Padya:', data);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
     });
 }
