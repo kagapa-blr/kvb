@@ -1,7 +1,7 @@
 ## Git repository commands
 
 ```bash
-git rm -r --cached . 
+git rm -r -f --cached . 
 git add .
 git commit -m "Clear cache"
 
