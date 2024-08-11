@@ -134,7 +134,7 @@ audio {
 
 .padya-container {
   grid-column: 1 / -1; /* Span full width */
-  text-align: center; /* Center the content */
+  text-align: justify; /* Center the content */
   margin-bottom: 20px; /* Space below */
   max-width: 600px; /* Reduced width */
   margin-left: auto;
@@ -158,7 +158,7 @@ audio {
 }
 
 .gadya {
-  text-align: right; /* Right align */
+  text-align: left; /* Right align */
 }
 
 .tippani {
@@ -167,7 +167,7 @@ audio {
 }
 
 .artha {
-  text-align: right; /* Right align */
+  text-align: left; /* Right align */
   grid-column: 2 / 3; /* Second column */
 }
 
