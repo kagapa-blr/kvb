@@ -1,5 +1,4 @@
 import csv
-import time
 
 import requests
 
@@ -113,6 +112,7 @@ def process_csv(file_path):
         #     sandhi_name = row['sandhi']
         #     save_sandhi(parva_name=parva_name, name=sandhi_name)
         print('parva and sandhi insertion completed')
+
         for row in reader:
             entry += 1
             parva_name = row['parva']
@@ -122,7 +122,6 @@ def process_csv(file_path):
             tippani = row['tippani']
             artha = row['artha']
             padya = row['padya']
-
             if sandhi_name not in track_sandhi:
                 if len(track_sandhi) != 0:
                     track_sandhi.pop()
@@ -130,6 +129,14 @@ def process_csv(file_path):
                 padya_number = 1
             else:
                 padya_number += 1
+
+            try:
+                pn = padya.strip().split('||')
+                pn = [p for p in pn if p]
+                pn = int(pn[-1])
+                padya_number = pn
+            except Exception as e:
+                print(f"Error processing padya number: {padya} error: {str(e)}")
 
             save_padya(parvaname=parva_name,
                        sandhi=sandhi_name,
@@ -140,7 +147,6 @@ def process_csv(file_path):
                        padya=padya,
                        artha=artha
                        )
-            time.sleep(0.100)
 
 
 process_csv('Parva.csv')
