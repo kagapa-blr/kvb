@@ -2,9 +2,9 @@
 const statsEndpoints = {
     parvaDetails: '/api/stats',
     searchByWord: (word) => `/api/stats/search_word/${encodeURIComponent(word)}`,
-    parvaName: (sandhiId) => `/api/parva/${encodeURIComponent(sandhiId)}`
 };
 
+let searchWord = ""
 // Wait for the DOM to fully load before running the script
 document.addEventListener('DOMContentLoaded', function () {
     fetchDetails();
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add event listener for the search form
     document.getElementById('search-form').addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent the default form submission
-        const searchWord = document.getElementById('search-input').value.trim();
+        searchWord = document.getElementById('search-input').value.trim();
         if (searchWord) {
             searchByWord(searchWord);
         }
@@ -75,7 +75,7 @@ function displaySearchResults(results) {
                 <strong>ಪರ್ವದ ಹೆಸರು :</strong> ${result.parva_name}<br>
                 <strong>ಸಂಧಿ ಸಂಖ್ಯೆ :</strong> ${result.sandhi_id}<br>
                 <strong>ಪದ್ಯ ಸಂಖ್ಯೆ :</strong> ${result.padya_number}<br>
-                <strong>ಪದ್ಯ :</strong> <pre>${escapeHtml(result.padya)}</pre><br>
+                <strong>ಪದ್ಯ :</strong> <pre>${highlightWord(result.padya, searchWord)}</pre><br>
                 <strong>ಅರ್ಥ :</strong> ${result.artha}<br>
                 <strong>ಟಿಪ್ಪಣಿ :</strong> ${result.tippani.replace('nan','-')}<br>
                 <strong>ಪಾಠಾಂತರ :</strong> ${result.pathantar}<br>
@@ -95,4 +95,10 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+// Function to highlight the search word with yellow background
+function highlightWord(text, word) {
+    const escapedWord = escapeHtml(word);
+    const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
+    return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
 }
