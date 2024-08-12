@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics Dashboard</title>
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
+    
+    <script src="/static/js/statistics.js"></script>
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .stat-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        #search-results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="text-center mb-4">Statistics Overview</h1>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="stat-title">Total Parva</div>
+                        <h2 id="total-parva" class="card-title">Loading...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-title">Total Sandhi</div>
+                        <h2 id="total-sandhi" class="card-title">Loading...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-title">Total Padya</div>
+                        <h2 id="total-padya-all" class="card-title">Loading...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-title">Total Users</div>
+                        <h2 id="total-users" class="card-title">Loading...</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-center my-4">Padya in Each Sandhi</h2>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Sandhi</th>
+                    <th scope="col">Padya</th>
+                </tr>
+            </thead>
+            <tbody id="total-padya">
+                <!-- Content populated by JavaScript -->
+            </tbody>
+        </table>
+
+        <h2 class="text-center my-4">Search by Word</h2>
+        <form id="search-form" class="mb-4">
+            <div class="input-group">
+                <input id="search-input" type="text" class="form-control" placeholder="Enter a word to search..." required>
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </form>
+
+        <ul id="search-results" class="list-group">
+            <!-- Search results populated by JavaScript -->
+        </ul>
+    </div>
+</body>
+</html>

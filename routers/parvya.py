@@ -5,8 +5,10 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from model.models import db, Parva, Sandhi, Padya
+from utils.statistics import Statistics
 
 parvya_bp = Blueprint('parvya', __name__)
+stats = Statistics()
 
 
 # Parva API endpoints
@@ -26,6 +28,16 @@ def get_parva_by_id(id):
     if parva:
         return jsonify({'id': parva.id, 'name': parva.name})
     return jsonify({'error': 'Parva not found'}), 404
+
+
+@parvya_bp.route('/get_parva_name/<int:sandhi_id>', methods=['GET'])
+def get_parva_name_by_sandhi(sandhi_id):
+    sandhi = Sandhi.query.get(sandhi_id)
+    if sandhi:
+        parva_name = sandhi.parva.name
+        return jsonify({'parva_name': parva_name})
+    else:
+        return jsonify({'error': 'Sandhi not found'}), 404
 
 
 @parvya_bp.route('/parva', methods=['POST'])
@@ -386,3 +398,22 @@ def get_padya_by_sandhi(sandhi_id):
         'id': p.id,
         'padya_number': p.padya_number
     } for p in padyas])
+
+
+################################################################
+@parvya_bp.route('/stats', methods=['GET'])
+def statistics():
+    data = stats.fetch_statistics()
+    return jsonify(data)
+
+
+@parvya_bp.route('/stats/search_word/<string:search_word>', methods=['GET'])
+def search_padya_by_word(search_word):
+    data = stats.search_padya_by_word(search_word)
+    for padya in data:
+        sandhi = Sandhi.query.get(padya['sandhi_id'])
+        if sandhi:
+            parva_name = sandhi.parva.name
+            # return jsonify({'parva_name': parva_name})
+            padya['parva_name'] = parva_name
+    return jsonify(data)

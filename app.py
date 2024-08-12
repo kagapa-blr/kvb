@@ -53,6 +53,11 @@ def admin():
     return render_template('admin.html')
 
 
+@app.route('/stats')
+def new_admin():
+    return render_template('statistics.html')
+
+
 @app.route('/update')
 def update():
     if 'user_id' not in session:

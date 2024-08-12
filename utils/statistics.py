@@ -3,17 +3,16 @@ from sqlalchemy import create_engine, text
 
 class Statistics:
     def __init__(self):
-        pass
+        self.db_user = "root"  # Replace with your MySQL username
+        self.db_password = ""  # Replace with your MySQL password if applicable
+        self.db_host = "127.0.0.1"
+        self.db_name = "kvb"
+        self.db_url = f"mysql+mysqldb://{self.db_user}:{self.db_password}@{self.db_host}/{self.db_name}"
 
     def fetch_statistics(self):
-        db_user = "root"  # Replace with your MySQL username
-        db_password = ""  # Replace with your MySQL password if applicable
-        db_host = "127.0.0.1"
-        db_name = "kvb"
-        db_url = f"mysql+mysqldb://{db_user}:{db_password}@{db_host}/{db_name}"
-
-        engine = create_engine(db_url)
+        engine = create_engine(self.db_url)
         connection = engine.connect()
+        statistics = {}
 
         try:
             # Total Parva
@@ -36,18 +35,42 @@ class Statistics:
             total_users = connection.execute(text("SELECT COUNT(*) AS total_users FROM users")).scalar()
 
             # Print the results
-            print(f"Total Parva: {total_parva}")
-            print(f"Total Sandhi: {total_sandhi}")
-            print("Total Padya in Each Sandhi:")
+
+            statistics["total_parva"] = total_parva
+            statistics['total_sandhi'] = total_sandhi
+            padya_in_each_sandhi = []
             for row in total_padya:
-                print(f"Sandhi ID {row.sandhi_id}: {row.total_padya} Padya")
-            print(f"Total Padya (from all Sandhi): {total_padya_all}")
-            print(f"Total Users: {total_users}")
+                # print(f"Sandhi ID {row.sandhi_id}: {row.total_padya} Padya")
+                padya_in_each_sandhi.append((row.sandhi_id, row.total_padya))
+            statistics['padya_in_each_sandhi'] = padya_in_each_sandhi
+            statistics['total_padya'] = total_padya_all
+            statistics['total_users'] = total_users
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            connection.close()
+        return statistics
+
+    def search_padya_by_word(self, word):
+        engine = create_engine(self.db_url)
+        connection = engine.connect()
+        matching_rows = []
+
+        try:
+            # Search for rows in the padya column that contain the given word
+            # Query a Padya instance
+            query = text("SELECT * FROM padya WHERE padya LIKE :word")
+            result = connection.execute(query, {"word": f"%{word}%"}).fetchall()
+
+            # Store the matching rows
+            matching_rows = [dict(row._mapping) for row in result]
 
         except Exception as e:
             print(f"Error: {e}")
         finally:
             connection.close()
+
+        return matching_rows
 
 
 # Fetch and print statistics when the script is run directly
