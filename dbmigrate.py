@@ -60,6 +60,58 @@ def reset_database():
             connection.close()
 
 
+def deletea_all_tables():
+    # db_name = "kagahpxe_kvb"
+    # db_user = "kagahpxe_kvb"
+    # db_password = "rF*K0FTe-ZwL"  # No password
+    # db_host = "localhost"  # or your database host
+    # db_url = 'mysql://kagahpxe_kvb:rF*K0FTe-ZwL@localhost/kagahpxe_kvb'
+
+    db_name = "kvb"
+    db_user = "root"
+    db_password = ""  # No password
+    db_host = "127.0.0.1"  # or your database host
+    db_url = f"mysql+mysqldb://{db_user}:{db_password}@{db_host}/{db_name}"
+
+    sql_script_path = "kvb.sql"  # Path to your SQL script
+
+    # Create an SQLAlchemy engine
+    engine = create_engine(db_url)
+    connection = engine.connect()
+
+    try:
+        # Drop the tables in the correct order to avoid foreign key constraints issues
+        connection.execute(text("DROP TABLE IF EXISTS padya;"))
+        connection.execute(text("DROP TABLE IF EXISTS sandhi;"))
+        connection.execute(text("DROP TABLE IF EXISTS parva;"))
+        connection.execute(text("DROP TABLE IF EXISTS users;"))
+
+        # Close the connection before running the SQL script
+        connection.close()
+
+        # Run the SQL script using the SQLAlchemy engine
+        with open(sql_script_path, 'r') as file:
+            sql_script = file.read()
+
+        # Reconnect to the database
+        engine = create_engine(db_url)
+        connection = engine.connect()
+
+        # Execute the SQL script
+        connection.execute(text(sql_script))
+
+        print("Database reset successfully.")
+
+    except OperationalError as e:
+        print(f"MySQL error occurred: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        # Ensure connection is closed
+        if connection:
+            connection.close()
+
+
 def perform_migration(message):
     """
     Automates the database migration process.
@@ -81,5 +133,6 @@ def perform_migration(message):
 # Example usage
 if __name__ == '__main__':
     # reset_database()
-    migration_message = "Added password hashing to User model"
-    perform_migration(migration_message)
+    deletea_all_tables()
+    # migration_message = "Added password hashing to User model"
+    # perform_migration(migration_message)

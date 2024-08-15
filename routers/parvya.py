@@ -407,13 +407,20 @@ def statistics():
     return jsonify(data)
 
 
-@parvya_bp.route('/stats/search_word/<string:search_word>', methods=['GET'])
-def search_padya_by_word(search_word):
+@parvya_bp.route('/stats/search_word', methods=['POST'])
+def search_padya_by_word():
+    request_data = request.get_json()
+    search_word = request_data.get('search_word', '').strip()
+
+    if not search_word:
+        return jsonify({'error': 'No search word provided'}), 400
+
     data = stats.search_padya_by_word(search_word)
+
     for padya in data:
         sandhi = Sandhi.query.get(padya['sandhi_id'])
         if sandhi:
             parva_name = sandhi.parva.name
-            # return jsonify({'parva_name': parva_name})
             padya['parva_name'] = parva_name
+
     return jsonify(data)

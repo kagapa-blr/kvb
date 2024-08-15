@@ -11,7 +11,6 @@ def starts_with_kannada_digit(text):
 def classify_paragraph(paragraph):
     """Classify the paragraph based on the given rules."""
     text = paragraph.strip()
-
     if text == "ಆದಿಪರ್ವ":
         return "parva"
     elif text.startswith("ಸಂಧಿ") or text.endswith("ಸಂಧಿ"):
@@ -56,13 +55,15 @@ def read_and_classify_paragraphs(docx_file):
             # Empty paragraph indicates end of a logical paragraph
             if current_paragraph:
                 classification = classify_paragraph(current_paragraph)
+                current_entry[classification] = current_paragraph
+                current_paragraph = ""
+
+                # Append the current entry if `artha` is added
                 if classification == "artha":
                     if any(current_entry.values()):
                         classified_paragraphs.append(current_entry)
-                    current_entry = {"parva": "", "sandhi": "", "padya": "", "gadya": "", "patantar": "", "tippani": "",
-                                     "suchane": "", "artha": ""}
-                current_entry[classification] = current_paragraph
-                current_paragraph = ""
+                        current_entry = {"parva": "", "sandhi": "", "padya": "", "gadya": "", "patantar": "",
+                                         "tippani": "", "suchane": "", "artha": ""}
 
     # Add any remaining text as a paragraph
     if current_paragraph:
@@ -83,7 +84,7 @@ classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
 
 # Convert the list of dictionaries to a DataFrame
 df = pd.DataFrame(classified_paragraphs)
-# ಹೇಮಖುರಶೃಂಗಾಭರಣದಲಿ
+
 # Fill 'parva' column with the constant value 'parva' for all rows
 df['parva'] = 'ಆದಿಪರ್ವ'
 

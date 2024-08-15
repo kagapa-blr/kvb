@@ -1,10 +1,11 @@
 // Define API endpoints
 const statsEndpoints = {
     parvaDetails: '/api/stats',
-    searchByWord: (word) => `/api/stats/search_word/${encodeURIComponent(word)}`,
+    searchByWord: '/api/stats/search_word', // Endpoint for POST request
 };
 
-let searchWord = ""
+let searchWord = "";
+
 // Wait for the DOM to fully load before running the script
 document.addEventListener('DOMContentLoaded', function () {
     fetchDetails();
@@ -49,10 +50,18 @@ async function fetchDetails() {
 // Search for a word and display results
 async function searchByWord(word) {
     try {
-        const response = await fetch(statsEndpoints.searchByWord(word));
+        const response = await fetch(statsEndpoints.searchByWord, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ search_word: word }), // Send search word in request body
+        });
+
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const data = await response.json();
         displaySearchResults(data);
     } catch (error) {
@@ -96,7 +105,8 @@ function escapeHtml(text) {
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
 }
-// Function to highlight the search word with yellow background
+
+// Function to highlight the search word with a yellow background
 function highlightWord(text, word) {
     const escapedWord = escapeHtml(word);
     const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search

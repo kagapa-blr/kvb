@@ -3,7 +3,9 @@ import csv
 import requests
 
 BASE_URL = 'http://127.0.0.1:8000'
-BASE_URL = 'https://kagapa.com/kvb'
+
+
+# BASE_URL = 'https://kagapa.com/kvb'
 
 
 def get_all_parva():
@@ -108,10 +110,10 @@ def process_csv(file_path):
         padya_number = 1
         track_sandhi = []
 
-        # for row in reader:
-        #     parva_name = row['parva']
-        #     sandhi_name = row['sandhi']
-        #     save_sandhi(parva_name=parva_name, name=sandhi_name)
+        for row in reader:
+            parva_name = row['parva']
+            sandhi_name = row['sandhi']
+            save_sandhi(parva_name=parva_name, name=sandhi_name)
         print('parva and sandhi insertion completed')
 
         for row in reader:
