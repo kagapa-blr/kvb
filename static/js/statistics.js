@@ -70,29 +70,77 @@ async function searchByWord(word) {
 }
 
 // Display search results
+// function displaySearchResults(results) {
+//     const resultsContainer = document.getElementById('search-results');
+//     resultsContainer.innerHTML = ''; // Clear previous results
+
+//     if (results.length === 0) {
+//         resultsContainer.innerHTML = `
+//             <li class="list-group-item text-center text-muted">
+//                 No results found.
+//             </li>
+//         `;
+//     } else {
+//         results.forEach(result => {
+//             const totalResults = result.length;
+//             const listItem = document.createElement('li');
+//             listItem.className = 'list-group-item mb-2 p-2 border rounded shadow-sm'; // Add margin and padding for better spacing
+
+//             listItem.innerHTML = `
+//                 <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name}</h5>
+//                 <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_id}</p>
+//                 <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
+//                 <p class="mb-2"><strong>ಪದ್ಯ:</strong> <pre class="bg-light p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
+//                 <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha}</p>
+//                 <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${result.tippani.replace('nan','-')}</p>
+//                 <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar}</p>
+//             `;
+            
+//             resultsContainer.appendChild(listItem);
+//         });
+//     }
+// }
+
+// Display search results
 function displaySearchResults(results) {
     const resultsContainer = document.getElementById('search-results');
     resultsContainer.innerHTML = ''; // Clear previous results
 
-    if (results.length === 0) {
-        resultsContainer.innerHTML = '<li class="list-group-item">No results found.</li>';
+    // Display total results count
+    const totalResults = results.length;
+    const resultsSummary = document.createElement('div');
+    resultsSummary.className = 'mb-3';
+    resultsSummary.innerHTML = `
+        <p class="text-muted">Found ${totalResults} result${totalResults !== 1 ? 's' : ''}.</p>
+    `;
+    resultsContainer.appendChild(resultsSummary);
+
+    if (totalResults === 0) {
+        resultsContainer.innerHTML += `
+            <li class="list-group-item text-center text-muted">
+                No results found.
+            </li>
+        `;
     } else {
         results.forEach(result => {
             const listItem = document.createElement('li');
-            listItem.className = 'list-group-item';
+            listItem.className = 'list-group-item mb-3 p-3 border rounded shadow-sm'; // Add margin and padding for better spacing
+
             listItem.innerHTML = `
-                <strong>ಪರ್ವದ ಹೆಸರು :</strong> ${result.parva_name}<br>
-                <strong>ಸಂಧಿ ಸಂಖ್ಯೆ :</strong> ${result.sandhi_id}<br>
-                <strong>ಪದ್ಯ ಸಂಖ್ಯೆ :</strong> ${result.padya_number}<br>
-                <strong>ಪದ್ಯ :</strong> <pre>${highlightWord(result.padya, searchWord)}</pre><br>
-                <strong>ಅರ್ಥ :</strong> ${result.artha}<br>
-                <strong>ಟಿಪ್ಪಣಿ :</strong> ${result.tippani.replace('nan','-')}<br>
-                <strong>ಪಾಠಾಂತರ :</strong> ${result.pathantar}<br>
+                <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name}</h5>
+                <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_id}</p>
+                <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
+                <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="bg-light p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
+                <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha}</p>
+                <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${result.tippani.replace('nan','-')}</p>
+                <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar}</p>
             `;
+            
             resultsContainer.appendChild(listItem);
         });
     }
 }
+
 
 // Function to escape HTML entities
 function escapeHtml(text) {
