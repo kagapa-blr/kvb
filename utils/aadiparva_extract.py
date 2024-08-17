@@ -90,6 +90,7 @@ df['parva'] = 'ಆದಿಪರ್ವ'
 
 # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
 df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
+df = df[df['padya'].notna() & (df['padya'].str.strip() != '')]
 
 # Save the DataFrame to a CSV file
 csv_file_path = 'ಆದಿಪರ್ವ.csv'

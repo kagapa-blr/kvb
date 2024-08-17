@@ -1,4 +1,5 @@
 import csv
+import re
 
 import requests
 
@@ -13,6 +14,16 @@ class ParvaSandhiManager:
         self.base_url = base_url
         self.all_parvs = self.get_all_parva()
         self.all_sandhi = self.get_all_sandhi()
+
+    def extract_kannada_number(self, padya):
+        # Define a regex pattern to match Kannada digits enclosed by |, ||, or |||
+        pattern = r'\|\s*([೦-೯]+)\s*\|{1,3}'
+        # Search for the pattern in the text
+        match = re.search(pattern, padya)
+        # Return the matched number if found, otherwise return None
+        if match:
+            return match.group(1)
+        return None
 
     def get_all_parva(self):
         response = requests.get(self.base_url + '/api/parva')
@@ -140,9 +151,10 @@ class ParvaSandhiManager:
                     padya_number += 1
 
                 try:
-                    pn = padya.strip().split('||')
-                    pn = [p for p in pn if p]
-                    padya_number = int(pn[-1])
+                    # pn = padya.strip().split('||')
+                    # pn = [p for p in pn if p]
+                    # padya_number = int(pn[-1])
+                    padya_number = int(self.extract_kannada_number(padya))
                 except Exception as e:
                     print(f"Error processing padya number: {padya} error: {str(e)}")
 
@@ -161,6 +173,6 @@ if __name__ == "__main__":
     manager = ParvaSandhiManager(BASE_URL)
     # First insert parva and sandhi
     # first run for parva
-    manager.process_parva_sandhi('Parva.csv')
+    # manager.process_parva_sandhi('Parva.csv')
     # Then process padya entries
     manager.process_csv('Parva.csv')
