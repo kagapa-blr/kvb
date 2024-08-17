@@ -1,11 +1,22 @@
 import docx
 import pandas as pd
+from docx import Document
 
 KANNADA_DIGITS = {'೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'}
 
 
 def starts_with_kannada_digit(text):
     return text and text[0] in KANNADA_DIGITS
+
+
+def read_docx(file_path):
+    doc = Document(file_path)
+    paragraphs = []
+
+    for para in doc.paragraphs:
+        paragraphs.append(para.text)
+
+    return paragraphs
 
 
 def classify_paragraph(paragraph):
