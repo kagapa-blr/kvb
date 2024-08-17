@@ -1,3 +1,5 @@
+import re
+
 import docx
 import pandas as pd
 
@@ -13,7 +15,7 @@ def classify_paragraph(paragraph):
     text = paragraph.strip()
     if text == "ಆದಿಪರ್ವ":
         return "parva"
-    elif text.startswith("ಸಂಧಿ") or text.endswith("ಸಂಧಿ"):
+    elif text.startswith("ಸಂಧಿ") or text.endswith("ಸಂಧי"):
         return "sandhi"
     elif text.endswith("||"):
         return "padya"
@@ -31,6 +33,11 @@ def classify_paragraph(paragraph):
         return "unknown"
 
 
+def split_on_multiple_spaces(text):
+    """Split the text on sequences of more than two spaces."""
+    return re.split(r'\s{3,}', text)
+
+
 def read_and_classify_paragraphs(docx_file):
     # Load the DOCX file
     doc = docx.Document(docx_file)
@@ -45,39 +52,50 @@ def read_and_classify_paragraphs(docx_file):
     # Iterate through each paragraph in the document
     for paragraph in doc.paragraphs:
         text = paragraph.text.strip()
+
         if text:
-            # Concatenate text to the current paragraph
-            if current_paragraph:
-                current_paragraph += "\n" + text
-            else:
-                current_paragraph = text
-        else:
-            # Empty paragraph indicates end of a logical paragraph
-            if current_paragraph:
+            # Split on sequences of more than two spaces
+            parts = split_on_multiple_spaces(text)
+
+            for part in parts:
+                if current_paragraph:
+                    current_paragraph += "\n" + part
+                else:
+                    current_paragraph = part
+
                 classification = classify_paragraph(current_paragraph)
                 current_entry[classification] = current_paragraph
                 current_paragraph = ""
 
-                # Append the current entry if `artha` is added
-                if classification == "artha":
+                if classification == "artha" or classification == "unknown":
                     if any(current_entry.values()):
                         classified_paragraphs.append(current_entry)
                         current_entry = {"parva": "", "sandhi": "", "padya": "", "gadya": "", "patantar": "",
                                          "tippani": "", "suchane": "", "artha": ""}
 
-    # Add any remaining text as a paragraph
+        else:
+            if current_paragraph:
+                classification = classify_paragraph(current_paragraph)
+                current_entry[classification] = current_paragraph
+                current_paragraph = ""
+
+                if classification == "artha" or classification == "unknown":
+                    if any(current_entry.values()):
+                        classified_paragraphs.append(current_entry)
+                        current_entry = {"parva": "", "sandhi": "", "padya": "", "gadya": "", "patantar": "",
+                                         "tippani": "", "suchane": "", "artha": ""}
+
     if current_paragraph:
         classification = classify_paragraph(current_paragraph)
         current_entry[classification] = current_paragraph
-        if classification == "artha":
-            if any(current_entry.values()):
-                classified_paragraphs.append(current_entry)
+        if any(current_entry.values()):
+            classified_paragraphs.append(current_entry)
 
     return classified_paragraphs
 
 
 # Specify the path to your DOCX file
-docx_file_path = '../docs/ಆದಿಪರ್ವ.docx'
+docx_file_path = '../docs/Adiparvarevised.docx'
 
 # Call the function to read and classify paragraphs
 classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
@@ -90,9 +108,10 @@ df['parva'] = 'ಆದಿಪರ್ವ'
 
 # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
 df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
+df = df[df['padya'].notna() & df['padya'].str.strip().astype(bool)]
 
 # Save the DataFrame to a CSV file
 csv_file_path = 'ಆದಿಪರ್ವ.csv'
-df.to_csv(csv_file_path, index=False)
+df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
 
 print(f"Classified paragraphs have been saved to {csv_file_path}")

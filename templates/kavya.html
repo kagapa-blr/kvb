@@ -131,29 +131,31 @@
 <!-- Scrollable Modal Examples -->
 <div class="Scrollable-Modal">
 
-    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Content for "ಹೆಚ್ಚಿನ ಶೋಧನೆ" -->
-                    <p>
-                        Here is some detailed content for the "ಹೆಚ್ಚಿನ ಶೋಧನೆ" section. Add
-                        enough content to test scrolling behavior.
-                    </p>
-                    <!-- Repeat content to ensure scrolling -->
-                    <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-                        sit amet accumsan arcu...
-                    </p>
-                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                </div>
+<!-- Modal Structure -->
+<div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-top modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h3 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h3>
+                <form id="search-form" class="mb-4">
+                    <div class="input-group">
+                        <input id="search-input" type="text" class="form-control" placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..." required>
+                        <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
+                    </div>
+                </form>
+                <ul id="search-results" class="list-group">
+                    <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
+                </ul>
             </div>
         </div>
     </div>
+</div>
+
+    
 
     <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="modal2Label" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable">
