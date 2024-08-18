@@ -168,6 +168,20 @@ class ParvaSandhiManager:
                                 padya=padya
                                 )
 
+    def add_user(self):
+        user_data = {
+            "username": "admin",
+            "password": "pass@2024",
+            "phone_number": 123243434,
+            "email": "kagapa@gmail.com"
+        }
+        try:
+            response = requests.post(self.base_url + '/api/users', json=user_data)
+            print(response.json())
+        except Exception as e:
+            print(f"Error adding user: {str(e)}")
+        return response
+
 
 if __name__ == "__main__":
     manager = ParvaSandhiManager(BASE_URL)
@@ -176,3 +190,4 @@ if __name__ == "__main__":
     # manager.process_parva_sandhi('Parva.csv')
     # Then process padya entries
     manager.process_csv('Parva.csv')
+    manager.add_user()

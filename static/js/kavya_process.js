@@ -319,6 +319,8 @@ function postPadya(sandhiId, padyaNumber, padya, pathantar, gadya, tippani, arth
         }
     });
 }
+
+
 function updatePadya() {
     const updateButton = document.getElementById('updateButton');
 
@@ -327,11 +329,11 @@ function updatePadya() {
             // Collect the data from the editable fields
             const sandhiId = parseInt(document.getElementById('sandhiDropdown').value, 10);
             const padyaNumber = parseInt(document.getElementById('padyaNumberDropdown').value, 10);
-            const pathantar = document.querySelector('.pathantar.editable').textContent.trim();
-            const gadya = document.querySelector('.gadya.editable').textContent.trim();
-            const tippani = document.querySelector('.tippani.editable').textContent.trim();
-            const artha = document.querySelector('.artha.editable').textContent.trim();
-            const padya = document.querySelector('.padya.editable').textContent.trim();
+            const pathantar = document.querySelector('.pathantar.editable').innerText.trim();
+            const gadya = document.querySelector('.gadya.editable').innerText.trim();
+            const tippani = document.querySelector('.tippani.editable').innerText.trim();
+            const artha = document.querySelector('.artha.editable').innerText.trim();
+            const padya = document.querySelector('.padya.editable').innerText.trim();
 
             // Create the data object
             const data = {
