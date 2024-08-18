@@ -9,7 +9,8 @@ USE kvb;
 -- Table to store options for the first dropdown (Parva)
 CREATE TABLE IF NOT EXISTS parva (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    parvantya TEXT
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Table to store options for the second dropdown (Sandhi)
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS padya (
     gadya TEXT,
     tippani TEXT,
     artha TEXT,
+    suchane TEXT,
     padya TEXT,  -- New column added
     FOREIGN KEY (sandhi_id) REFERENCES sandhi(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
