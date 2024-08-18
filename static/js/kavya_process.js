@@ -10,16 +10,36 @@ const apiEndpoints = {
     getAllSandhi: '/api/sandhi'
 };
 
+let padyaNumbers = []; // List to store padya numbers
+let currentIndex = 0; // Index to keep track of current padya number
+
+// Function to fetch data from API with error handling
+async function fetchData(url, params = '') {
+    try {
+        const response = await $.getJSON(`${url}${params}`);
+        return response;
+    } catch (jqXHR) {
+        handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, url);
+        throw jqXHR;
+    }
+}
+// Debounce function to limit the rate of API calls
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+// Function to handle API errors
+function handleApiError(jqXHR, textStatus, errorThrown, context) {
+    console.error(`Error fetching ${context} data:`, textStatus, errorThrown);
+    alert(`Failed to fetch ${context}. Please try again.`);
+}
+
+
 $(document).ready(function () {
 
-    // Debounce function to limit the rate of API calls
-    function debounce(func, wait) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
 
     // Function to populate a dropdown with data
     function populateDropdown(selector, data, valueKey, textKey) {
@@ -34,22 +54,8 @@ $(document).ready(function () {
         });
     }
 
-    // Function to handle API errors
-    function handleApiError(jqXHR, textStatus, errorThrown, context) {
-        console.error(`Error fetching ${context} data:`, textStatus, errorThrown);
-        alert(`Failed to fetch ${context}. Please try again.`);
-    }
 
-    // Function to fetch data from API with error handling
-    async function fetchData(url, params = '') {
-        try {
-            const response = await $.getJSON(`${url}${params}`);
-            return response;
-        } catch (jqXHR) {
-            handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, url);
-            throw jqXHR;
-        }
-    }
+
 
     // Function to post data to API with error handling
     async function postData(url, data) {
@@ -98,8 +104,16 @@ $(document).ready(function () {
             const data = await fetchData(apiEndpoints.padyaBySandhi, `/${sandhiId}`);
             populateDropdown('#padyaNumberDropdown', data, 'padya_number', 'padya_number');
             $('#padyaNumberDropdown').prop('disabled', false);
+
+
+            // Store padya numbers in the list
+            padyaNumbers = data.map(item => item.padya_number);
+
+
+
         } catch (e) {
             // Handle fetch error
+            console.log('Erorr in fetching padya')
         }
         $('#padyaContent').empty(); // Clear content
     }
@@ -127,9 +141,12 @@ $(document).ready(function () {
         }
     }, 300));
 
+
+
     // Handle changes in Padya Number dropdown
     $('#padyaNumberDropdown').change(debounce(async function () {
         const selectedPadyaNumber = $(this).val();
+        currentIndex = selectedPadyaNumber;
         const selectedSandhi = $('#sandhiDropdown').val();
         if (selectedPadyaNumber) {
             try {
@@ -144,6 +161,9 @@ $(document).ready(function () {
                 $('.gadya').html(formatText(data['gadya']));
                 $('.artha').html(formatText(data['artha']));
                 $('.tippani').html(formatText(data['tippani']));
+
+
+
             } catch (e) {
                 // Handle fetch error
             }
@@ -154,7 +174,81 @@ $(document).ready(function () {
             $('.artha').empty();
             $('.tippani').empty();
         }
+
+
     }, 300));
+
+
+
+    // Handle click event for the Previous button
+    $('#check-previous').click(async function () {
+
+        // Set initial index based on dropdown value
+        const initialPadya = $('#padyaNumberDropdown').val();
+        console.log('initial padya', initialPadya)
+        currentIndex = padyaNumbers.indexOf(parseInt(initialPadya, 10)); // Find index of the initial value
+
+        if (currentIndex === -1 && padyaNumbers.length > 0) {
+            currentIndex = padyaNumbers.length - 1; // Default to last item if initial value not found
+        }
+
+
+        if (currentIndex > 0) {
+            currentIndex--; // Decrement the index
+        } else {
+            console.log('No previous padya number');
+            return; // No previous padya number
+        }
+
+        const currentSandhi = $('#sandhiDropdown').val();
+        const currentPadya = padyaNumbers[currentIndex]; // Get the current padya number
+
+        if (currentSandhi && currentPadya) {
+            await fetchAndDisplayData(currentSandhi, currentPadya);
+            $('#padyaNumberDropdown').val(currentPadya); // Update dropdown value
+        } else {
+            console.log('Sandhi or Padya number is missing');
+        }
+
+
+    });
+
+    // Handle click event for the Next button
+    $('#check-next').click(async function () {
+
+        // Set initial index based on dropdown value
+        const initialPadya = $('#padyaNumberDropdown').val();
+        console.log('initial padya', initialPadya)
+        currentIndex = padyaNumbers.indexOf(parseInt(initialPadya, 10)); // Find index of the initial value
+
+        if (currentIndex === -1 && padyaNumbers.length > 0) {
+            currentIndex = padyaNumbers.length - 1; // Default to last item if initial value not found
+        }
+
+
+        if (currentIndex < padyaNumbers.length - 1) {
+            currentIndex++; // Increment the index
+        } else {
+            console.log('No next padya number');
+            return; // No next padya number
+        }
+
+        const currentSandhi = $('#sandhiDropdown').val();
+        const currentPadya = padyaNumbers[currentIndex]; // Get the current padya number
+
+        if (currentSandhi && currentPadya) {
+            await fetchAndDisplayData(currentSandhi, currentPadya);
+            $('#padyaNumberDropdown').val(currentPadya); // Update dropdown value
+        } else {
+            console.log('Sandhi or Padya number is missing');
+        }
+
+
+    });
+
+
+
+
 
     // Handle inserting a new Parva
     $('#insertParvaBtn').click(function () {
@@ -227,6 +321,17 @@ $(document).ready(function () {
             alert('Failed to fetch all Sandhi data. Please try again.');
         }
     }
+
+    // Function to format numbers to two digits
+    function formatNumber(number) {
+        return number.toString().padStart(2, '0');
+    }
+
+
+
+    // Initialize the audio source when the document is ready
+    initializeAudioDropdowns();
+
 
     allSandhiTable();
     // Initialize dropdowns
@@ -354,19 +459,92 @@ function updatePadya() {
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(`Error: ${data.error}`);
-                } else {
-                    alert('Padya updated successfully!');
-                    // Optionally update the UI with the new data
-                    console.log('Updated Padya:', data);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(`Error: ${data.error}`);
+                    } else {
+                        alert('Padya updated successfully!');
+                        // Optionally update the UI with the new data
+                        console.log('Updated Padya:', data);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
         });
     }
+}
+
+
+// Define the reusable function
+async function fetchAndDisplayData(sandhiId, padyaNumber) {
+    if (padyaNumber) {
+        try {
+            const data = await fetchData(apiEndpoints.padyaContent, `/${sandhiId}/${padyaNumber}`);
+
+            function formatText(text) {
+                return text.replace(/\n/g, '<br>');
+            }
+
+            $('.padya').html(formatText(data['padya']));
+            $('.pathantar').html(formatText(data['pathantar']));
+            $('.gadya').html(formatText(data['gadya']));
+            $('.artha').html(formatText(data['artha']));
+            $('.tippani').html(formatText(data['tippani']));
+
+        } catch (e) {
+            // Handle fetch error
+            console.error('Fetch error:', e);
+        }
+    } else {
+        $('.padya').empty();
+        $('.pathantar').empty();
+        $('.gadya').empty();
+        $('.artha').empty();
+        $('.tippani').empty();
+    }
+}
+
+
+
+
+
+function initializeAudioDropdowns() {
+    const parvaDropdown = document.getElementById('parvaDropdown');
+    const sandhiDropdown = document.getElementById('sandhiDropdown');
+    const padyaNumberDropdown = document.getElementById('padyaNumberDropdown');
+    const audioElement = document.getElementById('audio');
+    const audioSource = document.querySelector('#audio source');
+    const nextButton = document.querySelector('#check-next')
+    const previousButton = document.querySelector('#check-previous')
+
+
+    // Function to format numbers to two digits
+    function formatNumber(number) {
+        return number.toString().padStart(2, '0');
+    }
+
+    // Function to update the audio source based on dropdown selections
+    function updateAudioSource() {
+        const parva = formatNumber(parvaDropdown.value);
+        const sandhi = formatNumber(sandhiDropdown.value);
+        let padya = formatNumber(currentIndex);
+        if (padya == 0) {
+            padya = formatNumber(padyaNumberDropdown.value);
+        }
+        if (parva && sandhi && padya) {
+            const fileName = `${parva}-${sandhi}-${padya}.mp3`;
+            audioSource.src = `static/audio/01-aadiparva/${fileName}`;
+            audioElement.load(); // Reload audio element with new source
+        }
+    }
+
+    // Add event listeners to dropdowns
+    padyaNumberDropdown.addEventListener('change', updateAudioSource);
+    nextButton.addEventListener('click', updateAudioSource);
+    previousButton.addEventListener('click', updateAudioSource);
+
+    // Return the updateAudioSource function so it can be called externally
+    return updateAudioSource;
 }
