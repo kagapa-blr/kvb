@@ -185,7 +185,6 @@ $(document).ready(function () {
 
         // Set initial index based on dropdown value
         const initialPadya = $('#padyaNumberDropdown').val();
-        console.log('initial padya', initialPadya)
         currentIndex = padyaNumbers.indexOf(parseInt(initialPadya, 10)); // Find index of the initial value
 
         if (currentIndex === -1 && padyaNumbers.length > 0) {
@@ -218,7 +217,6 @@ $(document).ready(function () {
 
         // Set initial index based on dropdown value
         const initialPadya = $('#padyaNumberDropdown').val();
-        console.log('initial padya', initialPadya)
         currentIndex = padyaNumbers.indexOf(parseInt(initialPadya, 10)); // Find index of the initial value
 
         if (currentIndex === -1 && padyaNumbers.length > 0) {
@@ -530,9 +528,21 @@ function initializeAudioDropdowns() {
         const parva = formatNumber(parvaDropdown.value);
         const sandhi = formatNumber(sandhiDropdown.value);
         let padya = formatNumber(currentIndex);
-        if (padya == 0) {
+
+
+
+
+        if (padya <= 0) {
             padya = formatNumber(padyaNumberDropdown.value);
         }
+
+        const converted = parseInt(padya, 10);
+
+        if (isNaN(converted) || !isFinite(converted)) {
+            console.log('padya', padya)
+            return
+        }
+        
         if (parva && sandhi && padya) {
             const fileName = `${parva}-${sandhi}-${padya}.mp3`;
             audioSource.src = `static/audio/01-aadiparva/${fileName}`;
