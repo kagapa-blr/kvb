@@ -4,6 +4,31 @@ from docx import Document
 KANNADA_DIGITS = {'೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'}
 
 
+def read_docx_for_paragraphs(file_path):
+    doc = Document(file_path)
+    paragraphs = []
+    current_paragraph = ""
+
+    for para in doc.paragraphs:
+        text = para.text.strip()
+
+        if text:  # If the line is not empty or has a length greater than 0
+            if current_paragraph:
+                current_paragraph += "\n" + text  # Append the text to the current paragraph
+            else:
+                current_paragraph = text
+        else:
+            if current_paragraph:
+                paragraphs.append(current_paragraph)  # Append the accumulated paragraph to the list
+                current_paragraph = ""  # Reset for the next paragraph
+
+    # Add the last paragraph if not empty
+    if current_paragraph:
+        paragraphs.append(current_paragraph)
+
+    return paragraphs
+
+
 def starts_with_kannada_digit(text):
     return text and text[0] in KANNADA_DIGITS
 
@@ -40,12 +65,13 @@ def classify_paragraph(paragraph):
 
 
 def read_and_classify_paragraphs(docx_file):
-    all_paragraphs = read_docx(docx_file)
+    all_paragraphs = read_docx_for_paragraphs(docx_file)  # read_docx(docx_file)
     classified_paragraphs = []
     current_entry = {"parva": "", "sandhi": "", "padya": "", "gadya": "", "patantar": "", "tippani": "", "suchane": "",
                      "artha": ""}
     for para in all_paragraphs:
         para = para.strip()
+        print('para: ', para, type(para), len(para))
         section = classify_paragraph(para)
 
         # Update the current entry with the identified section
@@ -65,7 +91,7 @@ def read_and_classify_paragraphs(docx_file):
 
 
 # Specify the path to your DOCX file
-docx_file_path = '../docs/Adiparvarevised.docx'
+docx_file_path = '../docs/ಸಭಾಪರ್ವ.docx'
 
 # Call the function to read and classify paragraphs
 classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
@@ -74,13 +100,15 @@ classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
 df = pd.DataFrame(classified_paragraphs)
 
 # Fill 'parva' column with the constant value 'parva' for all rows
-df['parva'] = 'ಆದಿಪರ್ವ'
+df['parva'] = 'ಸಭಾಪರ್ವ'
 
 # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
 df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
 df = df[df['padya'].notna() & (df['padya'].str.strip() != '')]
+# df = df[(df['padya'].str.strip() == '')]
+
 # Save the DataFrame to a CSV file
-csv_file_path = 'ಆದಿಪರ್ವ.csv'
+csv_file_path = 'ಸಭಾಪರ್ವ.csv'
 df.to_csv(csv_file_path, index=False, encoding='utf-8')
 
 print(f"Classified paragraphs have been saved to {csv_file_path}")

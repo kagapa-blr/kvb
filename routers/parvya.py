@@ -403,7 +403,10 @@ def get_padya_by_sandhi(sandhi_id):
 ################################################################
 @parvya_bp.route('/stats', methods=['GET'])
 def statistics():
-    data = stats.fetch_statistics()
+    try:
+        data = stats.fetch_statistics()
+    except Exception as e:
+        return f"unable to fetch statistics please restart the database server", 500
     return jsonify(data)
 
 
