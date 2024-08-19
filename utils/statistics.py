@@ -21,11 +21,27 @@ class Statistics:
             # Total Sandhi
             total_sandhi = connection.execute(text("SELECT COUNT(*) AS total_sandhi FROM sandhi")).scalar()
 
+            # Total Sandhi in Each Parva
+            total_sandhi_in_each_parva = connection.execute(text("""
+                SELECT parva_id, COUNT(*) AS total_sandhi
+                FROM sandhi
+                GROUP BY parva_id
+            """)).fetchall()
+
             # Total Padya in Each Sandhi
-            total_padya = connection.execute(text("""
+            total_padya_in_each_sandhi = connection.execute(text("""
                 SELECT sandhi_id, COUNT(*) AS total_padya 
                 FROM padya 
                 GROUP BY sandhi_id
+            """)).fetchall()
+
+            # Total Padya in Each Parva
+            total_padya_in_each_parva = connection.execute(text("""
+                SELECT p.id AS parva_id, COUNT(pa.id) AS total_padya
+                FROM padya pa
+                JOIN sandhi s ON pa.sandhi_id = s.id
+                JOIN parva p ON s.parva_id = p.id
+                GROUP BY p.id
             """)).fetchall()
 
             # Total Padya (from all Sandhi)
@@ -34,17 +50,25 @@ class Statistics:
             # Total Users
             total_users = connection.execute(text("SELECT COUNT(*) AS total_users FROM users")).scalar()
 
-            # Print the results
-
+            # Organizing results into the statistics dictionary
             statistics["total_parva"] = total_parva
             statistics['total_sandhi'] = total_sandhi
-            padya_in_each_sandhi = []
-            for row in total_padya:
-                # print(f"Sandhi ID {row.sandhi_id}: {row.total_padya} Padya")
-                padya_in_each_sandhi.append((row.sandhi_id, row.total_padya))
-            statistics['padya_in_each_sandhi'] = padya_in_each_sandhi
+
+            statistics['sandhi_in_each_parva'] = [
+                (row.parva_id, row.total_sandhi) for row in total_sandhi_in_each_parva
+            ]
+
+            statistics['padya_in_each_sandhi'] = [
+                (row.sandhi_id, row.total_padya) for row in total_padya_in_each_sandhi
+            ]
+
+            statistics['padya_in_each_parva'] = [
+                (row.parva_id, row.total_padya) for row in total_padya_in_each_parva
+            ]
+
             statistics['total_padya'] = total_padya_all
             statistics['total_users'] = total_users
+
         except Exception as e:
             print(f"Error: {e}")
         finally:
@@ -58,7 +82,6 @@ class Statistics:
 
         try:
             # Search for rows in the padya column that contain the given word
-            # Query a Padya instance
             query = text("SELECT * FROM padya WHERE padya LIKE :word")
             result = connection.execute(query, {"word": f"%{word}%"}).fetchall()
 
@@ -76,4 +99,5 @@ class Statistics:
 # Fetch and print statistics when the script is run directly
 if __name__ == "__main__":
     stats = Statistics()
-    stats.fetch_statistics()
+    statistics = stats.fetch_statistics()
+    print(statistics)

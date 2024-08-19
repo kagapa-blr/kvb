@@ -7,6 +7,7 @@ def read_docx(file_path):
     data = []
 
     for table in document.tables:
+
         for row in table.rows:
             row_data = []
             for cell in row.cells:
@@ -40,14 +41,14 @@ def process_data(df):
     return pd.DataFrame(processed_data, columns=['ಸಂಧಿ', 'ಪದ್ಯ', 'ಟಿಪ್ಪಣಿ'])
 
 
-file_path = '../docs/ಟಿಪ್ಪಣಿಗಳು-ಆದಿಪರ್ವ.docx'
+file_path = '../docs/ಸಭಾಪರ್ವ-ಟಿಪ್ಪಣಿಗಳು.docx'
 data = read_docx(file_path)
 
 # Filter rows to only include those with exactly 3 columns
-filtered_data = [entry for entry in data if len(entry) == 3]
-
+filtered_data = [entry for entry in data]
+print(filtered_data)
 # Create a DataFrame
-df = pd.DataFrame(filtered_data, columns=['ಸಂಧಿ', 'ಪದ್ಯ', 'ಟಿಪ್ಪಣಿ'])
+df = pd.DataFrame(filtered_data, columns=['ಸಂಧಿ', 'ಪದ್ಯ', 'ಗುಣಗಳು', 'ಟಿಪ್ಪಣಿ', ''])
 
 # Forward fill the 'ಸಂಧಿ' column for any empty cells
 df['ಸಂಧಿ'] = df['ಸಂಧಿ'].replace('', pd.NA).ffill()
@@ -56,7 +57,7 @@ df['ಸಂಧಿ'] = df['ಸಂಧಿ'].replace('', pd.NA).ffill()
 processed_df = process_data(df)
 
 # Save to CSV
-csv_file_path = 'ಟಿಪ್ಪಣಿಗಳು-ಆದಿಪರ್ವ.csv'
+csv_file_path = 'ಸಭಾಪರ್ವ-ಟಿಪ್ಪಣಿಗಳು.csv'
 processed_df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
 
 print(f'Data successfully saved to {csv_file_path}')

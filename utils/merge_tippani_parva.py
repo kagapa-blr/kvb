@@ -3,8 +3,11 @@ import re
 import pandas as pd
 
 # Read the CSV files into DataFrames
-parva_df = pd.read_csv('ಆದಿಪರ್ವ.csv')
-tippani_df = pd.read_csv('ಟಿಪ್ಪಣಿಗಳು-ಆದಿಪರ್ವ.csv')
+# parva_df = pd.read_csv('ಆದಿಪರ್ವ.csv')
+# tippani_df = pd.read_csv('ಟಿಪ್ಪಣಿಗಳು-ಆದಿಪರ್ವ.csv')
+
+parva_df = pd.read_csv('ಸಭಾಪರ್ವ.csv')
+tippani_df = pd.read_csv('ಸಭಾಪರ್ವ-ಟಿಪ್ಪಣಿಗಳು.csv')
 
 # Ensure padya columns are strings and handle NaN values
 parva_df['padya'] = parva_df['padya'].astype(str).fillna('')
@@ -45,4 +48,4 @@ for tippani_index, tippani_row in tippani_df.iterrows():
 parva_df = parva_df.replace("nan", "-")
 
 # Save the updated DataFrame back to Parva.csv
-parva_df.to_csv('Parva.csv', index=False, encoding='utf8')
+parva_df.to_csv('SabhaParva.csv', index=False, encoding='utf8')

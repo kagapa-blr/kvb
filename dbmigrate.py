@@ -1,66 +1,8 @@
-import subprocess
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
 
 def reset_database():
-    """
-    Resets the database by dropping it if it exists, recreating it, and running the SQL script to set up the schema.
-    """
-    db_name = "kvb"
-    db_user = "root"
-    db_password = ""  # No password
-    db_host = "127.0.0.1"  # or your database host
-    db_url = f"mysql+mysqldb://{db_user}:{db_password}@{db_host}/"
-
-    sql_script_path = "kvb.sql"  # Path to your SQL script
-
-    # Create an SQLAlchemy engine
-    engine = create_engine(db_url)
-    connection = engine.connect()
-
-    try:
-        # Drop the database if it exists
-        connection.execute(text(f"DROP DATABASE IF EXISTS {db_name};"))
-
-        # Recreate the database with UTF-8 character set and collation
-        connection.execute(text(f"""
-            CREATE DATABASE {db_name}
-            DEFAULT CHARACTER SET utf8mb4
-            DEFAULT COLLATE utf8mb4_unicode_ci;
-        """))
-
-        # Switch to the newly created database
-        connection.execute(text(f"USE {db_name};"))
-
-        # Close the connection before running the SQL script
-        connection.close()
-
-        # Run the SQL script using the SQLAlchemy engine
-        with open(sql_script_path, 'r') as file:
-            sql_script = file.read()
-
-        # Connect to the newly created database
-        engine = create_engine(f"mysql+mysqldb://{db_user}:{db_password}@{db_host}/{db_name}")
-        connection = engine.connect()
-
-        # Execute the SQL script
-        connection.execute(text(sql_script))
-
-        print("Database reset successfully.")
-
-    except OperationalError as e:
-        print(f"MySQL error occurred: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-    finally:
-        # Ensure connection is closed
-        if connection:
-            connection.close()
-
-
-def deletea_all_tables():
     # db_name = "kagahpxe_kvb"
     # db_user = "kagahpxe_kvb"
     # db_password = "rF*K0FTe-ZwL"  # No password
@@ -112,6 +54,10 @@ def deletea_all_tables():
             connection.close()
 
 
+import os
+import subprocess
+
+
 def perform_migration(message):
     """
     Automates the database migration process.
@@ -119,6 +65,11 @@ def perform_migration(message):
     :param message: A description of the migration changes.
     """
     try:
+        # Check if the migrations directory exists
+        if not os.path.exists('migrations'):
+            print("Initializing migrations...")
+            subprocess.run(['flask', 'db', 'init'], check=True)
+
         # Create a new migration script with the provided message
         subprocess.run(['flask', 'db', 'migrate', '-m', message], check=True)
 
@@ -133,6 +84,5 @@ def perform_migration(message):
 # Example usage
 if __name__ == '__main__':
     # reset_database()
-    deletea_all_tables()
-    # migration_message = "Added password hashing to User model"
-    # perform_migration(migration_message)
+    migration_message = "model updated"
+    perform_migration(migration_message)
