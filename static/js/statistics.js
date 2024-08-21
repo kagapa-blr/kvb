@@ -33,15 +33,42 @@ async function fetchDetails() {
         document.getElementById('total-sandhi').innerText = data.total_sandhi || 'N/A';
         document.getElementById('total-padya-all').innerText = data.total_padya || 'N/A';
         document.getElementById('total-users').innerText = data.total_users || 'N/A';
+        // document.getElementById('padya_in_each_parva').innerText = data.padya_in_each_parva || 'N/A';
+        // document.getElementById('sandhi_in_each_parva').innerText = data.sandhi_in_each_parva || 'N/A';
+        
 
         // Populate Padya in Each Sandhi table
         const padyaTableBody = document.getElementById('total-padya');
         padyaTableBody.innerHTML = ''; // Clear existing data
+        
         data.padya_in_each_sandhi.forEach(([sandhi, padya]) => {
             const row = document.createElement('tr');
             row.innerHTML = `<td>${sandhi}</td><td>${padya}</td>`;
             padyaTableBody.appendChild(row);
         });
+    
+        const sandhiParvaTableBody = document.getElementById('sandhi-in-each-parva')
+        sandhiParvaTableBody.innerHTML = '';
+
+    data.sandhi_in_each_parva.forEach(([parva, sandhi]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${parva}</td><td>${sandhi}</td>`;
+        sandhiParvaTableBody.appendChild(row);
+    });
+
+
+
+const parvaPadyaTableBody = document.getElementById('padya-in-each-parva');
+parvaPadyaTableBody.innerHTML = '';
+
+// Assuming data.padya_in_each_parva is an array of objects with properties: parva_id, parva_name, and total_padya
+data.padya_in_each_parva.forEach(({ parva_id, parva_name, total_padya }) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_padya}</td>`;
+    parvaPadyaTableBody.appendChild(row);
+});
+
+    
     } catch (error) {
         console.error('Error fetching details:', error);
     }
@@ -69,39 +96,8 @@ async function searchByWord(word) {
     }
 }
 
-// Display search results
-// function displaySearchResults(results) {
-//     const resultsContainer = document.getElementById('search-results');
-//     resultsContainer.innerHTML = ''; // Clear previous results
 
-//     if (results.length === 0) {
-//         resultsContainer.innerHTML = `
-//             <li class="list-group-item text-center text-muted">
-//                 No results found.
-//             </li>
-//         `;
-//     } else {
-//         results.forEach(result => {
-//             const totalResults = result.length;
-//             const listItem = document.createElement('li');
-//             listItem.className = 'list-group-item mb-2 p-2 border rounded shadow-sm'; // Add margin and padding for better spacing
 
-//             listItem.innerHTML = `
-//                 <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name}</h5>
-//                 <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_id}</p>
-//                 <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
-//                 <p class="mb-2"><strong>ಪದ್ಯ:</strong> <pre class="bg-light p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
-//                 <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha}</p>
-//                 <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${result.tippani.replace('nan','-')}</p>
-//                 <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar}</p>
-//             `;
-            
-//             resultsContainer.appendChild(listItem);
-//         });
-//     }
-// }
-
-// Display search results
 function displaySearchResults(results) {
     const resultsContainer = document.getElementById('search-results');
     resultsContainer.innerHTML = ''; // Clear previous results

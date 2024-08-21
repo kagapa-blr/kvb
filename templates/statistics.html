@@ -64,26 +64,80 @@
         </div>
     </div>
 
-    <h4 class="text-center my-4">
-        ಪ್ರತಿ ಸಂಧಿಯಲ್ಲಿನ ಪದ್ಯ
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaTable"
-                aria-expanded="false" aria-controls="padyaTable">
-            ಟೇಬಲ್ ತೋಚಿಸು
-        </button>
-    </h4>
-    <div class="collapse" id="padyaTable">
-        <table class="table table-bordered">
-            <thead class="table-dark">
-            <tr>
-                <th scope="col">ಸಂಧಿ</th>
-                <th scope="col">ಪದ್ಯ</th>
-            </tr>
-            </thead>
-            <tbody id="total-padya">
-            <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
-            </tbody>
-        </table>
+    <div class="total-padya-in-each-sandhi">
+
+        <h4 class="text-center my-4">
+            ಪ್ರತಿ ಸಂಧಿಯಲ್ಲಿನ ಪದ್ಯ
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaTable"
+                    aria-expanded="false" aria-controls="padyaTable">
+                ಟೇಬಲ್ ತೋಚಿಸು
+            </button>
+        </h4>
+        <div class="collapse" id="padyaTable">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                <tr>
+                    <th scope="col">ಸಂಧಿ</th>
+                    <th scope="col">ಪದ್ಯ</th>
+                </tr>
+                </thead>
+                <tbody id="total-padya">
+                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                </tbody>
+            </table>
+        </div>
+
     </div>
+
+    <div class="sandhi-in-each-parva">
+
+        <h4 class="text-center my-4">
+            ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಸಂಧಿಗಳು
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sandhiParvaTable"
+                    aria-expanded="false" aria-controls="sandhiParvaTable">
+                ಟೇಬಲ್ ತೋಚಿಸು
+            </button>
+        </h4>
+        <div class="collapse" id="sandhiParvaTable">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                <tr>
+                    <th scope="col">ಪರ್ವ</th>
+                    <th scope="col">ಸಂಧಿ</th>
+                </tr>
+                </thead>
+                <tbody id="sandhi-in-each-parva">
+                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="padya-in-each-parva">
+        <h4 class="text-center my-4">
+            ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಪದ್ಯಗಳು
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaParvaTable"
+                    aria-expanded="false" aria-controls="padyaParvaTable">
+                ಟೇಬಲ್ ತೋಚಿಸು
+            </button>
+        </h4>
+        <div class="collapse" id="padyaParvaTable">
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                <tr>
+                    <th scope="col">ಪರ್ವ ID</th>
+                    <th scope="col">ಪರ್ವ</th>
+                    <th scope="col">ಪದ್ಯ</th>
+                </tr>
+                </thead>
+                <tbody id="padya-in-each-parva">
+                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 
     <h2 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h2>
     <form id="search-form" class="mb-4">
