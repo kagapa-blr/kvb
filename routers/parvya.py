@@ -70,21 +70,24 @@ def update_parva(id):
     return jsonify({'error': 'Parva not found'}), 404
 
 
-@parvya_bp.route('/parva/<int:id>', methods=['DELETE'])
-def delete_parva(id):
-    parva = Parva.query.get(id)
-    if parva:
-        try:
-            db.session.delete(parva)
-            db.session.commit()
-            return jsonify({'message': 'Parva deleted'})
-        except sqlalchemy.exc.IntegrityError as e:
-            db.session.rollback()
-            return jsonify({'error': 'Cannot delete this Parva due to related records', 'details': str(e)}), 400
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
-    return jsonify({'error': 'Parva not found'}), 404
+@parvya_bp.route('/delete/parva/<int:parva_id>', methods=['DELETE'])
+def delete_parva(parva_id):
+    try:
+        # parva_id = request.json.get('parva_id')
+        if not parva_id:
+            return jsonify({"error": "Parva ID is required"}), 400
+
+        parva = Parva.query.get(parva_id)
+        if not parva:
+            return jsonify({"error": "Parva not found"}), 404
+
+        db.session.delete(parva)
+        db.session.commit()
+
+        return jsonify({"message": "Parva and associated Sandhi and Padya records deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 # Sandhi API endpoints

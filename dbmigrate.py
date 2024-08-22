@@ -83,6 +83,12 @@ def perform_migration(message):
 
 # Example usage
 if __name__ == '__main__':
-    # reset_database()
-    migration_message = "model updated"
-    perform_migration(migration_message)
+    print("\n1.Database Reset\n2.Migration")
+    choice = int(input("Enter your choice (1/2): "))
+    if choice == 1:
+        reset_database()
+    elif choice == 2:
+        migration_message = "model updated"
+        perform_migration(migration_message)
+    else:
+        print("Invalid choice. Please try again.")

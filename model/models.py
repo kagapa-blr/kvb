@@ -8,7 +8,8 @@ class Parva(db.Model):
     __tablename__ = 'parva'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    parvantya = db.Column(db.Text, nullable=True)  # New column added
+    parvantya = db.Column(db.Text, nullable=True)
+    sandhis = db.relationship('Sandhi', backref='parva', cascade="all, delete-orphan")
 
 
 class Sandhi(db.Model):
@@ -16,7 +17,7 @@ class Sandhi(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     parva_id = db.Column(db.Integer, db.ForeignKey('parva.id'), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    parva = db.relationship('Parva', backref=db.backref('sandhis', lazy=True))
+    padyas = db.relationship('Padya', backref='sandhi', cascade="all, delete-orphan")
 
 
 class Padya(db.Model):
@@ -28,9 +29,8 @@ class Padya(db.Model):
     gadya = db.Column(db.Text, nullable=True)
     tippani = db.Column(db.Text, nullable=True)
     artha = db.Column(db.Text, nullable=True)
-    suchane = db.Column(db.Text, nullable=True)  # New column added
-    padya = db.Column(db.Text, nullable=True)  # New column added
-    sandhi = db.relationship('Sandhi', backref=db.backref('padyas', lazy=True))
+    suchane = db.Column(db.Text, nullable=True)
+    padya = db.Column(db.Text, nullable=True)
 
 
 class User(db.Model):
