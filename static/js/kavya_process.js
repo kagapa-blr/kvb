@@ -102,21 +102,23 @@ $(document).ready(function () {
     async function fetchPadya(sandhiId) {
         try {
             const data = await fetchData(apiEndpoints.padyaBySandhi, `/${sandhiId}`);
-            populateDropdown('#padyaNumberDropdown', data, 'padya_number', 'padya_number');
+
+            // Sort the padya numbers before populating
+            const sortedData = data.sort((a, b) => a.padya_number - b.padya_number);
+
+            populateDropdown('#padyaNumberDropdown', sortedData, 'padya_number', 'padya_number');
             $('#padyaNumberDropdown').prop('disabled', false);
 
-
-            // Store padya numbers in the list
-            padyaNumbers = data.map(item => item.padya_number);
-
-
+            // Store sorted padya numbers in the list
+            padyaNumbers = sortedData.map(item => item.padya_number);
 
         } catch (e) {
             // Handle fetch error
-            console.log('Erorr in fetching padya')
+            console.log('Error in fetching padya');
         }
         $('#padyaContent').empty(); // Clear content
     }
+
 
     // Handle changes in Parva dropdown
     $('#parvaDropdown').change(debounce(async function () {
@@ -142,7 +144,6 @@ $(document).ready(function () {
     }, 300));
 
 
-
     // Handle changes in Padya Number dropdown
     $('#padyaNumberDropdown').change(debounce(async function () {
         const selectedPadyaNumber = $(this).val();
@@ -162,8 +163,6 @@ $(document).ready(function () {
                 $('.artha').html(formatText(data['artha']));
                 $('.tippani').html(formatText(data['tippani']));
 
-
-
             } catch (e) {
                 // Handle fetch error
             }
@@ -174,11 +173,7 @@ $(document).ready(function () {
             $('.artha').empty();
             $('.tippani').empty();
         }
-
-
     }, 300));
-
-
 
     // Handle click event for the Previous button
     $('#check-previous').click(async function () {
@@ -326,9 +321,13 @@ $(document).ready(function () {
     }
 
 
-
+try{
     // Initialize the audio source when the document is ready
     initializeAudioDropdowns();
+}
+catch(e){
+console.log("Error"+e);
+}
 
 
     allSandhiTable();
