@@ -50,9 +50,10 @@ async function fetchDetails() {
         const sandhiParvaTableBody = document.getElementById('sandhi-in-each-parva')
         sandhiParvaTableBody.innerHTML = '';
 
-    data.sandhi_in_each_parva.forEach(([parva, sandhi]) => {
+    // Assuming data.sandhi_in_each_parva is an array of objects with properties: parva_id, parva_name, and total_sandhi
+    data.sandhi_in_each_parva.forEach(({ parva_id, parva_name, total_sandhi }) => {
         const row = document.createElement('tr');
-        row.innerHTML = `<td>${parva}</td><td>${sandhi}</td>`;
+        row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_sandhi}</td>`;
         sandhiParvaTableBody.appendChild(row);
     });
 
