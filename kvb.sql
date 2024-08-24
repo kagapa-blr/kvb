@@ -10,6 +10,7 @@ USE kvb;
 CREATE TABLE IF NOT EXISTS parva (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    parva_number INT NOT NULL UNIQUE,  -- Added UNIQUE constraint
     parvantya TEXT
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS parva (
 CREATE TABLE IF NOT EXISTS sandhi (
     id INT AUTO_INCREMENT PRIMARY KEY,
     parva_id INT,
+    sandhi_number INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     FOREIGN KEY (parva_id) REFERENCES parva(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

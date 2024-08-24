@@ -71,7 +71,7 @@ def read_and_classify_paragraphs(docx_file):
                      "artha": ""}
     for para in all_paragraphs:
         para = para.strip()
-        print('para: ', para, type(para), len(para))
+        # print('para: ', para, type(para), len(para))
         section = classify_paragraph(para)
 
         # Update the current entry with the identified section
@@ -91,7 +91,7 @@ def read_and_classify_paragraphs(docx_file):
 
 
 # Specify the path to your DOCX file
-docx_file_path = '../docs/ಸಭಾಪರ್ವ.docx'
+docx_file_path = '../docs/ಸಭಾಪರ್ವ-new.docx'
 
 # Call the function to read and classify paragraphs
 classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
@@ -108,7 +108,7 @@ df = df[df['padya'].notna() & (df['padya'].str.strip() != '')]
 # df = df[(df['padya'].str.strip() == '')]
 
 # Save the DataFrame to a CSV file
-csv_file_path = 'ಸಭಾಪರ್ವ.csv'
+csv_file_path = 'ಸಭಾಪರ್ವ-new.csv'
 df.to_csv(csv_file_path, index=False, encoding='utf-8')
 
 print(f"Classified paragraphs have been saved to {csv_file_path}")

@@ -6,7 +6,7 @@ import pandas as pd
 # parva_df = pd.read_csv('ಆದಿಪರ್ವ.csv')
 # tippani_df = pd.read_csv('ಟಿಪ್ಪಣಿಗಳು-ಆದಿಪರ್ವ.csv')
 
-parva_df = pd.read_csv('ಸಭಾಪರ್ವ.csv')
+parva_df = pd.read_csv('ಸಭಾಪರ್ವ-new.csv')
 tippani_df = pd.read_csv('ಸಭಾಪರ್ವ-ಟಿಪ್ಪಣಿಗಳು.csv')
 
 # Ensure padya columns are strings and handle NaN values

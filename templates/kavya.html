@@ -2,14 +2,14 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>ಕಾವ್ಯ ಪ್ರವೇಶ</title>
     <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <link rel="stylesheet" href="/static/css/kavya.css" />
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <link rel="stylesheet" href="/static/css/kavya.css"/>
     <!-- jQuery via CDN -->
     <script src="/static/jquery/jquery-3.7.1.min.js"></script>
     <!-- JavaScript -->
@@ -21,347 +21,375 @@
 </head>
 
 <body>
-    {% include 'navbar.html' %}
-    <div class="container mt-4">
-        <div class="row">
-            <div class="left-column">
-                <div class="dropdowns">
-                    <div class="dropdown">
-                        <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
-                        <select id="parvaDropdown" class="form-select">
-                            <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
-                        </select>
-                    </div>
-                    <div class="dropdown">
-                        <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
-                        <select id="sandhiDropdown" class="form-select" disabled>
-                            <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
-                        </select>
-                    </div>
-                    <div class="dropdown">
-                        <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                        <select id="padyaNumberDropdown" class="form-select" disabled>
-                            <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
-                        </select>
-                    </div>
+{% include 'navbar.html' %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="left-column">
+            <div class="dropdowns">
+                <div class="dropdown">
+                    <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
+                    <select id="parvaDropdown" class="form-select">
+                        <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
                 </div>
+                <div class="dropdown">
+                    <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
+                    <select id="sandhiDropdown" class="form-select" disabled>
+                        <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+                <div class="dropdown">
+                    <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                    <select id="padyaNumberDropdown" class="form-select" disabled>
+                        <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
+                    </select>
+                </div>
+            </div>
 
-                <div class="instructions">
+            <div class="instructions">
+                <p>
+                    <strong>ಪರ್ವ</strong>, <strong>ಸಂಧಿ</strong> ಮತ್ತು
+                    <strong>ಪದ್ಯ ಸಂಖ್ಯೆ</strong> ಆಯ್ಕೆ ಮಾಡಲು ಮೂರು ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
+                    ನೀಡಲಾಗಿದೆ. ಆರಂಭದಲ್ಲಿ, ಸಂಧಿ ಮತ್ತು ಪದ್ಯ ಸಂಖ್ಯೆ ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
+                    ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಬಲಗಡೆ ಬಲಗಡೆ ಬಟನ್‌ಗಳ ಪಟ್ಟಿಯನ್ನು ನೀಡಲಾಗಿದೆ,
+                    ಪ್ರತಿಯೊಂದೂ ವಿವಿಧ ಹುಡುಕಾಟಗಳು ಮತ್ತು ಸೂಚ್ಯಂಕಗಳಿಗಾಗಿ ವಿಭಿನ್ನ ಮಾದರಿ
+                    ಸಂವಾದವನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ. ಈ ಕಾಲಮ್‌ಗಳ ಕೆಳಗೆ, ಆಡಿಯೊ ಫೈಲ್ ಅನ್ನು ಪ್ಲೇ
+                    ಮಾಡಲು ಆಡಿಯೊ ಪ್ಲೇಯರ್ ಇದೆ. ಅಂತಿಮವಾಗಿ, ಗ್ರಿಡ್ ವಿನ್ಯಾಸವು ಐದು
+                    ವಿಭಾಗಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ: ಪದ್ಯ, ಪಠಾಂತರ,ಗದ್ಯ, ತಿಪ್ಪಾನಿ ಮತ್ತು
+                    ಅರ್ಥ, ಪ್ರತಿಯೊಂದನ್ನು ಲೇಬಲ್ ಮಾಡಲಾಗಿದೆ ಮತ್ತು ಸಂಪಾದಿಸಬಹುದಾಗಿದೆ.
+                    ಒಟ್ಟಾರೆ ವಿನ್ಯಾಸವು ನಿರ್ದಿಷ್ಟ ಸಾಹಿತ್ಯ ವಿಭಾಗಗಳ ಆಯ್ಕೆ ಮತ್ತು ಪ್ರದರ್ಶನ,
+                    ಆಡಿಯೊ ಪ್ಲೇಬ್ಯಾಕ್ ಮತ್ತು ವಿವರವಾದ ಹುಡುಕಾಟ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು
+                    ಸುಗಮಗೊಳಿಸುತ್ತದೆ.
+                </p>
+            </div>
+
+            <div class="forward-backward d-flex justify-content-between align-items-center">
+                <button id="check-previous">
+                    <i class="fa-solid fa-backward fa-2x me-2" title="Previous"></i>
+                </button>
+                <button id="check-next">
+                    <i class="fa-solid fa-forward fa-2x ms-2" title="Next"></i>
+                </button>
+
+
+            </div>
+        </div>
+        <div class="right-column">
+            <div class="button-list">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">
+                    ಹೆಚ್ಚಿನ ಶೋಧನೆ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal2">
+                    ಅಕಾರಾದಿ ಸೂಚಿ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal3">
+                    ಗಾದೆಗಳ ಸೂಚಿ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal4">
+                    ಲೇಖನ ಸೂಚಿ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal5">
+                    ಅರ್ಥ ಕೋಶ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal6">
+                    ವಿಷಯ ಪರಿವಿಡಿ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">
+                    ಗಮಕ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal8">
+                    ಅನುಬಂಧ
+                </button>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal9">
+                    ಟಿಪ್ಪಣಿ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="audio-player-container">
+        <div class="audio-player">
+            <audio id="audio" controls>
+                <source src="" type="audio/mpeg"/>
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid-container">
+            <div class="grid-item padya-container">
+                <span class="label">ಪದ್ಯ:</span>
+                <div class="padya editable">1</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಪಾಠಾಂತರ:</span>
+                <div class="pathantar editable">2</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಗದ್ಯ:</span>
+                <div class="gadya editable">3</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಟಿಪ್ಪಣಿ:</span>
+                <div class="tippani editable">4</div>
+            </div>
+            <div class="grid-item">
+                <span class="label">ಅರ್ಥ:</span>
+                <div class="artha editable">5</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scrollable Modal Examples -->
+<div class="Scrollable-Modal">
+
+    <!-- Modal Structure -->
+    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-top modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h3 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h3>
+                    <form id="search-form" class="mb-4">
+                        <div class="input-group">
+                            <input id="search-input" type="text" class="form-control"
+                                   placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..." required>
+                            <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
+                        </div>
+                    </form>
+                    <ul id="search-results" class="list-group">
+                        <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="modal2Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal2Label">ಅಕಾರಾದಿ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಅಕಾರಾದಿ ಸೂಚಿ" -->
                     <p>
-                        <strong>ಪರ್ವ</strong>, <strong>ಸಂಧಿ</strong> ಮತ್ತು
-                        <strong>ಪದ್ಯ ಸಂಖ್ಯೆ</strong> ಆಯ್ಕೆ ಮಾಡಲು ಮೂರು ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
-                        ನೀಡಲಾಗಿದೆ. ಆರಂಭದಲ್ಲಿ, ಸಂಧಿ ಮತ್ತು ಪದ್ಯ ಸಂಖ್ಯೆ ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
-                        ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಬಲಗಡೆ ಬಲಗಡೆ ಬಟನ್‌ಗಳ ಪಟ್ಟಿಯನ್ನು ನೀಡಲಾಗಿದೆ,
-                        ಪ್ರತಿಯೊಂದೂ ವಿವಿಧ ಹುಡುಕಾಟಗಳು ಮತ್ತು ಸೂಚ್ಯಂಕಗಳಿಗಾಗಿ ವಿಭಿನ್ನ ಮಾದರಿ
-                        ಸಂವಾದವನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ. ಈ ಕಾಲಮ್‌ಗಳ ಕೆಳಗೆ, ಆಡಿಯೊ ಫೈಲ್ ಅನ್ನು ಪ್ಲೇ
-                        ಮಾಡಲು ಆಡಿಯೊ ಪ್ಲೇಯರ್ ಇದೆ. ಅಂತಿಮವಾಗಿ, ಗ್ರಿಡ್ ವಿನ್ಯಾಸವು ಐದು
-                        ವಿಭಾಗಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ: ಪದ್ಯ, ಪಠಾಂತರ,ಗದ್ಯ, ತಿಪ್ಪಾನಿ ಮತ್ತು
-                        ಅರ್ಥ, ಪ್ರತಿಯೊಂದನ್ನು ಲೇಬಲ್ ಮಾಡಲಾಗಿದೆ ಮತ್ತು ಸಂಪಾದಿಸಬಹುದಾಗಿದೆ.
-                        ಒಟ್ಟಾರೆ ವಿನ್ಯಾಸವು ನಿರ್ದಿಷ್ಟ ಸಾಹಿತ್ಯ ವಿಭಾಗಗಳ ಆಯ್ಕೆ ಮತ್ತು ಪ್ರದರ್ಶನ,
-                        ಆಡಿಯೊ ಪ್ಲೇಬ್ಯಾಕ್ ಮತ್ತು ವಿವರವಾದ ಹುಡುಕಾಟ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು
-                        ಸುಗಮಗೊಳಿಸುತ್ತದೆ.
+                        Here is some detailed content for the "ಅಕಾರಾದಿ ಸೂಚಿ" section. Add
+                        enough content to test scrolling behavior.
                     </p>
-                </div>
-
-                <div class="forward-backward d-flex justify-content-between align-items-center">
-                    <button id="check-previous">
-                        <i class="fa-solid fa-backward fa-2x me-2" title="Previous"></i>
-                    </button>
-                    <button id="check-next">
-                        <i class="fa-solid fa-forward fa-2x ms-2" title="Next"></i>
-                    </button>
-
-
-                </div>
-            </div>
-            <div class="right-column">
-                <div class="button-list">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">
-                        ಹೆಚ್ಚಿನ ಶೋಧನೆ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal2">
-                        ಅಕಾರಾದಿ ಸೂಚಿ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal3">
-                        ಗಾದೆಗಳ ಸೂಚಿ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal4">
-                        ಲೇಖನ ಸೂಚಿ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal5">
-                        ಅರ್ಥ ಕೋಶ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal6">
-                        ವಿಷಯ ಪರಿವಿಡಿ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">
-                        ಗಮಕ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal8">
-                        ಅನುಬಂಧ
-                    </button>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal9">
-                        ಟಿಪ್ಪಣಿ
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="audio-player-container">
-            <div class="audio-player">
-                <audio id="audio" controls>
-                    <source src="" type="audio/mpeg" />
-                    Your browser does not support the audio element.
-                </audio>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="grid-container">
-                <div class="grid-item padya-container">
-                    <span class="label">ಪದ್ಯ:</span>
-                    <div class="padya editable">1</div>
-                </div>
-                <div class="grid-item">
-                    <span class="label">ಪಾಠಾಂತರ:</span>
-                    <div class="pathantar editable">2</div>
-                </div>
-                <div class="grid-item">
-                    <span class="label">ಗದ್ಯ:</span>
-                    <div class="gadya editable">3</div>
-                </div>
-                <div class="grid-item">
-                    <span class="label">ಟಿಪ್ಪಣಿ:</span>
-                    <div class="tippani editable">4</div>
-                </div>
-                <div class="grid-item">
-                    <span class="label">ಅರ್ಥ:</span>
-                    <div class="artha editable">5</div>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scrollable Modal Examples -->
-    <div class="Scrollable-Modal">
-
-        <!-- Modal Structure -->
-        <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-top modal-dialog-scrollable modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h3 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h3>
-                        <form id="search-form" class="mb-4">
-                            <div class="input-group">
-                                <input id="search-input" type="text" class="form-control"
-                                    placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..." required>
-                                <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
-                            </div>
-                        </form>
-                        <ul id="search-results" class="list-group">
-                            <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
-                        </ul>
-                    </div>
+    <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="modal3Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal3Label">ಗಾದೆಗಳ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಗಾದೆಗಳ ಸೂಚಿ" -->
+                    <p>
+                        Here is some detailed content for the "ಗಾದೆಗಳ ಸೂಚಿ" section. Add
+                        enough content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
                 </div>
             </div>
         </div>
-
-
-
-        <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="modal2Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal2Label">ಅಕಾರಾದಿ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅಕಾರಾದಿ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಅಕಾರಾದಿ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="modal3Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal3Label">ಗಾದೆಗಳ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಗಾದೆಗಳ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಗಾದೆಗಳ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="modal4Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal4Label">ಲೇಖನ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಲೇಖನ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಲೇಖನ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal5" tabindex="-1" aria-labelledby="modal5Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal5Label">ಅರ್ಥ ಕೋಶ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅರ್ಥ ಕೋಶ" -->
-                        <p>
-                            Here is some detailed content for the "ಅರ್ಥ ಕೋಶ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal6" tabindex="-1" aria-labelledby="modal6Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal6Label">ವಿಷಯ ಪರಿವಿಡಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ವಿಷಯ ಪರಿವಿಡಿ" -->
-                        <p>
-                            Here is some detailed content for the "ವಿಷಯ ಪರಿವಿಡಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal7" tabindex="-1" aria-labelledby="modal7Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal7Label">ಗಮಕ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಗಮಕ" -->
-                        <p>
-                            Here is some detailed content for the "ಗಮಕ" section. Add enough
-                            content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal8" tabindex="-1" aria-labelledby="modal8Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal8Label">ಅನುಬಂಧ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅನುಬಂಧ" -->
-                        <p>
-                            Here is some detailed content for the "ಅನುಬಂಧ" section. Add enough
-                            content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal9" tabindex="-1" aria-labelledby="modal9Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal9Label">ಟಿಪ್ಪಣಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಟಿಪ್ಪಣಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಟಿಪ್ಪಣಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <script>
-        $(document).ready(function () {
-            $("#parvaDropdown").change(function () {
-                $("#sandhiDropdown").prop("disabled", false);
-            });
+    <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="modal4Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal4Label">ಲೇಖನ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಲೇಖನ ಸೂಚಿ" -->
+                    <p>
+                        Here is some detailed content for the "ಲೇಖನ ಸೂಚಿ" section. Add
+                        enough content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            $("#sandhiDropdown").change(function () {
-                $("#padyaNumberDropdown").prop("disabled", false);
-            });
+    <div class="modal fade" id="modal5" tabindex="-1" aria-labelledby="modal5Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal5Label">ಅರ್ಥ ಕೋಶ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಅರ್ಥ ಕೋಶ" -->
+                    <p>
+                        Here is some detailed content for the "ಅರ್ಥ ಕೋಶ" section. Add
+                        enough content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            $("#padyaNumberDropdown").change(function () {
-                // Add any required functionality here
-            });
+    <div class="modal fade" id="modal6" tabindex="-1" aria-labelledby="modal6Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal6Label">ವಿಷಯ ಪರಿವಿಡಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ವಿಷಯ ಪರಿವಿಡಿ" -->
+                    <p>
+                        Here is some detailed content for the "ವಿಷಯ ಪರಿವಿಡಿ" section. Add
+                        enough content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal7" tabindex="-1" aria-labelledby="modal7Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal7Label">ಗಮಕ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಗಮಕ" -->
+                    <p>
+                        Here is some detailed content for the "ಗಮಕ" section. Add enough
+                        content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal8" tabindex="-1" aria-labelledby="modal8Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal8Label">ಅನುಬಂಧ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಅನುಬಂಧ" -->
+                    <p>
+                        Here is some detailed content for the "ಅನುಬಂಧ" section. Add enough
+                        content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal9" tabindex="-1" aria-labelledby="modal9Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal9Label">ಟಿಪ್ಪಣಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content for "ಟಿಪ್ಪಣಿ" -->
+                    <p>
+                        Here is some detailed content for the "ಟಿಪ್ಪಣಿ" section. Add
+                        enough content to test scrolling behavior.
+                    </p>
+                    <!-- Repeat content to ensure scrolling -->
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    <p>Curabitur ullamcorper arcu at sem vehicula...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#parvaDropdown").change(function () {
+            $("#sandhiDropdown").prop("disabled", false);
         });
 
+        $("#sandhiDropdown").change(function () {
+            $("#padyaNumberDropdown").prop("disabled", false);
+        });
+
+        $("#padyaNumberDropdown").change(function () {
+            // Add any required functionality here
+        });
+    });
+
+document.addEventListener('DOMContentLoaded', () => {
+const parvaDropdown = document.getElementById('parvaDropdown');
+const sandhiDropdown = document.getElementById('sandhiDropdown');
+const padyaNumberDropdown = document.getElementById('padyaNumberDropdown');
+const audioElement = document.getElementById('audio');
+const audioSource = document.querySelector('#audio source');
+
+// Function to format numbers to two digits
+function formatNumber(number) {
+    return number.toString().padStart(2, '0');
+}
+
+// Function to update the audio source based on dropdown selections
+function updateAudioSource() {
+    const parva = formatNumber(parvaDropdown.value);
+    const sandhi = formatNumber(sandhiDropdown.value);
+    const padya = formatNumber(padyaNumberDropdown.value);
+
+    if (parva && sandhi && padya) {
+        const fileName = `${parva}-${sandhi}-${padya}.mp3`;
+        audioSource.src = `/static/audio/01-aadiparva/${fileName}`;
+        audioElement.load(); // Reload audio element with new source
+    }
+}
+
+// Add event listeners to dropdowns
+padyaNumberDropdown.addEventListener('change', updateAudioSource);
+
+});
 
 
-    </script>
-    <br><br><br>
-    {% include 'footer.html' %}
+</script>
+<br><br><br>
+{% include 'footer.html' %}
 
 </body>
 

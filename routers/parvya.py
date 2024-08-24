@@ -3,6 +3,7 @@ import logging
 import sqlalchemy
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import joinedload
 
 from model.models import db, Parva, Sandhi, Padya
 from utils.statistics import Statistics
@@ -16,7 +17,7 @@ stats = Statistics()
 def get_parva():
     try:
         parvas = Parva.query.all()
-        return jsonify([{'id': p.id, 'name': p.name} for p in parvas])
+        return jsonify([{'id': p.id, 'name': p.name, 'parva_number': p.parva_number} for p in parvas])
     except Exception as e:
         print(f"unable connect database, please check database server, {str(e)}")
         return jsonify({'error': str(e)}), 503
@@ -26,7 +27,7 @@ def get_parva():
 def get_parva_by_id(id):
     parva = Parva.query.get(id)
     if parva:
-        return jsonify({'id': parva.id, 'name': parva.name})
+        return jsonify({'id': parva.id, 'name': parva.name, 'parva_number': parva.parva_number})
     return jsonify({'error': 'Parva not found'}), 404
 
 
@@ -43,18 +44,34 @@ def get_parva_name_by_sandhi(sandhi_id):
 @parvya_bp.route('/parva', methods=['POST'])
 def create_parva():
     data = request.json
+
+    # Validate input
     if 'name' not in data or not data['name']:
         return jsonify({'error': 'Name is required'}), 400
 
+    # Check for existing Parva with the same name
     if Parva.query.filter_by(name=data['name']).first():
         return jsonify({'error': 'Parva with this name already exists'}), 409
 
     try:
-        new_parva = Parva(name=data['name'])
+        # Get the next parva_number
+        max_parva_number = db.session.query(db.func.max(Parva.parva_number)).scalar()
+        next_parva_number = (max_parva_number or 0) + 1
+
+        # Create and add the new Parva
+        new_parva = Parva(name=data['name'], parva_number=next_parva_number)
         db.session.add(new_parva)
         db.session.commit()
-        return jsonify({'id': new_parva.id, 'name': new_parva.name}), 201
+
+        # Return the new Parva details
+        return jsonify({
+            'id': new_parva.id,
+            'name': new_parva.name,
+            'parva_number': new_parva.parva_number
+        }), 201
+
     except Exception as e:
+        # Rollback in case of error
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
@@ -65,22 +82,24 @@ def update_parva(id):
     parva = Parva.query.get(id)
     if parva:
         parva.name = data['name']
+        parva.parva_number = data['parva_number']
         db.session.commit()
-        return jsonify({'id': parva.id, 'name': parva.name})
+        return jsonify({'id': parva.id, 'name': parva.name, 'parva_number': parva.parva})
     return jsonify({'error': 'Parva not found'}), 404
 
 
-@parvya_bp.route('/delete/parva/<int:parva_id>', methods=['DELETE'])
-def delete_parva(parva_id):
+@parvya_bp.route('/delete/parva_number/<int:parva_number>', methods=['DELETE'])
+def delete_parva_by_number(parva_number):
     try:
-        # parva_id = request.json.get('parva_id')
-        if not parva_id:
-            return jsonify({"error": "Parva ID is required"}), 400
+        if parva_number is None:
+            return jsonify({"error": "Parva number is required"}), 400
 
-        parva = Parva.query.get(parva_id)
+        # Query the Parva record by parva_number
+        parva = Parva.query.filter_by(parva_number=parva_number).first()
         if not parva:
             return jsonify({"error": "Parva not found"}), 404
 
+        # Delete the Parva record
         db.session.delete(parva)
         db.session.commit()
 
@@ -94,10 +113,20 @@ def delete_parva(parva_id):
 @parvya_bp.route('/sandhi', methods=['GET'])
 def get_sandhi():
     try:
-        sandhis = Sandhi.query.all()
-        return jsonify([{'id': s.id, 'parva_id': s.parva_id, 'name': s.name} for s in sandhis])
+        # Query to join Sandhi with Parva and fetch required details
+        sandhis = Sandhi.query.options(joinedload(Sandhi.parva)).all()
+
+        # Prepare the response data
+        response_data = [{
+            'id': s.id,
+            'parva_number': s.parva.parva_number,  # Access the parva_number from the joined Parva
+            'name': s.name,
+            'sandhi_number': s.sandhi_number
+        } for s in sandhis]
+
+        return jsonify(response_data)
     except Exception as e:
-        print(f"Unable connect database, please check database server, {str(e)}")
+        print(f"Unable to connect to the database, please check the database server: {str(e)}")
         return jsonify({'error': str(e)}), 503
 
 
@@ -116,19 +145,38 @@ def get_sandhi_by_id(id):
 @parvya_bp.route('/sandhi', methods=['POST'])
 def create_sandhi():
     data = request.json
+
+    # Validate input data
     if 'name' not in data or not data['name']:
         return jsonify({'error': 'Name is required'}), 400
-    if 'parva_id' not in data or not data['parva_id']:
-        return jsonify({'error': 'Parva ID is required'}), 400
+    if 'parva_number' not in data or not data['parva_number']:
+        return jsonify({'error': 'Parva Number is required'}), 400
 
-    if Sandhi.query.filter_by(parva_id=data['parva_id'], name=data['name']).first():
-        return jsonify({'error': 'Sandhi with this name already exists in the given Parva'}), 409
+    # Get parva_id from parva_number
+    parva = Parva.query.filter_by(parva_number=data['parva_number']).first()
+    if not parva:
+        return jsonify({'error': 'Parva with the given number does not exist'}), 404
+
+    parva_id = parva.id
+
+    # Extract sandhi_number from the name
+    sandhi_number_str = data['name'].replace("ಸಂಧಿ", "").strip()
+    try:
+        sandhi_number = int(sandhi_number_str)
+    except ValueError:
+        return jsonify({'error': 'Invalid sandhi number in name'}), 400
+
+    # Check if Sandhi already exists for the given parva_id and sandhi_number
+    if Sandhi.query.filter_by(parva_id=parva_id, sandhi_number=sandhi_number).first():
+        return jsonify({'error': 'Sandhi with this number already exists in the given Parva'}), 409
 
     try:
-        new_sandhi = Sandhi(parva_id=data['parva_id'], name=data['name'])
+        # Create and save the new Sandhi record
+        new_sandhi = Sandhi(parva_id=parva_id, name=data['name'], sandhi_number=sandhi_number)
         db.session.add(new_sandhi)
         db.session.commit()
-        return jsonify({'id': new_sandhi.id, 'parva_id': new_sandhi.parva_id, 'name': new_sandhi.name}), 201
+        return jsonify({'id': new_sandhi.id, 'parva_number': data['parva_number'], 'name': new_sandhi.name,
+                        'sandhi_number': new_sandhi.sandhi_number}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -146,29 +194,37 @@ def update_sandhi(id):
     return jsonify({'error': 'Sandhi not found'}), 404
 
 
-@parvya_bp.route('/sandhi/<int:id>', methods=['DELETE'])
-def delete_sandhi(id):
-    sandhi = Sandhi.query.get(id)
-    if sandhi:
-        try:
-            # Handle the related padya records here
-            # Optionally, update or delete related padya records
-            # Example: Setting sandhi_id to NULL if the schema allows
-            Padya.query.filter_by(sandhi_id=id).update({'sandhi_id': None})
-            db.session.commit()
+@parvya_bp.route('/sandhi/<int:parva_number>/<int:sandhi_number>', methods=['DELETE'])
+def delete_sandhi(parva_number, sandhi_number):
+    try:
+        # Fetch the Parva record to get the parva_id
+        parva = Parva.query.filter_by(parva_number=parva_number).first()
+        if not parva:
+            return jsonify({'error': 'Parva with the given number does not exist'}), 404
 
-            # Now delete the sandhi record
-            db.session.delete(sandhi)
-            db.session.commit()
-            return jsonify({'message': 'Sandhi deleted'})
-        except sqlalchemy.exc.IntegrityError as e:
-            db.session.rollback()
-            return jsonify(
-                {'error': 'Cannot delete this Sandhi as related Padya records are present', 'details': str(e)}), 400
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
-    return jsonify({'error': 'Sandhi not found'}), 404
+        # Fetch the Sandhi record using parva_id and sandhi_number
+        sandhi = Sandhi.query.filter_by(parva_id=parva.id, sandhi_number=sandhi_number).first()
+        if not sandhi:
+            return jsonify({'error': 'Sandhi with the given number does not exist in the specified Parva'}), 404
+
+        # Handle related Padya records if applicable
+        # Set sandhi_id to NULL for related Padya records, if schema allows
+        Padya.query.filter_by(sandhi_id=sandhi.id).update({'sandhi_id': None})
+        db.session.commit()
+
+        # Delete the Sandhi record
+        db.session.delete(sandhi)
+        db.session.commit()
+
+        return jsonify({'message': 'Sandhi deleted successfully'})
+
+    except sqlalchemy.exc.IntegrityError as e:
+        db.session.rollback()
+        return jsonify(
+            {'error': 'Cannot delete this Sandhi as related Padya records are present', 'details': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 
 # Padya API endpoints
@@ -253,25 +309,37 @@ def create_padya():
     try:
         data = request.json
         # Validate required fields
-        required_fields = ['sandhi_id', 'padya_number']
+        required_fields = ['parva_number', 'sandhi_number', 'padya_number']
         for field in required_fields:
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
+        # Get the sandhi_id from parva_number and sandhi_number
+        sandhi = Sandhi.query.join(Parva).filter(
+            Parva.parva_number == data['parva_number'],
+            Sandhi.sandhi_number == data['sandhi_number']
+        ).first()
+
+        if not sandhi:
+            return jsonify({'error': 'Sandhi not found for the given Parva number and Sandhi number'}), 404
+
         # Check for existing padya with the same sandhi_id and padya_number
-        existing_padya_number = Padya.query.filter_by(sandhi_id=data['sandhi_id'],
-                                                      padya_number=data['padya_number']).first()
-        if existing_padya_number:
+        existing_padya = Padya.query.filter_by(
+            sandhi_id=sandhi.id,
+            padya_number=data['padya_number']
+        ).first()
+
+        if existing_padya:
             return jsonify({'error': 'Padya number already exists for this Sandhi'}), 400
 
         new_padya = Padya(
-            sandhi_id=data['sandhi_id'],
+            sandhi_id=sandhi.id,
             padya_number=data['padya_number'],
             pathantar=data.get('pathantar'),
             gadya=data.get('gadya'),
             tippani=data.get('tippani'),
             artha=data.get('artha'),
-            padya=data.get('padya')  # Include the new column
+            padya=data.get('padya')
         )
 
         db.session.add(new_padya)
@@ -285,12 +353,11 @@ def create_padya():
             'gadya': new_padya.gadya,
             'tippani': new_padya.tippani,
             'artha': new_padya.artha,
-            'padya': new_padya.padya  # Include the new column
+            'padya': new_padya.padya
         }), 201
 
     except IntegrityError as e:
         db.session.rollback()
-        # Handle specific unique constraint violations here if needed
         return jsonify({'error': 'Database error', 'details': str(e)}), 500
     except KeyError as e:
         return jsonify({'error': f'Missing required field: {str(e)}'}), 400
@@ -304,20 +371,32 @@ def create_padya():
 @parvya_bp.route('/padya', methods=['PUT'])
 def update_padya():
     data = request.json
-    sandhi_id = data.get('sandhi_id')
+    parva_number = data.get('parva_number')
+    sandhi_number = data.get('sandhi_number')
     padya_number = data.get('padya_number')
 
+    if not all([parva_number, sandhi_number, padya_number]):
+        return jsonify({'error': 'parva_number, sandhi_number, and padya_number are required'}), 400
+
+    # Get the sandhi_id from parva_number and sandhi_number
+    sandhi = Sandhi.query.join(Parva).filter(
+        Parva.parva_number == parva_number,
+        Sandhi.sandhi_number == sandhi_number
+    ).first()
+
+    if not sandhi:
+        return jsonify({'error': 'Sandhi not found for the given Parva number and Sandhi number'}), 404
+
     # Find the Padya record by both sandhi_id and padya_number
-    padya = Padya.query.filter_by(sandhi_id=sandhi_id, padya_number=padya_number).first()
+    padya = Padya.query.filter_by(sandhi_id=sandhi.id, padya_number=padya_number).first()
 
     if padya:
-        padya.sandhi_id = sandhi_id
-        padya.padya_number = padya_number
+        # Update fields if present in the request, otherwise keep existing values
         padya.pathantar = data.get('pathantar', padya.pathantar)
         padya.gadya = data.get('gadya', padya.gadya)
         padya.tippani = data.get('tippani', padya.tippani)
         padya.artha = data.get('artha', padya.artha)
-        padya.padya = data.get('padya', padya.padya)  # Include the new column
+        padya.padya = data.get('padya', padya.padya)
 
         db.session.commit()
 
@@ -329,7 +408,7 @@ def update_padya():
             'gadya': padya.gadya,
             'tippani': padya.tippani,
             'artha': padya.artha,
-            'padya': padya.padya  # Include the new column
+            'padya': padya.padya
         })
 
     return jsonify({'error': 'Padya not found'}), 404
@@ -371,19 +450,23 @@ def update_padya_field():
     return jsonify({'error': 'Padya not found'}), 404
 
 
-@parvya_bp.route('/padya', methods=['DELETE'])
-def delete_padya():
-    data = request.json
-    sandhi_id = data.get('sandhi_id')
-    padya_number = data.get('padya_number')
-
-    # Find the Padya record by both sandhi_id and padya_number
-    padya = Padya.query.filter_by(sandhi_id=sandhi_id, padya_number=padya_number).first()
+@parvya_bp.route('/padya/delete/<int:padya_number>/<int:sandhi_number>/<int:parva_number>', methods=['DELETE'])
+def delete_padya(padya_number, sandhi_number, parva_number):
+    # Find the Padya record by padya_number, sandhi_number, and parva_number
+    padya = db.session.query(Padya).join(Sandhi).join(Parva).filter(
+        Padya.padya_number == padya_number,
+        Sandhi.sandhi_number == sandhi_number,
+        Parva.parva_number == parva_number
+    ).first()
 
     if padya:
-        db.session.delete(padya)
-        db.session.commit()
-        return jsonify({'message': 'Padya deleted'})
+        try:
+            db.session.delete(padya)
+            db.session.commit()
+            return jsonify({'message': 'Padya deleted'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'An error occurred while deleting the Padya', 'details': str(e)}), 500
 
     return jsonify({'error': 'Padya not found'}), 404
 
@@ -391,7 +474,7 @@ def delete_padya():
 @parvya_bp.route('/sandhi/by_parva/<int:parva_id>', methods=['GET'])
 def get_sandhi_by_parva(parva_id):
     sandhis = Sandhi.query.filter_by(parva_id=parva_id).all()
-    return jsonify([{'id': s.id, 'name': s.name} for s in sandhis])
+    return jsonify([{'id': s.id, 'name': s.name, 'sandhi_number': s.sandhi_number} for s in sandhis])
 
 
 @parvya_bp.route('/padya/by_sandhi/<int:sandhi_id>', methods=['GET'])
@@ -401,6 +484,96 @@ def get_padya_by_sandhi(sandhi_id):
         'id': p.id,
         'padya_number': p.padya_number
     } for p in padyas])
+
+
+@parvya_bp.route('/sandhi/by_parva_sandhi/<int:parva_number>/<int:sandhi_number>', methods=['GET'])
+def get_sandhi_by_parva_sandhi(parva_number, sandhi_number):
+    sandhi = db.session.query(Sandhi).join(Parva).filter(
+        Parva.parva_number == parva_number,
+        Sandhi.sandhi_number == sandhi_number,
+        Sandhi.parva_id == Parva.id
+    ).first()
+
+    if sandhi:
+        return jsonify({
+            'id': sandhi.id,
+            'name': sandhi.name,
+            'sandhi_number': sandhi.sandhi_number,
+            'parva_id': sandhi.parva_id
+        })
+    else:
+        return jsonify({'message': 'Sandhi not found'}), 404
+
+
+@parvya_bp.route('/padya/by_parva_sandhi_padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>',
+                 methods=['GET'])
+def get_padya_by_parva_sandhi_padya(parva_number, sandhi_number, padya_number):
+    padya = db.session.query(Padya).join(Sandhi).join(Parva).filter(
+        Parva.parva_number == parva_number,
+        Sandhi.sandhi_number == sandhi_number,
+        Padya.padya_number == padya_number,
+        Padya.sandhi_id == Sandhi.id,
+        Sandhi.parva_id == Parva.id
+    ).first()
+
+    if padya:
+        return jsonify({
+            'id': padya.id,
+            'padya_number': padya.padya_number,
+            'sandhi_id': padya.sandhi_id,
+            'parva_id': padya.sandhi.parva_id,
+            'pathantar': padya.pathantar,
+            'gadya': padya.gadya,
+            'tippani': padya.tippani,
+            'artha': padya.artha,
+            'suchane': padya.suchane,
+            'padya': padya.padya
+        })
+    else:
+        return jsonify({'message': 'Padya not found'}), 404
+
+
+@parvya_bp.route('/all_sandhi/by_parva/<int:parva_number>', methods=['GET'])
+def get_all_sandhi_by_parva(parva_number):
+    try:
+        # Query to check if the given parva_number exists
+        parva = db.session.query(Parva).filter_by(parva_number=parva_number).first()
+        if not parva:
+            # Return 404 if the parva_number does not exist
+            return jsonify({'message': 'Parva not found'}), 404
+
+        # Query to get all sandhi records for the given parva number
+        sandhis = db.session.query(Sandhi).filter_by(parva_id=parva.id).all()
+
+        # If no sandhis found, return 404
+        if not sandhis:
+            return jsonify({'message': 'No Sandhi records found for the given Parva'}), 404
+
+        # Format the data as a list of dictionaries
+        sandhi_list = []
+        for sandhi in sandhis:
+            # Query to get all padya records for the current sandhi
+            padyas = db.session.query(Padya).filter_by(sandhi_id=sandhi.id).all()
+
+            # Create a list of padya numbers for the current sandhi
+            padya_numbers = [padya.padya_number for padya in padyas]
+
+            sandhi_list.append({
+                'id': sandhi.id,
+                'name': sandhi.name,
+                'sandhi_number': sandhi.sandhi_number,
+                'parva_id': sandhi.parva_id,
+                'padya_numbers': padya_numbers  # Include padya_numbers in the response
+            })
+
+        return jsonify(sandhi_list), 200
+
+    except Exception as e:
+        # Log the exception (you can use a logging library)
+        print(f"Error fetching sandhi records: {e}")
+
+        # Return a generic error message with a 500 status code
+        return jsonify({'message': 'Internal server error. Please try again later.'}), 500
 
 
 ################################################################

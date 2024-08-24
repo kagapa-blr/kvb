@@ -132,8 +132,8 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <th scope="col">ಐಡಿ</th>
-                                <th scope="col">ಹೆಸರು</th>
+                                <th scope="col">ಪರ್ವ ಸಂಖ್ಯೆ</th>
+                                <th scope="col">ಪರ್ವ ಹೆಸರು</th>
                             </tr>
                             </thead>
                             <tbody id="parvaTableBodyContent">
@@ -165,9 +165,9 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <th scope="col">ಸಂಧಿ ಐಡಿ</th>
+                                <th scope="col">ಸಂಧಿ ಸಂಖ್ಯೆ</th>
                                 <th scope="col">ಸಂಧಿ ಹೆಸರು</th>
-                                <th scope="col">ಪರ್ವ ಐಡಿ</th>
+                                <th scope="col">ಪರ್ವ ಸಂಖ್ಯೆ</th>
                             </tr>
                             </thead>
                             <tbody id="sandhiTableBodyContent">
@@ -190,8 +190,8 @@
         <h5 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
         <div class="row">
             <div class="col-md-6">
-                <label for="parvaId" class="form-label">ಪರ್ವ ಐಡಿ</label>
-                <input type="number" id="parvaId" class="form-control" placeholder="ಪರ್ವ ಐಡಿ ನಮೂದಿಸಿ"/>
+                <label for="parvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
+                <input type="number" id="parvaNumber" class="form-control" placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
             </div>
             <div class="col-md-6">
                 <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
@@ -203,50 +203,58 @@
         </button>
         <div id="sandhiMessage" class="mt-2"></div>
     </div>
+    
 
     <div id="insertPadya" class="mb-3">
         <h5 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
         <div class="row">
             <div class="col-md-6">
-                <label for="sandhiId" class="form-label">ಸಂಧಿ ಐಡಿ</label>
-                <input type="number" id="sandhiId" class="form-control" placeholder="ಸಂಧಿ ಐಡಿ ನಮೂದಿಸಿ"/>
+                <label for="padyainsertParvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
+                <input type="number" id="padyainsertParvaNumber" class="form-control" placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
             </div>
             <div class="col-md-6">
-                <label for="padyaNumber" class="form-label mt-2">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                <input type="number" id="padyaNumber" class="form-control" placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+                <label for="padyainsertSandhiNumber" class="form-label mt-2">ಸಂಧಿ ಸಂಖ್ಯೆ</label>
+                <input type="number" id="padyainsertSandhiNumber" class="form-control" placeholder="ಸಂಧಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-md-6">
-                <label for="padya" class="form-label">ಪದ್ಯ</label>
-                <textarea type="text" id="padya" class="form-control" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                <label for="padyainsertPadyaNumber" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                <input type="number" id="padyainsertPadyaNumber" class="form-control" placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+            </div>
+            <div class="col-md-6">
+                <label for="padyainsertPadya" class="form-label mt-2">ಪದ್ಯ</label>
+                <textarea id="padyainsertPadya" class="form-control" rows="3" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-md-6">
-                <label for="pathantar" class="form-label">ಪಾಠಾಂತರ</label>
-                <textarea id="pathantar" class="form-control" rows="3" placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
+                <label for="padyainsertPathantar" class="form-label">ಪಾಠಾಂತರ</label>
+                <textarea id="padyainsertPathantar" class="form-control" rows="3" placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
             </div>
             <div class="col-md-6">
-                <label for="gadya" class="form-label">ಗದ್ಯ</label>
-                <textarea id="gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                <label for="padyainsertGadya" class="form-label">ಗದ್ಯ</label>
+                <textarea id="padyainsertGadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-md-6">
-                <label for="tippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
-                <textarea id="tippani" class="form-control" rows="3" placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
+                <label for="padyainsertTippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
+                <textarea id="padyainsertTippani" class="form-control" rows="3" placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
             </div>
             <div class="col-md-6">
-                <label for="artha" class="form-label">ಅರ್ಥ</label>
-                <textarea id="artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
+                <label for="padyainsertArtha" class="form-label">ಅರ್ಥ</label>
+                <textarea id="padyainsertArtha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
             </div>
         </div>
-        <button id="insertPadyaBtn" class="btn btn-primary mt-2">
+        <button id="padyainsertPadyaBtn" class="btn btn-primary mt-2">
             ಪದ್ಯ ಸೇರಿಸಿ
         </button>
-        <div id="padyaMessage" class="mt-2"></div>
+        <div id="padyainsertPadyaMessage" class="mt-2"></div>
     </div>
+    
+
+
 </div>
 <br><br><br>
 {% include 'footer.html' %}

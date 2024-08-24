@@ -42,11 +42,21 @@ class ParvaSandhiManager:
             return None
 
     def save_parva(self, name):
+        # Check if the parva already exists by name
         for parva in self.all_parvs:
             if parva['name'] == name.strip():
                 print(f"Parva '{name}' already exists.")
                 return parva
-        response = requests.post(self.base_url + '/api/parva', json={'name': name})
+
+        # Determine the next available parva number
+        existing_numbers = {parva['parva_number'] for parva in self.all_parvs}
+        next_parva_number = 1
+        while next_parva_number in existing_numbers:
+            next_parva_number += 1
+
+        # Make the POST request to save the parva
+        response = requests.post(self.base_url + '/api/parva', json={'name': name, 'parva_number': next_parva_number})
+
         if response.status_code == 200:
             parva = response.json()
             self.all_parvs.append(parva)
@@ -56,13 +66,30 @@ class ParvaSandhiManager:
             return None
 
     def save_sandhi(self, parva_name, name):
-        parva_id = self.save_parva(name=parva_name)
-        if parva_id is None:
+        # Save the parva and get the parva_id
+        parva = self.save_parva(name=parva_name)
+        if parva is None:
             return None
+
+        parva_id = parva['id']
+
+        # Check if the sandhi already exists
         for sandhi in self.all_sandhi:
-            if sandhi['name'] == name.strip() and sandhi['parva_id'] == parva_id['id']:
+            if sandhi['name'] == name.strip() and sandhi['parva_id'] == parva_id:
                 return sandhi
-        response = requests.post(self.base_url + '/api/sandhi', json={'parva_id': parva_id['id'], 'name': name})
+
+        # Extract the sandhi_number from the name
+        sandhi_number_str = name.replace("ಸಂಧಿ", "").strip()
+        try:
+            sandhi_number = int(sandhi_number_str)
+        except ValueError:
+            print(f"Error: Invalid sandhi number in name '{name}'.")
+            return None
+
+        # Make the POST request to save the sandhi
+        response = requests.post(self.base_url + '/api/sandhi',
+                                 json={'parva_id': parva_id, 'name': name, 'sandhi_number': sandhi_number})
+
         if response.status_code == 200:
             sandhi = response.json()
             sandhi['parva_name'] = parva_name
@@ -185,9 +212,11 @@ class ParvaSandhiManager:
 
 if __name__ == "__main__":
     manager = ParvaSandhiManager(BASE_URL)
+    # file = "Parva.csv"
+    file = "SabhaParva.csv"
     # First insert parva and sandhi
     # first run for parva
-    # manager.process_parva_sandhi('Parva.csv')
+    # manager.process_parva_sandhi(file)
     # Then process padya entries
-    manager.process_csv('Parva.csv')
+    manager.process_csv(file)
     manager.add_user()

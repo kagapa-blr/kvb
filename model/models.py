@@ -8,6 +8,7 @@ class Parva(db.Model):
     __tablename__ = 'parva'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
+    parva_number = db.Column(db.Integer, nullable=False, unique=True)  # Make parva_number unique
     parvantya = db.Column(db.Text, nullable=True)
     sandhis = db.relationship('Sandhi', backref='parva', cascade="all, delete-orphan")
 
@@ -17,6 +18,7 @@ class Sandhi(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     parva_id = db.Column(db.Integer, db.ForeignKey('parva.id'), nullable=False)
     name = db.Column(db.String(255), nullable=False)
+    sandhi_number = db.Column(db.Integer, nullable=False)  # New column
     padyas = db.relationship('Padya', backref='sandhi', cascade="all, delete-orphan")
 
 
