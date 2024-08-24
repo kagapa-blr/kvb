@@ -57,8 +57,9 @@ $(document).ready(function () {
             }));
         });
     }
+    let parvaDataCache = {}; // Cache to store parva data
+    let sandhiDataCache = {}; // Cache to store sandhi data
 
-    let parvaDataCache = {}; // Cache to store sandhi data
     // Fetch and populate Parva dropdown
     async function fetchAndPopulateParva() {
         try {
@@ -76,7 +77,7 @@ $(document).ready(function () {
         }
     }
 
-    let sandhiDataCache = {}; // Cache to store sandhi data
+
 
     async function fetchSandhi(parvaNumber) {
         try {
@@ -140,11 +141,12 @@ $('#padyaNumberDropdown').change(debounce(async function () {
     const selectedSandhi = $('#sandhiDropdown').val();
 
     const sandhi = sandhiDataCache[selectedSandhi];
+    const parva = parvaDataCache[selectedParvaNumber]
 
     if (selectedPadyaNumber) {
         try {
             // Fetch the padya content based on the selected Parva, Sandhi, and Padya Number
-            const data = await fetchData(apiEndpoints.getPadyaByParvaSandhiPadya, `/${selectedParvaNumber}/${sandhi.sandhi_number}/${selectedPadyaNumber}`);
+            const data = await fetchData(apiEndpoints.getPadyaByParvaSandhiPadya, `/${parva.parva_number}/${sandhi.sandhi_number}/${selectedPadyaNumber}`);
 
             // Function to format text for HTML
             function formatText(text) {
@@ -457,7 +459,34 @@ function updatePadya() {
         }
     }
 
+    function fetchAudioforPadya() {
+        const $padyaNumberDropdown = $('#padyaNumberDropdown');
+        const $audioElement = $('#audio')[0]; // Getting the DOM element
+        const $audioSource = $('#audio source');
+    
+        // Function to format numbers to two digits
+        function formatNumber(number) {
+            return number.toString().padStart(2, '0');
+        }
+    
+        // Function to update the audio source based on padya dropdown selection
+        function updateAudioSource() {
 
+            const parva_number = formatNumber(parvaDataCache[$('#parvaDropdown').val()].parva_number); // Replace with your actual value
+            const sandhi_number = formatNumber(sandhiDataCache[$('#sandhiDropdown').val()].sandhi_number);  // Replace with your actual value
+            const padya = formatNumber($padyaNumberDropdown.val());
+    
+            if (parva_number && sandhi_number && padya) {
+                const fileName = `${parva_number}-${sandhi_number}-${padya}.mp3`;
+                $audioSource.attr('src', `/static/audio/01-aadiparva/${fileName}`);
+                $audioElement.load(); // Reload audio element with new source
+            }
+        }
+    
+        // Add event listener to padya dropdown
+        $padyaNumberDropdown.on('change', updateAudioSource);
+    }
+    
 
 
 
@@ -466,8 +495,7 @@ function updatePadya() {
 updatePadya();
 
 allSandhiTable();
-
+fetchAudioforPadya();
 
 });
-
 

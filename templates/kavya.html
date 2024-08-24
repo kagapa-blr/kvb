@@ -356,35 +356,6 @@
         });
     });
 
-document.addEventListener('DOMContentLoaded', () => {
-const parvaDropdown = document.getElementById('parvaDropdown');
-const sandhiDropdown = document.getElementById('sandhiDropdown');
-const padyaNumberDropdown = document.getElementById('padyaNumberDropdown');
-const audioElement = document.getElementById('audio');
-const audioSource = document.querySelector('#audio source');
-
-// Function to format numbers to two digits
-function formatNumber(number) {
-    return number.toString().padStart(2, '0');
-}
-
-// Function to update the audio source based on dropdown selections
-function updateAudioSource() {
-    const parva = formatNumber(parvaDropdown.value);
-    const sandhi = formatNumber(sandhiDropdown.value);
-    const padya = formatNumber(padyaNumberDropdown.value);
-
-    if (parva && sandhi && padya) {
-        const fileName = `${parva}-${sandhi}-${padya}.mp3`;
-        audioSource.src = `/static/audio/01-aadiparva/${fileName}`;
-        audioElement.load(); // Reload audio element with new source
-    }
-}
-
-// Add event listeners to dropdowns
-padyaNumberDropdown.addEventListener('change', updateAudioSource);
-
-});
 
 
 </script>
