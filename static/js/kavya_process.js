@@ -320,157 +320,154 @@ function updatePadya() {
 
 
 
+    async function postParva(newParvaName) {
+        try {
+            const response = await fetch(apiEndpoints.insertParva, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: newParvaName })
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok && result.id && result.name) {
+                document.getElementById('parvaMessage').textContent = `ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
+                document.getElementById('parvaMessage').style.color = 'green';
+                document.getElementById('newParvaName').value = '';
+                fetchAndPopulateParva(); // Uncomment this line if you want to refresh the Parva dropdown after insertion
+            } else {
+                const errorMessage = result.error || 'ಪರ್ವ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ'; // Fallback to a default message if no message is returned
+                document.getElementById('parvaMessage').textContent = errorMessage;
+                document.getElementById('parvaMessage').style.color = 'red';
+            }
+        } catch (error) {
+            const errorMessage = error.message || 'ಪರ್ವ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ'; // Fallback to a default message if no error message is provided
+            document.getElementById('parvaMessage').textContent = errorMessage;
+            document.getElementById('parvaMessage').style.color = 'red';
+            handleApiError(error, error.message, apiEndpoints.insertParva);
+        }
+    }
+    
+    async function postSandhi(parvaNumber, newSandhiName) {
+        try {
+            const response = await fetch(apiEndpoints.insertSandhi, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    parva_number: parvaNumber,
+                    name: newSandhiName
+                })
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok && result.id && result.name) {
+                document.getElementById('sandhiMessage').textContent = `ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
+                document.getElementById('sandhiMessage').style.color = 'green';
+                document.getElementById('newSandhiName').value = '';
+                document.getElementById('parvaNumber').value = ''; // Clear parva number field
+                // Optionally, you might want to refresh dropdowns or other elements
+                // fetchAndPopulateParva(); // Refresh the Parva dropdown if needed
+            } else {
+                document.getElementById('sandhiMessage').textContent = result.error || 'ಸಂಧಿ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ';
+                document.getElementById('sandhiMessage').style.color = 'red';
+            }
+        } catch (error) {
+            document.getElementById('sandhiMessage').textContent = 'ಸಂಧಿ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ';
+            document.getElementById('sandhiMessage').style.color = 'red';
+            handleApiError(error, error.message, apiEndpoints.insertSandhi);
+        }
+    }
+    
+    // Function to post a new Padya
+    async function postPadya(parvaNumber, sandhiNumber, padyaNumber, padya, pathantar, gadya, tippani, artha) {
+        try {
+            const response = await fetch(apiEndpoints.insertPadya, {  // Adjust endpoint if needed
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    parva_number: parvaNumber,
+                    sandhi_number: sandhiNumber,
+                    padya_number: padyaNumber,
+                    padya: padya,
+                    pathantar: pathantar,
+                    gadya: gadya,
+                    tippani: tippani,
+                    artha: artha
+                })
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok && result.id) {
+                $('#padyainsertPadyaMessage').text(`ಪದ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.id}`).css('color', 'green');
+                // Clear form fields
+                $('#parvaNumber').val('');
+                $('#sandhiNumber').val('');
+                $('#padyaNumber').val('');
+                $('#padya').val('');
+                $('#pathantar').val('');
+                $('#gadya').val('');
+                $('#tippani').val('');
+                $('#artha').val('');
+                // Call a function to refresh data or update the UI
+                // fetchAndPopulateParva(); // Uncomment if needed
+            } else {
+                $('#padyainsertPadyaMessage').text(result.error || 'ಪದ್ಯ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ').css('color', 'red');
+            }
+        } catch (error) {
+            $('#padyainsertPadyaMessage').text('ಪದ್ಯ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ').css('color', 'red');
+            console.error('API Error:', error);
+        }
+    }
+    
+    
+    // Define the reusable function
+    async function fetchAndDisplayData(sandhiId, padyaNumber) {
+        if (padyaNumber) {
+            try {
+                const data = await fetchData(apiEndpoints.padyaContent, `/${sandhiId}/${padyaNumber}`);
+    
+                function formatText(text) {
+                    return text.replace(/\n/g, '<br>');
+                }
+    
+                $('.padya').html(formatText(data['padya']));
+                $('.pathantar').html(formatText(data['pathantar']));
+                $('.gadya').html(formatText(data['gadya']));
+                $('.artha').html(formatText(data['artha']));
+                $('.tippani').html(formatText(data['tippani']));
+    
+            } catch (e) {
+                // Handle fetch error
+                console.error('Fetch error:', e);
+            }
+        } else {
+            $('.padya').empty();
+            $('.pathantar').empty();
+            $('.gadya').empty();
+            $('.artha').empty();
+            $('.tippani').empty();
+        }
+    }
+
+
+
+
+
+
 //update padya
 updatePadya();
 
 allSandhiTable();
+
+
 });
 
 
-
-async function postParva(newParvaName) {
-    try {
-        const response = await fetch(apiEndpoints.insertParva, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name: newParvaName })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.id && result.name) {
-            document.getElementById('parvaMessage').textContent = `ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
-            document.getElementById('parvaMessage').style.color = 'green';
-            document.getElementById('newParvaName').value = '';
-            fetchAndPopulateParva(); // Uncomment this line if you want to refresh the Parva dropdown after insertion
-        } else {
-            const errorMessage = result.error || 'ಪರ್ವ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ'; // Fallback to a default message if no message is returned
-            document.getElementById('parvaMessage').textContent = errorMessage;
-            document.getElementById('parvaMessage').style.color = 'red';
-        }
-    } catch (error) {
-        const errorMessage = error.message || 'ಪರ್ವ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ'; // Fallback to a default message if no error message is provided
-        document.getElementById('parvaMessage').textContent = errorMessage;
-        document.getElementById('parvaMessage').style.color = 'red';
-        handleApiError(error, error.message, apiEndpoints.insertParva);
-    }
-}
-
-async function postSandhi(parvaNumber, newSandhiName) {
-    try {
-        const response = await fetch(apiEndpoints.insertSandhi, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                parva_number: parvaNumber,
-                name: newSandhiName
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.id && result.name) {
-            document.getElementById('sandhiMessage').textContent = `ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
-            document.getElementById('sandhiMessage').style.color = 'green';
-            document.getElementById('newSandhiName').value = '';
-            document.getElementById('parvaNumber').value = ''; // Clear parva number field
-            // Optionally, you might want to refresh dropdowns or other elements
-            // fetchAndPopulateParva(); // Refresh the Parva dropdown if needed
-        } else {
-            document.getElementById('sandhiMessage').textContent = result.error || 'ಸಂಧಿ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ';
-            document.getElementById('sandhiMessage').style.color = 'red';
-        }
-    } catch (error) {
-        document.getElementById('sandhiMessage').textContent = 'ಸಂಧಿ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ';
-        document.getElementById('sandhiMessage').style.color = 'red';
-        handleApiError(error, error.message, apiEndpoints.insertSandhi);
-    }
-}
-
-// Function to post a new Padya
-async function postPadya(parvaNumber, sandhiNumber, padyaNumber, padya, pathantar, gadya, tippani, artha) {
-    try {
-        const response = await fetch(apiEndpoints.insertPadya, {  // Adjust endpoint if needed
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                parva_number: parvaNumber,
-                sandhi_number: sandhiNumber,
-                padya_number: padyaNumber,
-                padya: padya,
-                pathantar: pathantar,
-                gadya: gadya,
-                tippani: tippani,
-                artha: artha
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.id) {
-            $('#padyainsertPadyaMessage').text(`ಪದ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.id}`).css('color', 'green');
-            // Clear form fields
-            $('#parvaNumber').val('');
-            $('#sandhiNumber').val('');
-            $('#padyaNumber').val('');
-            $('#padya').val('');
-            $('#pathantar').val('');
-            $('#gadya').val('');
-            $('#tippani').val('');
-            $('#artha').val('');
-            // Call a function to refresh data or update the UI
-            // fetchAndPopulateParva(); // Uncomment if needed
-        } else {
-            $('#padyainsertPadyaMessage').text(result.error || 'ಪದ್ಯ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ').css('color', 'red');
-        }
-    } catch (error) {
-        $('#padyainsertPadyaMessage').text('ಪದ್ಯ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ').css('color', 'red');
-        console.error('API Error:', error);
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-// Define the reusable function
-async function fetchAndDisplayData(sandhiId, padyaNumber) {
-    if (padyaNumber) {
-        try {
-            const data = await fetchData(apiEndpoints.padyaContent, `/${sandhiId}/${padyaNumber}`);
-
-            function formatText(text) {
-                return text.replace(/\n/g, '<br>');
-            }
-
-            $('.padya').html(formatText(data['padya']));
-            $('.pathantar').html(formatText(data['pathantar']));
-            $('.gadya').html(formatText(data['gadya']));
-            $('.artha').html(formatText(data['artha']));
-            $('.tippani').html(formatText(data['tippani']));
-
-        } catch (e) {
-            // Handle fetch error
-            console.error('Fetch error:', e);
-        }
-    } else {
-        $('.padya').empty();
-        $('.pathantar').empty();
-        $('.gadya').empty();
-        $('.artha').empty();
-        $('.tippani').empty();
-    }
-}
