@@ -601,5 +601,6 @@ def search_padya_by_word():
         if sandhi:
             parva_name = sandhi.parva.name
             padya['parva_name'] = parva_name
+            padya['sandhi_number'] = sandhi.sandhi_number
 
     return jsonify(data)

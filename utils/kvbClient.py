@@ -3,10 +3,10 @@ import re
 
 import requests
 
-BASE_URL = 'http://127.0.0.1:8000'
+# BASE_URL = 'http://127.0.0.1:8000'
 
 
-# BASE_URL = 'https://kagapa.com/kvb'
+BASE_URL = 'https://kagapa.com/kvb'
 
 
 class ParvaSandhiManager:
@@ -60,6 +60,7 @@ class ParvaSandhiManager:
         if response.status_code == 200:
             parva = response.json()
             self.all_parvs.append(parva)
+            print('successfully inserted parva', parva)
             return parva
         else:
             print(f"Error saving parva '{name}': {response.json().get('error', response.text)}")
@@ -71,11 +72,11 @@ class ParvaSandhiManager:
         if parva is None:
             return None
 
-        parva_id = parva['id']
+        parva_number = parva['parva_number']
 
         # Check if the sandhi already exists
         for sandhi in self.all_sandhi:
-            if sandhi['name'] == name.strip() and sandhi['parva_id'] == parva_id:
+            if sandhi['name'] == name.strip() and sandhi['parva_number'] == parva_number:
                 return sandhi
 
         # Extract the sandhi_number from the name
@@ -88,39 +89,40 @@ class ParvaSandhiManager:
 
         # Make the POST request to save the sandhi
         response = requests.post(self.base_url + '/api/sandhi',
-                                 json={'parva_id': parva_id, 'name': name, 'sandhi_number': sandhi_number})
+                                 json={'parva_number': parva_number, 'name': name})
 
         if response.status_code == 200:
             sandhi = response.json()
             sandhi['parva_name'] = parva_name
             self.all_sandhi.append(sandhi)
-            print(sandhi)
+            print("successfully saved sandhi", sandhi)
             return sandhi
         else:
             print(f"Error saving sandhi '{name}': {response.json().get('error', response.text)}")
             return None
 
     def save_padya(self, parvaname, sandhi, padya_number, pathantar, gadya, tippani, artha, padya):
-        parva_id = None
-        sandhi_id = None
+        parva_number = None
+        sandhi_number = None
         for parva in self.all_parvs:
             if parva['name'] == parvaname.strip():
-                parva_id = parva['id']
-                print(f'matching parva found in existing parvas {parva} and id {parva_id}')
+                parva_number = parva['parva_number']
+                print(f'matching parva found in existing parvas {parva} and parva_number {parva_number}')
                 break
         for sandi in self.all_sandhi:
-            if parva_id == sandi['parva_id'] and sandhi == sandi['name']:
-                sandhi_id = sandi['id']
+            if parva_number == sandi['parva_number'] and sandhi == sandi['name']:
+                sandhi_number = sandi['sandhi_number']
                 print(f'matching sandhi found in existing sandhis {sandi}')
-        if parva_id is None:
+        if parva_number is None:
             print(f"Parva not found: '{parvaname}', '{sandhi}'")
             return None
-        elif sandhi_id is None:
+        elif sandhi_number is None:
             print(f"Sandhi not found: '{parvaname}', '{sandhi}'")
             return None
         try:
             response = requests.post(self.base_url + '/api/padya', json={
-                'sandhi_id': sandhi_id,
+                'parva_number': parva_number,
+                'sandhi_number': sandhi_number,
                 'padya_number': padya_number,
                 'pathantar': pathantar,
                 'gadya': gadya,
@@ -129,7 +131,7 @@ class ParvaSandhiManager:
                 'padya': padya
             })
             if response.status_code == 201:
-                print(f"Successfully inserted padya {padya_number} in sandhi: {sandhi_id}")
+                print(f"Successfully inserted padya {padya_number} in sandhi: {sandhi_number}")
             return response.json()
         except Exception as e:
             print(f"Error saving padya '{padya}': error: {str(e)}")
@@ -218,5 +220,5 @@ if __name__ == "__main__":
     # first run for parva
     # manager.process_parva_sandhi(file)
     # Then process padya entries
-    manager.process_csv(file)
+    # manager.process_csv(file)
     manager.add_user()
