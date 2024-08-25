@@ -185,3 +185,7 @@ audio {
   align-items: center; /* Center vertically */
   justify-content: center; /* Center horizontally */
 }
+
+.list-group-item:hover{
+background-color: rgb(159, 247, 166);
+}

@@ -246,7 +246,6 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
         } else {
             results.forEach(result => {
-                console.log('result : ', result)
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item mb-3 p-3 border rounded shadow-sm'; // Add margin and padding for better spacing
 
@@ -254,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name}</h5>
                     <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_number}</p>
                     <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
-                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="bg-light p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
+                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
                     <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha}</p>
                     <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${result.tippani.replace('nan','-')}</p>
                     <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar}</p>
