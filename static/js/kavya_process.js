@@ -193,7 +193,11 @@ $('#insertSandhiBtn').click(function () {
     const newSandhiName = $('#newSandhiName').val().trim();
 
     if (parvaNumber === '' || newSandhiName === '') {
-        $('#sandhiMessage').text('ಅ obligatory fields are required').css('color', 'red');
+        if (parvaNumber===''){
+            $('#sandhiMessage').text('ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ').css('color', 'red');
+            return
+        }
+        $('#sandhiMessage').text('ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ').css('color', 'red');
         return;
     }
 
@@ -212,7 +216,7 @@ $('#padyainsertPadyaBtn').click(function () {
     const artha = $('#padyainsertArtha').val().trim();
 
     if (parvaNumber === '' || sandhiNumber === '' || padyaNumber === '' || padya === '') {
-        $('#padyainsertPadyaMessage').text('ಅವರ್ಯ ಕ್ಷೇತ್ರಗಳನ್ನು ನಮೂದಿಸಬೇಕು').css('color', 'red');
+        $('#padyainsertPadyaMessage').text('Please fill required fields!').css('color', 'red');
         return;
     }
    
