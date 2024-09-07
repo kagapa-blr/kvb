@@ -213,40 +213,66 @@ $(document).ready(function() {
         table.search(letter).draw();
     });
 
-    // Handle row click event to show modal
-    $('#dictionaryTable tbody').on('click', 'tr', function () {
-        const rowData = table.row(this).data();
-        if (rowData) {
-            const parva = rowData.parva_id; // Adjust this if necessary
-            const sandhi = rowData.sandhi_id; // Adjust this if necessary
-            const padya = rowData.padya_number; // Adjust this if necessary
 
-            // Construct the URL for the API call
-            const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+// Handle row click event to show modal
+$('#dictionaryTable tbody').on('click', 'tr', function () {
+    const rowData = table.row(this).data();
+    if (rowData) {
+        const parva = rowData.parva_id; // Adjust this if necessary
+        const sandhi = rowData.sandhi_id; // Adjust this if necessary
+        const padya = rowData.padya_number; // Adjust this if necessary
 
-            // Fetch details from the API
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        $('#padyafirstline').text(data.padyafirstline || 'N/A');
-                        $('#pathantar').text(data.pathantar || 'N/A');
-                        $('#gadya').text(data.gadya || 'N/A');
-                        $('#tippani').text(data.tippani || 'N/A');
-                        $('#artha').text(data.artha || 'N/A');
-                        $('#suchane').text(data.suchane || 'N/A');
-                        $('#padya').text(data.padya || 'N/A');
-                        $('#padyaModal').modal('show');
-                    } else {
-                        console.error("No data returned from API");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching padya details:", error);
-                    // Handle error here, maybe show a message to the user
-                });
-        }
-    });
+        // Construct the URL for the API call
+        const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+
+        // Show loading spinner
+        $('#padyaModal .modal-body').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
+
+        // Fetch details from the API
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    // Populate modal with data
+                    $('#padyafirstline').text(data.padyafirstline || 'N/A');
+                    $('#pathantar').text(data.pathantar || 'N/A');
+                    $('#gadya').text(data.gadya || 'N/A');
+                    $('#tippani').text(data.tippani || 'N/A');
+                    $('#artha').text(data.artha || 'N/A');
+                    $('#suchane').text(data.suchane || 'N/A');
+                    $('#padya').text(data.padya || 'N/A');
+                    
+                    // Hide loading spinner and show modal
+                    $('#padyaModal .modal-body').html(`
+                        <p><strong>Padyafirstline:</strong> ${data.padyafirstline || 'N/A'}</p>
+                        <p><strong>Pathantar:</strong> ${data.pathantar || 'N/A'}</p>
+                        <p><strong>Gadya:</strong> ${data.gadya || 'N/A'}</p>
+                        <p><strong>Tippani:</strong> ${data.tippani || 'N/A'}</p>
+                        <p><strong>Artha:</strong> ${data.artha || 'N/A'}</p>
+                        <p><strong>Suchane:</strong> ${data.suchane || 'N/A'}</p>
+                        <p><strong>Padya:</strong> ${data.padya || 'N/A'}</p>
+                    `);
+                    $('#padyaModal').modal('show');
+                } else {
+                    console.error("No data returned from API");
+                    // Show error message in modal
+                    $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
+                    $('#padyaModal').modal('show');
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching padya details:", error);
+                // Show error message in modal
+                $('#padyaModal .modal-body').html('<p>Error fetching padya details. Please try again later.</p>');
+                $('#padyaModal').modal('show');
+            });
+    }
+});
+
+
+
+
+
 
     // Back button functionality
     $('.back-button').on('click', function() {

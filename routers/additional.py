@@ -61,8 +61,8 @@ def akaradi_suchi_data():
                 'parva_name': entry.parva.name,  # Fetch the name of the Parva
                 'sandhi_name': entry.sandhi.name,  # Fetch the name of the Sandhi
                 'padya_number': entry.padya_number,
-                'parva_id': entry.parva_id,  # Assuming you want the ID here
-                'sandhi_id': entry.sandhi_id,  # Assuming you want the ID here
+                'parva_id': entry.parva.parva_number,  # Assuming you want the ID here
+                'sandhi_id': entry.sandhi.sandhi_number,  # Assuming you want the ID here
             }
             for entry in akaradi_suchi_entries
         ]
