@@ -26,7 +26,7 @@ app.register_blueprint(users_bp)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('test.html')
 
 
 @app.route('/chitra/samputa')

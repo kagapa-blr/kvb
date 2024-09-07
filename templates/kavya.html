@@ -2,145 +2,124 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ಕಾವ್ಯ ಪ್ರವೇಶ</title>
     <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css"/>
-    <link rel="stylesheet" href="/static/css/style.css"/>
-    <link rel="stylesheet" href="/static/css/kavya.css"/>
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/kavya.css" />
     <!-- jQuery via CDN -->
     <script src="/static/jquery/jquery-3.7.1.min.js"></script>
     <!-- JavaScript -->
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
     <script src="/static/js/kavya_process.js"></script>
     <script src="/static/js/additional-buttons.js"></script>
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"> -->
-
 </head>
 
 <body>
-{% include 'navbar.html' %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="left-column">
-            <div class="dropdowns">
-                <div class="dropdown">
-                    <label for="parvaDropdown" class="form-label">ಪರ್ವ</label>
-                    <select id="parvaDropdown" class="form-select">
-                        <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
-                    </select>
+    {% include 'navbar.html' %}
+    <div class="container " style="margin-top: 4px;">
+        <div class="row">
+            <h3 style="text-align: center;"><strong>ಕರ್ನಾಟ ಭಾರತ ಕಥಾ ಮಂಜರಿ</strong> </h3>
+            <!-- Left Column -->
+            <div class="col-md-8 left-column">
+                <div class="dropdowns">
+                    <!-- Container for the parva and sandhi dropdowns -->
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <!-- Parva Dropdown -->
+                        <div class="dropdown d-flex align-items-center flex-grow-1">
+                            <label for="parvaDropdown" class="form-label me-2">ಪರ್ವ:</label>
+                            <select id="parvaDropdown" class="form-select">
+                                <!-- <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option> -->
+                            </select>
+                        </div>
+                        <!-- Sandhi Dropdown -->
+                        <div class="dropdown d-flex align-items-center flex-grow-1">
+                            <label for="sandhiDropdown" class="form-label me-2">ಸಂಧಿ:</label>
+                            <select id="sandhiDropdown" class="form-select" disabled>
+                                <!-- <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option> -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Container for Audio Player and Padya Number Dropdown -->
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Padya Number Dropdown -->
+                        <div class="dropdown d-flex align-items-center">
+                            <label for="padyaNumberDropdown" class="form-label me-2">ಪದ್ಯ ಸಂಖ್ಯೆ:</label>
+                            <select id="padyaNumberDropdown" class="form-select" disabled>
+                                <!-- <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option> -->
+                            </select>
+                        </div>
+
+                        <!-- Container for Audio Player and Label -->
+                        <div class="audio-player-container d-flex align-items-center" style="width: 200px;">
+                            <div class="audio-player me-3" style="flex-shrink: 0;">
+                                <h4 class="text-center mb-0" style="color: black;">ಧ್ವನಿ:</h4>
+                            </div>
+                            <div class="audio-player">
+                                <audio id="audio" controls style="width: 200px; height: 30px">
+                                    <source src="" type="audio/mpeg" />
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        </div>
+
+
+
+                    </div>
                 </div>
-                <div class="dropdown">
-                    <label for="sandhiDropdown" class="form-label">ಸಂಧಿ</label>
-                    <select id="sandhiDropdown" class="form-select" disabled>
-                        <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
-                    </select>
-                </div>
-                <div class="dropdown">
-                    <label for="padyaNumberDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                    <select id="padyaNumberDropdown" class="form-select" disabled>
-                        <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
-                    </select>
+                <div class="grid-container" style="margin-left: 50%;">
+                    <div class="grid-item padya-container">
+                        <span class="label">ಪದ್ಯ:</span>
+                        <div class="padya editable">1</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="instructions">
-                <p>
-                    <strong>ಪರ್ವ</strong>, <strong>ಸಂಧಿ</strong> ಮತ್ತು
-                    <strong>ಪದ್ಯ ಸಂಖ್ಯೆ</strong> ಆಯ್ಕೆ ಮಾಡಲು ಮೂರು ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
-                    ನೀಡಲಾಗಿದೆ. ಆರಂಭದಲ್ಲಿ, ಸಂಧಿ ಮತ್ತು ಪದ್ಯ ಸಂಖ್ಯೆ ಡ್ರಾಪ್‌ಡೌನ್‌ಗಳನ್ನು
-                    ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ. ಬಲಗಡೆ ಬಲಗಡೆ ಬಟನ್‌ಗಳ ಪಟ್ಟಿಯನ್ನು ನೀಡಲಾಗಿದೆ,
-                    ಪ್ರತಿಯೊಂದೂ ವಿವಿಧ ಹುಡುಕಾಟಗಳು ಮತ್ತು ಸೂಚ್ಯಂಕಗಳಿಗಾಗಿ ವಿಭಿನ್ನ ಮಾದರಿ
-                    ಸಂವಾದವನ್ನು ಪ್ರಚೋದಿಸುತ್ತದೆ. ಈ ಕಾಲಮ್‌ಗಳ ಕೆಳಗೆ, ಆಡಿಯೊ ಫೈಲ್ ಅನ್ನು ಪ್ಲೇ
-                    ಮಾಡಲು ಆಡಿಯೊ ಪ್ಲೇಯರ್ ಇದೆ. ಅಂತಿಮವಾಗಿ, ಗ್ರಿಡ್ ವಿನ್ಯಾಸವು ಐದು
-                    ವಿಭಾಗಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ: ಪದ್ಯ, ಪಠಾಂತರ,ಗದ್ಯ, ತಿಪ್ಪಾನಿ ಮತ್ತು
-                    ಅರ್ಥ, ಪ್ರತಿಯೊಂದನ್ನು ಲೇಬಲ್ ಮಾಡಲಾಗಿದೆ ಮತ್ತು ಸಂಪಾದಿಸಬಹುದಾಗಿದೆ.
-                    ಒಟ್ಟಾರೆ ವಿನ್ಯಾಸವು ನಿರ್ದಿಷ್ಟ ಸಾಹಿತ್ಯ ವಿಭಾಗಗಳ ಆಯ್ಕೆ ಮತ್ತು ಪ್ರದರ್ಶನ,
-                    ಆಡಿಯೊ ಪ್ಲೇಬ್ಯಾಕ್ ಮತ್ತು ವಿವರವಾದ ಹುಡುಕಾಟ ಕಾರ್ಯಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು
-                    ಸುಗಮಗೊಳಿಸುತ್ತದೆ.
-                </p>
-            </div>
-
-            <div class="forward-backward d-flex justify-content-between align-items-center">
-                <button id="check-previous">
-                    <i class="fa-solid fa-backward fa-2x me-2" title="Previous"></i>
-                </button>
-                <button id="check-next">
-                    <i class="fa-solid fa-forward fa-2x ms-2" title="Next"></i>
-                </button>
-
-
+            <!-- Right Column -->
+            <div class="right-column" style="margin-top: 0%;">
+                <div class="button-list">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">ಹೆಚ್ಚಿನ ಶೋಧನೆ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal2">ಅಕಾರಾದಿ ಸೂಚಿ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal3">ಗಾದೆಗಳ ಸೂಚಿ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal4">ಲೇಖನ ಸೂಚಿ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal5">ಅರ್ಥ ಕೋಶ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal6">ವಿಷಯ ಪರಿವಿಡಿ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">ಗಮಕ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal8">ಅನುಬಂಧ</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal9">ಟಿಪ್ಪಣಿ</button>
+                </div>
             </div>
         </div>
-        <div class="right-column">
-            <div class="button-list">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">
-                    ಹೆಚ್ಚಿನ ಶೋಧನೆ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal2">
-                    ಅಕಾರಾದಿ ಸೂಚಿ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal3">
-                    ಗಾದೆಗಳ ಸೂಚಿ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal4">
-                    ಲೇಖನ ಸೂಚಿ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal5">
-                    ಅರ್ಥ ಕೋಶ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal6">
-                    ವಿಷಯ ಪರಿವಿಡಿ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">
-                    ಗಮಕ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal8">
-                    ಅನುಬಂಧ
-                </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal9">
-                    ಟಿಪ್ಪಣಿ
-                </button>
+
+        <div class="container">
+            <div class="grid-container" style="margin-bottom: 0%;">
+                <!-- <div class="grid-item padya-container">
+                    <span class="label">ಪದ್ಯ:</span>
+                    <div class="padya editable">1</div>
+                </div> -->
+                <div class="grid-item">
+                    <span class="label">ಪಾಠಾಂತರ:</span>
+                    <div class="pathantar editable">2</div>
+                </div>
+                <div class="grid-item">
+                    <span class="label">ಗದ್ಯ:</span>
+                    <div class="gadya editable">3</div>
+                </div>
+                <div class="grid-item">
+                    <span class="label">ಟಿಪ್ಪಣಿ:</span>
+                    <div class="tippani editable">4</div>
+                </div>
+                <div class="grid-item">
+                    <span class="label">ಅರ್ಥ:</span>
+                    <div class="artha editable">5</div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="audio-player-container">
-        <div class="audio-player">
-            <audio id="audio" controls>
-                <source src="" type="audio/mpeg"/>
-                Your browser does not support the audio element.
-            </audio>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="grid-container">
-            <div class="grid-item padya-container">
-                <span class="label">ಪದ್ಯ:</span>
-                <div class="padya editable">1</div>
-            </div>
-            <div class="grid-item">
-                <span class="label">ಪಾಠಾಂತರ:</span>
-                <div class="pathantar editable">2</div>
-            </div>
-            <div class="grid-item">
-                <span class="label">ಗದ್ಯ:</span>
-                <div class="gadya editable">3</div>
-            </div>
-            <div class="grid-item">
-                <span class="label">ಟಿಪ್ಪಣಿ:</span>
-                <div class="tippani editable">4</div>
-            </div>
-            <div class="grid-item">
-                <span class="label">ಅರ್ಥ:</span>
-                <div class="artha editable">5</div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Scrollable Modal Examples -->
 <div class="Scrollable-Modal">
@@ -341,27 +320,23 @@
 
 </div>
 
-<script>
-    $(document).ready(function () {
-        $("#parvaDropdown").change(function () {
-            $("#sandhiDropdown").prop("disabled", false);
+    <script>
+        $(document).ready(function () {
+            $("#parvaDropdown").change(function () {
+                $("#sandhiDropdown").prop("disabled", false);
+            });
+
+            $("#sandhiDropdown").change(function () {
+                $("#padyaNumberDropdown").prop("disabled", false);
+            });
+
+            $("#padyaNumberDropdown").change(function () {
+                // Add any required functionality here
+            });
         });
+    </script>
 
-        $("#sandhiDropdown").change(function () {
-            $("#padyaNumberDropdown").prop("disabled", false);
-        });
-
-        $("#padyaNumberDropdown").change(function () {
-            // Add any required functionality here
-        });
-    });
-
-
-
-</script>
-<br><br><br>
-{% include 'footer.html' %}
-
+    {% include 'footer.html' %}
 </body>
 
 </html>
