@@ -45,7 +45,7 @@ def get_image(filename):
 
 @app.route('/kavya')
 def kavya():
-    return render_template('kavya.html')
+    return render_template('test.html')
 
 
 @app.route('/admin')

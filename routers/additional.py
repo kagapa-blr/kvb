@@ -69,3 +69,13 @@ def akaradi_suchi_data():
         return jsonify(data)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@additonal_bp.get('/lekhana-suchi')
+def lekhana_suchi():
+    return render_template('additional/lekhan-suchi.html')
+
+
+@additonal_bp.get('/gadegal-suchi')
+def gadegala_suchi():
+    return render_template('additional/gadegala-suchi.html')

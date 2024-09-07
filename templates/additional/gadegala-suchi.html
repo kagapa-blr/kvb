@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ಅಕಾರಾದಿ ಸೂಚಿ</title>
+    <title>ಗಾದೆಗಳ ಸೂಚಿ</title>
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css">
     <script src="/static/jquery/jquery-3.7.1.js"></script>
@@ -64,7 +64,7 @@
             background-color: #f0f0f0;
         }
 
-        .word-dropdown {
+        .parva-dropdown {
             margin-bottom: 20px;
             display: flex;
             justify-content: center;
@@ -150,7 +150,7 @@
 <body>
     <div class="container">
         <div class="title">
-            <h1 class="text-center mb-0">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
+            <h1 class="text-center mb-0">ಗಾದೆಗಳ ಸೂಚಿ</h1>
             <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
         </div>
 
@@ -162,18 +162,19 @@
             <span>ಶ</span><span>ಷ</span>
         </div>
 
-        <div class="word-dropdown">
+        <div class="parva-dropdown">
             <select id="parvaDropdown" class="form-select">
                 <!-- <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option> -->
-
+                
             </select>
         </div>
+
 
         <div class="word-table">
             <table id="dictionaryTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ಪದ್ಯದ ಮೊದಲ ಸಾಲು</th>
+                        <th>ಗಾದೆ</th>
                         <th>ಪರ್ವ</th>
                         <th>ಸಂಧಿಯ ಹೆಸರು</th>
                         <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
@@ -186,7 +187,7 @@
         </div>
 
         <div class="footer text-center">
-            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ವಿವರಣೆ  ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
+            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ಪೂರ್ಣ ವಿವರನ್ನು ಪಡೆಯಲು ಪದ್ಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ 
         </div>
     </div>
 
@@ -199,13 +200,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Padyafirstline:</strong> <span id="padyafirstline"></span></p>
-                    <p><strong>Pathantar:</strong> <span id="pathantar"></span></p>
-                    <p><strong>Gadya:</strong> <span id="gadya"></span></p>
-                    <p><strong>Tippani:</strong> <span id="tippani"></span></p>
-                    <p><strong>Artha:</strong> <span id="artha"></span></p>
-                    <p><strong>Suchane:</strong> <span id="suchane"></span></p>
-                    <p><strong>Padya:</strong> <span id="padya"></span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -240,23 +234,25 @@
                 "ordering": true,
                 "order": [[0, 'asc']],
                 "columns": [
-                    { "data": "padyafirstline", "title": "ಪದ್ಯದ ಮೊದಲ ಸಾಲು" },
+                    { "data": "padyafirstline", "title": "ಗಾದೆ" },
                     { "data": "parva_name", "title": "ಪರ್ವ" },
                     { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
                     { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
                 ]
             });
 
-            allParva = new Set();
+            allParva=new Set()
             // Fetch data from Flask API and populate the table
             fetch('/akaradi-suchi/data')
                 .then(response => response.json())
                 .then(data => {
                     if (Array.isArray(data)) {
                         table.clear().rows.add(data).draw();
-                    
+
+
                 // Extract unique parva names and populate dropdown
                 data.forEach(item => allParva.add(item.parva_name));
+
 
                 // Populate dropdown
                 const dropdown = $('#parvaDropdown');
@@ -265,8 +261,8 @@
                     dropdown.append(`<option value="${parva}">${parva}</option>`);
                 });
 
-                    
-                    
+
+
                     } else {
                         console.error("Unexpected data format:", data);
                     }
@@ -291,6 +287,7 @@
                 const letter = $(this).text();
                 table.search(letter).draw();
             });
+
 
 
             // Handle row click event to show modal
