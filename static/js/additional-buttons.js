@@ -282,4 +282,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
         return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
     }
+
+
+
+    
 });

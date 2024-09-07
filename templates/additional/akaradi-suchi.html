@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="kn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,18 +11,23 @@
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
     <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
     <script src="/static/DataTables/datatables.min.js"></script>
+
+
+
     <style>
         body {
             background-color: #FFDAB9;
             font-family: Arial, sans-serif;
         }
+
         .container {
             background-color: #FFE4B5;
             border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .title {
             background-color: #FFDAB9;
             padding: 10px;
@@ -29,11 +35,13 @@
             margin-bottom: 20px;
             position: relative;
         }
+
         .back-button {
             position: absolute;
             top: 10px;
             right: 10px;
         }
+
         .alphabet-grid {
             display: flex;
             flex-wrap: wrap;
@@ -41,6 +49,7 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+
         .alphabet-grid span {
             font-size: 18px;
             font-weight: bold;
@@ -50,41 +59,101 @@
             background-color: #FFF;
             border: 1px solid #ddd;
         }
+
         .alphabet-grid span:hover {
             background-color: #f0f0f0;
         }
+
         .word-dropdown {
             margin-bottom: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
+
         .word-table {
             border: 1px solid #dee2e6;
         }
+
         .footer {
             font-size: 12px;
             margin-top: 10px;
         }
+
         .form-select {
             background-color: #FFF;
             max-width: 300px;
         }
+
         #dictionaryTable thead th {
             cursor: pointer;
         }
+
         #dictionaryTable thead th:hover {
             background-color: #f8f9fa;
         }
+
+        /* Modal styling */
+        .modal-dialog {
+            max-width: 90%;
+            margin: 1.75rem auto;
+        }
+
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+            padding: 20px;
+        }
+
+        .modal-header {
+            background-color: #343a40;
+            color: #fff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+        }
+
+        .modal-body {
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+        }
+
+        .modal-footer .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .modal-footer .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
     </style>
+
 </head>
+
 <body>
     <div class="container">
         <div class="title">
             <h1 class="text-center mb-0">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
             <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
         </div>
-        
+
         <div class="alphabet-grid">
             <span>ಅ</span><span>ಆ</span><span>ಇ</span><span>ಈ</span><span>ಉ</span><span>ಊ</span><span>ಋ</span><span>ಎ</span><span>ಏ</span><span>ಐ</span><span>ಒ</span>
             <span>ಓ</span><span>ಔ</span><span>ಕ</span><span>ಖ</span><span>ಗ</span><span>ಘ</span><span>ಙ</span><span>ಚ</span><span>ಛ</span><span>ಜ</span><span>ಝ</span>
@@ -115,13 +184,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                <!-- Data will be populated here -->
+                    <!-- Data will be populated here -->
                 </tbody>
             </table>
         </div>
 
         <div class="footer text-center">
-            ಸ್ಪಷ್ಟನೆ : ಪದದ ವಿವರಣೆ ಓದಲು ಪದವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ, ಅಥವಾ ಪದದ ಮೇಲೆ ಮೌಸ್ ತನ್ನಿ.
+            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ವಿವರಣೆ  ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
         </div>
     </div>
 
@@ -130,7 +199,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="padyaModalLabel">Padya Details</h5>
+                    <h5 class="modal-title" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -152,136 +221,164 @@
 
 
 
-<script>
-$(document).ready(function() {
-    // Initialize DataTable
-    const table = $('#dictionaryTable').DataTable({
-        "language": {
-            "search": "ಹುಡುಕು:",
-            "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
-            "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
-            "paginate": {
-                "first": "ಮೊದಲ",
-                "last": "ಕೊನೆಯ",
-                "next": "ಮುಂದಿನ",
-                "previous": "ಹಿಂದಿನ"
-            },
-            "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-            "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
-        },
-        "pageLength": 5,
-        "lengthMenu": [5, 10, 25, 50],
-        "ordering": true,
-        "order": [[0, 'asc']],
-        "columns": [
-            { "data": "padyafirstline", "title": "ಪದ್ಯದ ಮೊದಲ ಸಾಲು" },
-            { "data": "parva_name", "title": "ಪರ್ವ" },
-            { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
-            { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
-        ]
-    });
+    <script>
 
-    // Fetch data from Flask API and populate the table
-    fetch('/akaradi-suchi/data')
-        .then(response => response.json())
-        .then(data => {
-            console.log("Data received:", data);  // Verify the data format
-            if (Array.isArray(data)) {
-                table.clear().rows.add(data).draw();
-            } else {
-                console.error("Unexpected data format:", data);
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching data:", error);
-            // Handle error here, maybe show a message to the user
-        });
-
-    // Filter by dropdown
-    $('#wordDropdown').on('change', function() {
-        const selectedType = $(this).val();
-        if (selectedType === 'ಎಲ್ಲಾ ಪದಗಳು') {
-            table.column(1).search('').draw();
-        } else {
-            table.column(1).search(selectedType).draw();
-        }
-    });
-
-    // Filter by alphabet
-    $('.alphabet-grid span').on('click', function() {
-        const letter = $(this).text();
-        table.search(letter).draw();
-    });
-
-
-// Handle row click event to show modal
-$('#dictionaryTable tbody').on('click', 'tr', function () {
-    const rowData = table.row(this).data();
-    if (rowData) {
-        const parva = rowData.parva_id; // Adjust this if necessary
-        const sandhi = rowData.sandhi_id; // Adjust this if necessary
-        const padya = rowData.padya_number; // Adjust this if necessary
-
-        // Construct the URL for the API call
-        const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
-
-        // Show loading spinner
-        $('#padyaModal .modal-body').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
-
-        // Fetch details from the API
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    // Populate modal with data
-                    $('#padyafirstline').text(data.padyafirstline || 'N/A');
-                    $('#pathantar').text(data.pathantar || 'N/A');
-                    $('#gadya').text(data.gadya || 'N/A');
-                    $('#tippani').text(data.tippani || 'N/A');
-                    $('#artha').text(data.artha || 'N/A');
-                    $('#suchane').text(data.suchane || 'N/A');
-                    $('#padya').text(data.padya || 'N/A');
-                    
-                    // Hide loading spinner and show modal
-                    $('#padyaModal .modal-body').html(`
-                        <p><strong>Padyafirstline:</strong> ${data.padyafirstline || 'N/A'}</p>
-                        <p><strong>Pathantar:</strong> ${data.pathantar || 'N/A'}</p>
-                        <p><strong>Gadya:</strong> ${data.gadya || 'N/A'}</p>
-                        <p><strong>Tippani:</strong> ${data.tippani || 'N/A'}</p>
-                        <p><strong>Artha:</strong> ${data.artha || 'N/A'}</p>
-                        <p><strong>Suchane:</strong> ${data.suchane || 'N/A'}</p>
-                        <p><strong>Padya:</strong> ${data.padya || 'N/A'}</p>
-                    `);
-                    $('#padyaModal').modal('show');
-                } else {
-                    console.error("No data returned from API");
-                    // Show error message in modal
-                    $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
-                    $('#padyaModal').modal('show');
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching padya details:", error);
-                // Show error message in modal
-                $('#padyaModal .modal-body').html('<p>Error fetching padya details. Please try again later.</p>');
-                $('#padyaModal').modal('show');
+        $(document).ready(function () {
+            // Initialize DataTable
+            const table = $('#dictionaryTable').DataTable({
+                "language": {
+                    "search": "ಹುಡುಕು:",
+                    "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
+                    "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
+                    "paginate": {
+                        "first": "ಮೊದಲ",
+                        "last": "ಕೊನೆಯ",
+                        "next": "ಮುಂದಿನ",
+                        "previous": "ಹಿಂದಿನ"
+                    },
+                    "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+                    "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
+                },
+                "pageLength": 5,
+                "lengthMenu": [5, 10, 25, 50,100,500,1000],
+                "ordering": true,
+                "order": [[0, 'asc']],
+                "columns": [
+                    { "data": "padyafirstline", "title": "ಪದ್ಯದ ಮೊದಲ ಸಾಲು" },
+                    { "data": "parva_name", "title": "ಪರ್ವ" },
+                    { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
+                    { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
+                ]
             });
-    }
-});
+
+            // Fetch data from Flask API and populate the table
+            fetch('/akaradi-suchi/data')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        table.clear().rows.add(data).draw();
+                    } else {
+                        console.error("Unexpected data format:", data);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    // Handle error here, maybe show a message to the user
+                });
+
+            // Filter by dropdown
+            $('#wordDropdown').on('change', function () {
+                const selectedType = $(this).val();
+                if (selectedType === 'ಎಲ್ಲಾ ಪದಗಳು') {
+                    table.column(1).search('').draw();
+                } else {
+                    table.column(1).search(selectedType).draw();
+                }
+            });
+
+            // Filter by alphabet
+            $('.alphabet-grid span').on('click', function () {
+                const letter = $(this).text();
+                table.search(letter).draw();
+            });
+
+
+            // Handle row click event to show modal
+            $('#dictionaryTable tbody').on('click', 'tr', function () {
+                const rowData = table.row(this).data();
+                if (rowData) {
+                    const parva = rowData.parva_number; // Adjust this if necessary
+                    const sandhi = rowData.sandhi_number; // Adjust this if necessary
+                    const padya = rowData.padya_number; // Adjust this if necessary
+
+                    const firstline = rowData.padyafirstline;
+                    const parva_name = rowData.parva_name;
+                    const sandhi_name = rowData.sandhi_name;
+                    const sandhi_number = rowData.sandhi_number;
+                    const parva_number = rowData.sandhi_number;
+
+                    // Construct the URL for the API call
+                    const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+
+                    // Show loading spinner
+                    $('#padyaModal .modal-body').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
+
+                    // Fetch details from the API
+                    fetch(apiUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data) {
+                                // Populate modal with data
+                                $('#padyafirstline').text(data.padyafirstline || 'N/A');
+                                $('#pathantar').text(data.pathantar || 'N/A');
+                                $('#gadya').text(data.gadya || 'N/A');
+                                $('#tippani').text(data.tippani || 'N/A');
+                                $('#artha').text(data.artha || 'N/A');
+                                $('#suchane').text(data.suchane || 'N/A');
+                                $('#padya').text(data.padya || 'N/A');
+
+                                // Hide loading spinner and show modal
+                                $('#padyaModal .modal-body').html(`
+
+
+                    <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
+                    <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
+                    <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
+                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(data.padya, firstline)}</pre></p>
+                    <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
+                    <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
+                    <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
+                    `);
+                                $('#padyaModal').modal('show');
+                            } else {
+                                console.error("No data returned from API");
+                                // Show error message in modal
+                                $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
+                                $('#padyaModal').modal('show');
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error fetching padya details:", error);
+                            // Show error message in modal
+                            $('#padyaModal .modal-body').html('<p>Error fetching padya details. Please try again later.</p>');
+                            $('#padyaModal').modal('show');
+                        });
+                }
+            });
 
 
 
+            // Function to escape HTML entities
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text.replace(/[&<>"']/g, (m) => map[m]);
+            }
+
+            // Function to highlight the search word with a yellow background
+            function highlightWord(text, word) {
+                console.log('line', word)
+                const escapedWord = escapeHtml(word);
+                const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
+                return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
+            }
 
 
 
-    // Back button functionality
-    $('.back-button').on('click', function() {
-        alert('Navigating to previous page');
-    });
-});
-</script>
+            // Back button functionality
+            $('.back-button').on('click', function () {
+                alert('Navigating to previous page');
+            });
+        });
+    </script>
 
 
 
 </body>
+
 </html>
