@@ -125,9 +125,34 @@
         </div>
     </div>
 
-    <script>
+    <!-- Modal for displaying padya details -->
+    <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="padyaModalLabel">Padya Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Padyafirstline:</strong> <span id="padyafirstline"></span></p>
+                    <p><strong>Pathantar:</strong> <span id="pathantar"></span></p>
+                    <p><strong>Gadya:</strong> <span id="gadya"></span></p>
+                    <p><strong>Tippani:</strong> <span id="tippani"></span></p>
+                    <p><strong>Artha:</strong> <span id="artha"></span></p>
+                    <p><strong>Suchane:</strong> <span id="suchane"></span></p>
+                    <p><strong>Padya:</strong> <span id="padya"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
+
+
+<script>
 $(document).ready(function() {
     // Initialize DataTable
     const table = $('#dictionaryTable').DataTable({
@@ -188,13 +213,49 @@ $(document).ready(function() {
         table.search(letter).draw();
     });
 
+    // Handle row click event to show modal
+    $('#dictionaryTable tbody').on('click', 'tr', function () {
+        const rowData = table.row(this).data();
+        if (rowData) {
+            const parva = rowData.parva_id; // Adjust this if necessary
+            const sandhi = rowData.sandhi_id; // Adjust this if necessary
+            const padya = rowData.padya_number; // Adjust this if necessary
+
+            // Construct the URL for the API call
+            const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+
+            // Fetch details from the API
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        $('#padyafirstline').text(data.padyafirstline || 'N/A');
+                        $('#pathantar').text(data.pathantar || 'N/A');
+                        $('#gadya').text(data.gadya || 'N/A');
+                        $('#tippani').text(data.tippani || 'N/A');
+                        $('#artha').text(data.artha || 'N/A');
+                        $('#suchane').text(data.suchane || 'N/A');
+                        $('#padya').text(data.padya || 'N/A');
+                        $('#padyaModal').modal('show');
+                    } else {
+                        console.error("No data returned from API");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching padya details:", error);
+                    // Handle error here, maybe show a message to the user
+                });
+        }
+    });
+
     // Back button functionality
     $('.back-button').on('click', function() {
         alert('Navigating to previous page');
     });
 });
+</script>
 
 
-    </script>
+
 </body>
 </html>
