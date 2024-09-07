@@ -1,0 +1,90 @@
+
+body {
+    background-color: #FFE4B5;
+    font-family: Arial, sans-serif;
+}
+
+.main-container {
+    background-color: #FFDAB9;
+    border: 2px solid #8B4513;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    max-width: 90%;
+    width: 95%;
+    
+}
+.header {
+    background-color: #000;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-bottom: 15px;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.content-box {
+    background-color: white;
+    border: 1px solid #8B4513;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.side-menu {
+    background-color: #DEB887;
+    border-radius: 5px;
+    padding: 10px;
+}
+.side-menu button {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+    background-color: #FFE4B5;
+    color: black;
+    border: 1px solid #8B4513;
+    padding: 5px;
+    text-align: left;
+}
+.play-controls {
+    text-align: center;
+    margin: 10px 0;
+}
+.play-controls button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    margin: 0 5px;
+}
+.black-bg {
+    background-color: #000;
+    color: #fff;
+}
+.label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+.editable {
+    min-height: 50px;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-top: 5px;
+}
+.audio-player {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+.audio-player audio {
+    width: 200px;
+    height: 30px;
+}
+
+
+
+.list-group-item:hover{
+    background-color: rgb(159, 247, 166);
+    }
