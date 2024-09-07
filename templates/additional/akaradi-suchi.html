@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ಅಕಾರಾದಿ ಸೂಚಿ</title>
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css">
+
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+
+    <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
+    <script src="/static/jquery/jquery-3.7.1.js"></script>
+<script src="/static/DataTables/datatables.min.js"></script>
+    <style>
+        body {
+            background-color: #FFDAB9;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background-color: #FFE4B5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            background-color: #FFDAB9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .alphabet-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .alphabet-grid span {
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #FFF;
+            border: 1px solid #ddd;
+        }
+        .alphabet-grid span:hover {
+            background-color: #f0f0f0;
+        }
+        .word-dropdown {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .word-table {
+            border: 1px solid #dee2e6;
+        }
+        .footer {
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .form-select {
+            background-color: #FFF;
+            max-width: 300px;
+        }
+        #dictionaryTable thead th {
+            cursor: pointer;
+        }
+        #dictionaryTable thead th:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">
+            <h1 class="text-center mb-0">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
+            <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
+        </div>
+        
+        <div class="alphabet-grid">
+            <span>ಅ</span><span>ಆ</span><span>ಇ</span><span>ಈ</span><span>ಉ</span><span>ಊ</span><span>ಋ</span><span>ಎ</span><span>ಏ</span><span>ಐ</span><span>ಒ</span>
+            <span>ಓ</span><span>ಔ</span><span>ಕ</span><span>ಖ</span><span>ಗ</span><span>ಘ</span><span>ಙ</span><span>ಚ</span><span>ಛ</span><span>ಜ</span><span>ಝ</span>
+            <span>ಞ</span><span>ಟ</span><span>ಠ</span><span>ಡ</span><span>ಢ</span><span>ಣ</span><span>ತ</span><span>ಥ</span><span>ದ</span><span>ಧ</span>
+            <span>ನ</span><span>ಪ</span><span>ಫ</span><span>ಬ</span><span>ಭ</span><span>ಮ</span><span>ಯ</span><span>ರ</span><span>ಲ</span><span>ವ</span>
+            <span>ಶ</span><span>ಷ</span>
+        </div>
+
+        <div class="word-dropdown">
+            <select id="wordDropdown" class="form-select">
+                <option>ಎಲ್ಲಾ ಪದಗಳು</option>
+                <option>ಅವ್ಯಯ ಪದದ</option>
+                <option>ಸಂಜ್ಞಾ ಪದದ</option>
+                <option>ಭಾವ ಪದದ</option>
+                <option>ಉಪಯೋಗ ಪದದ</option>
+                <option>ವಿಶೇಷಣ ಪದದ</option>
+            </select>
+        </div>
+
+        <div class="word-table">
+            <table id="dictionaryTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ಪದ್ಯದ ಮೊದಲ ಸಾಲು</th>
+                        <th>ಪರ್ವ</th>
+                        <th>ಸಂಧಿಯ ಹೆಸರು </th>
+                        <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ಅಂಗೈಕೊಳ್ಳುವ ಭಾವದ ತೀವ್ರತೆ</td>
+                        <td>ಸಂಜ್ಞಾ ಪದದ</td>
+                        <td>ಎಂದನೆಯ ಸಂಧಿ</td>
+                        <td>೯೮</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer text-center">
+            ಸ್ಪಷ್ಟನೆ : ಪದದ ವಿವರಣೆ ಓದಲು ಪದವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ, ಅಥವಾ ಪದದ ಮೇಲೆ ಮೌಸ್ ತನ್ನಿ.
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function() {
+            var table = $('#dictionaryTable').DataTable({
+                "language": {
+                    "search": "ಹುಡುಕು:",
+                    "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
+                    "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
+                    "paginate": {
+                        "first": "ಮೊದಲ",
+                        "last": "ಕೊನೆಯ",
+                        "next": "ಮುಂದಿನ",
+                        "previous": "ಹಿಂದಿನ"
+                    },
+                    "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+                    "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
+                },
+                "pageLength": 5,
+                "lengthMenu": [5, 10, 25, 50],
+                "ordering": true,
+                "order": [[0, 'asc']],
+                "columnDefs": [
+                    { "orderable": true, "targets": "_all" }
+                ]
+            });
+
+            $('#wordDropdown').on('change', function() {
+                var selectedType = $(this).val();
+                if (selectedType === 'ಎಲ್ಲಾ ಪದಗಳು') {
+                    table.column(1).search('').draw();
+                } else {
+                    table.column(1).search(selectedType).draw();
+                }
+            });
+
+            $('.alphabet-grid span').on('click', function() {
+                var letter = $(this).text();
+                table.search(letter).draw();
+            });
+
+            $('.back-button').on('click', function() {
+                alert('Navigating to previous page');
+            });
+        });
+    </script>
+</body>
+</html>

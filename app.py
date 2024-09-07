@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from werkzeug.security import check_password_hash
 
 from model.models import db, User
+from routers.additional import additonal_bp
 from routers.parvya import parvya_bp
 from routers.users import users_bp
 
@@ -21,6 +22,7 @@ migrate = Migrate(app, db)
 
 # Register Blueprints
 app.register_blueprint(parvya_bp, url_prefix='/api')
+app.register_blueprint(additonal_bp)
 app.register_blueprint(users_bp)
 
 
