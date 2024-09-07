@@ -48,3 +48,39 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+
+class AkaradiSuchi(db.Model):
+    """
+    A model representing the Akaradi Suchi entries in the database.
+
+    Attributes:
+    id (int): The primary key of the entry.
+    padyafirstline (str): The first line of the padya.
+    parva_id (int): The foreign key referencing the Parva model.
+    sandhi_id (int): The foreign key referencing the Sandhi model.
+    padya_number (int): The number of the padya within the Sandhi.
+
+    Relationships:
+    parva (Parva): The Parva associated with the Akaradi Suchi entry.
+    sandhi (Sandhi): The Sandhi associated with the Akaradi Suchi entry.
+
+    Constraints:
+    UniqueConstraint: Ensures the combination of parva_id, sandhi_id, and padya_number is unique.
+    """
+
+    __tablename__ = 'akaradi_suchi'
+    id = db.Column(db.Integer, primary_key=True)
+    padyafirstline = db.Column(db.Text, nullable=False)
+    parva_id = db.Column(db.Integer, db.ForeignKey('parva.id'), nullable=False)
+    sandhi_id = db.Column(db.Integer, db.ForeignKey('sandhi.id'), nullable=False)
+    padya_number = db.Column(db.Integer, nullable=False)
+
+    # Relationships
+    parva = db.relationship('Parva', backref='akaradi_suchi_entries')
+    sandhi = db.relationship('Sandhi', backref='akaradi_suchi_entries')
+
+    # Unique constraint to ensure the combination of parva_id, sandhi_id, and padya_number is unique
+    __table_args__ = (
+        db.UniqueConstraint('parva_id', 'sandhi_id', 'padya_number', name='unique_parva_sandhi_padya'),
+    )

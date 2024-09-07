@@ -6,12 +6,10 @@
     <title>ಅಕಾರಾದಿ ಸೂಚಿ</title>
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css">
-
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-
-    <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
     <script src="/static/jquery/jquery-3.7.1.js"></script>
-<script src="/static/DataTables/datatables.min.js"></script>
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
+    <script src="/static/DataTables/datatables.min.js"></script>
     <style>
         body {
             background-color: #FFDAB9;
@@ -97,12 +95,12 @@
 
         <div class="word-dropdown">
             <select id="wordDropdown" class="form-select">
-                <option>ಎಲ್ಲಾ ಪದಗಳು</option>
-                <option>ಅವ್ಯಯ ಪದದ</option>
-                <option>ಸಂಜ್ಞಾ ಪದದ</option>
-                <option>ಭಾವ ಪದದ</option>
-                <option>ಉಪಯೋಗ ಪದದ</option>
-                <option>ವಿಶೇಷಣ ಪದದ</option>
+                <option value="">ಎಲ್ಲಾ ಪದಗಳು</option>
+                <option value="ಅವ್ಯಯ ಪದದ">ಅವ್ಯಯ ಪದದ</option>
+                <option value="ಸಂಜ್ಞಾ ಪದದ">ಸಂಜ್ಞಾ ಪದದ</option>
+                <option value="ಭಾವ ಪದದ">ಭಾವ ಪದದ</option>
+                <option value="ಉಪಯೋಗ ಪದದ">ಉಪಯೋಗ ಪದದ</option>
+                <option value="ವಿಶೇಷಣ ಪದದ">ವಿಶೇಷಣ ಪದದ</option>
             </select>
         </div>
 
@@ -112,17 +110,12 @@
                     <tr>
                         <th>ಪದ್ಯದ ಮೊದಲ ಸಾಲು</th>
                         <th>ಪರ್ವ</th>
-                        <th>ಸಂಧಿಯ ಹೆಸರು </th>
+                        <th>ಸಂಧಿಯ ಹೆಸರು</th>
                         <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>ಅಂಗೈಕೊಳ್ಳುವ ಭಾವದ ತೀವ್ರತೆ</td>
-                        <td>ಸಂಜ್ಞಾ ಪದದ</td>
-                        <td>ಎಂದನೆಯ ಸಂಧಿ</td>
-                        <td>೯೮</td>
-                    </tr>
+                <!-- Data will be populated here -->
                 </tbody>
             </table>
         </div>
@@ -132,50 +125,76 @@
         </div>
     </div>
 
-
     <script>
-        $(document).ready(function() {
-            var table = $('#dictionaryTable').DataTable({
-                "language": {
-                    "search": "ಹುಡುಕು:",
-                    "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
-                    "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
-                    "paginate": {
-                        "first": "ಮೊದಲ",
-                        "last": "ಕೊನೆಯ",
-                        "next": "ಮುಂದಿನ",
-                        "previous": "ಹಿಂದಿನ"
-                    },
-                    "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-                    "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
-                },
-                "pageLength": 5,
-                "lengthMenu": [5, 10, 25, 50],
-                "ordering": true,
-                "order": [[0, 'asc']],
-                "columnDefs": [
-                    { "orderable": true, "targets": "_all" }
-                ]
-            });
 
-            $('#wordDropdown').on('change', function() {
-                var selectedType = $(this).val();
-                if (selectedType === 'ಎಲ್ಲಾ ಪದಗಳು') {
-                    table.column(1).search('').draw();
-                } else {
-                    table.column(1).search(selectedType).draw();
-                }
-            });
 
-            $('.alphabet-grid span').on('click', function() {
-                var letter = $(this).text();
-                table.search(letter).draw();
-            });
+$(document).ready(function() {
+    // Initialize DataTable
+    const table = $('#dictionaryTable').DataTable({
+        "language": {
+            "search": "ಹುಡುಕು:",
+            "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
+            "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
+            "paginate": {
+                "first": "ಮೊದಲ",
+                "last": "ಕೊನೆಯ",
+                "next": "ಮುಂದಿನ",
+                "previous": "ಹಿಂದಿನ"
+            },
+            "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+            "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
+        },
+        "pageLength": 5,
+        "lengthMenu": [5, 10, 25, 50],
+        "ordering": true,
+        "order": [[0, 'asc']],
+        "columns": [
+            { "data": "padyafirstline", "title": "ಪದ್ಯದ ಮೊದಲ ಸಾಲು" },
+            { "data": "parva_name", "title": "ಪರ್ವ" },
+            { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
+            { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
+        ]
+    });
 
-            $('.back-button').on('click', function() {
-                alert('Navigating to previous page');
-            });
+    // Fetch data from Flask API and populate the table
+    fetch('/akaradi-suchi/data')
+        .then(response => response.json())
+        .then(data => {
+            console.log("Data received:", data);  // Verify the data format
+            if (Array.isArray(data)) {
+                table.clear().rows.add(data).draw();
+            } else {
+                console.error("Unexpected data format:", data);
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+            // Handle error here, maybe show a message to the user
         });
+
+    // Filter by dropdown
+    $('#wordDropdown').on('change', function() {
+        const selectedType = $(this).val();
+        if (selectedType === 'ಎಲ್ಲಾ ಪದಗಳು') {
+            table.column(1).search('').draw();
+        } else {
+            table.column(1).search(selectedType).draw();
+        }
+    });
+
+    // Filter by alphabet
+    $('.alphabet-grid span').on('click', function() {
+        const letter = $(this).text();
+        table.search(letter).draw();
+    });
+
+    // Back button functionality
+    $('.back-button').on('click', function() {
+        alert('Navigating to previous page');
+    });
+});
+
+
     </script>
 </body>
 </html>

@@ -45,3 +45,16 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255)
     -- Add any additional optional fields if needed
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+-- Table to store padya first line with references to Parva, Sandhi, and Padya
+CREATE TABLE IF NOT EXISTS akaradi_suchi (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    padyafirstline TEXT NOT NULL,
+    parva_id INT NOT NULL,
+    sandhi_id INT NOT NULL,
+    padya_number INT NOT NULL,
+    FOREIGN KEY (parva_id) REFERENCES parva(id),
+    FOREIGN KEY (sandhi_id) REFERENCES sandhi(id),
+    UNIQUE(parva_id, sandhi_id, padya_number) -- Ensure uniqueness of the combination
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
