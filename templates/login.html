@@ -1,39 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
     <!-- Bootstrap CSS via static file -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
 
     <!-- Bootstrap JS via static file -->
     <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Navbar included -->
     {% include 'navbar.html' %}
 
-    <div class="container" style="max-width: 500px; margin-top: 50px;margin-bottom: 150px; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        <h1 style="text-align: center;">Login</h1>
-        <form action="/login" method="POST" style="margin-top: 20px;">
-            <div class="mb-3">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" name="username" class="form-control" style="border-radius: 5px;" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" name="password" class="form-control" style="border-radius: 5px;" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-        {% if error %}
-        <p style="color: red; text-align: center; margin-top: 10px;">{{ error }}</p>
-        {% endif %}
+    <div
+      class="container"
+      style="
+        max-width: 500px;
+        margin-top: 50px;
+        margin-bottom: 150px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        
+      "
+    >
+      <h1 style="text-align: center">Login</h1>
+      <form action="/login" method="POST" style="margin-top: 20px">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username:</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="form-control"
+            style="border-radius: 5px"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password:</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-control"
+            style="border-radius: 5px"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+      {% if error %}
+      <p style="color: red; text-align: center; margin-top: 10px">
+        {{ error }}
+      </p>
+      {% endif %}
     </div>
 
+    <script>
+      // Function to show loading overlay
+      function showLoading() {
+        const loadingElement = document.getElementById("loadingOverlay");
+        if (loadingElement) {
+          loadingElement.style.display = "flex";
+        }
+      }
+
+      // Function to hide loading overlay
+      function hideLoading() {
+        const loadingElement = document.getElementById("loadingOverlay");
+        if (loadingElement) {
+          loadingElement.style.display = "none";
+        }
+      }
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (event) {
+          // Show loading overlay
+          showLoading();
+        });
+    </script>
     <!-- Footer included -->
     {% include 'footer.html' %}
-</body>
+  </body>
 </html>

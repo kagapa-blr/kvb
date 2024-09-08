@@ -31,7 +31,7 @@ def index():
     return render_template('test.html')
 
 
-@app.route('/chitra-    samputa')
+@app.route('/chitra-samputa')
 def chitra_samputa():
     image_folder = 'static/images/chitra_samputa'
     image_files = [f for f in os.listdir(image_folder) if os.path.isfile(os.path.join(image_folder, f))]
