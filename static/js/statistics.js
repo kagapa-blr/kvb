@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 async function fetchDetails() {
+    showLoading(); // Show loading overlay before starting the fetch
     try {
         const response = await fetch(statsEndpoints.parvaDetails);
         if (!response.ok) {
@@ -65,11 +66,14 @@ async function fetchDetails() {
 
     } catch (error) {
         console.error('Error fetching details:', error);
+    } finally {
+        hideLoading(); // Hide loading overlay when fetch operation is done
     }
 }
 
 // Search for a word and display results
 async function searchByWord(word) {
+    showLoading(); // Show loading overlay before starting the fetch
     try {
         const response = await fetch(statsEndpoints.searchByWord, {
             method: 'POST',
@@ -87,10 +91,10 @@ async function searchByWord(word) {
         displaySearchResults(data);
     } catch (error) {
         console.error('Error fetching search results:', error);
+    } finally {
+        hideLoading(); // Hide loading overlay when fetch operation is done
     }
 }
-
-
 
 function displaySearchResults(results) {
     const resultsContainer = document.getElementById('search-results');
@@ -131,7 +135,6 @@ function displaySearchResults(results) {
     }
 }
 
-
 // Function to escape HTML entities
 function escapeHtml(text) {
     const map = {
@@ -151,4 +154,18 @@ function highlightWord(text, word) {
     return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
 }
 
+// Function to show loading overlay
+function showLoading() {
+    const loadingElement = document.getElementById('loadingOverlay');
+    if (loadingElement) {
+        loadingElement.style.display = 'flex';
+    }
+}
 
+// Function to hide loading overlay
+function hideLoading() {
+    const loadingElement = document.getElementById('loadingOverlay');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}

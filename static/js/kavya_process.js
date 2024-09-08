@@ -62,24 +62,31 @@ $(document).ready(function () {
 
     // Fetch and populate Parva dropdown
     async function fetchAndPopulateParva() {
+        showLoading(); // Show loading overlay before fetching data
         try {
             const data = await fetchData(apiEndpoints.parva);
+            
+            // Populate dropdown with data
             populateDropdown('#parvaDropdown', data, 'id', 'name', 'parva_number');
+            
+            // Populate the table with data
             allParvaTable(data);
     
             // Set initial value for Parva dropdown
             if (data.length > 0) {
                 $('#parvaDropdown').val(data[0].id).change(); // Trigger change event
             }
-
-
+    
             // Cache the sandhi data for quick access
             parvaDataCache = data.reduce((acc, parva) => {
                 acc[parva.id] = parva;
                 return acc;
             }, {});
         } catch (e) {
-            // Handle fetch error
+            console.error("Error fetching Parva data:", e);
+            // Handle fetch error, possibly show an error message to the user
+        } finally {
+            hideLoading(); // Hide loading overlay regardless of success or error
         }
     }
     
@@ -112,10 +119,12 @@ $(document).ready(function () {
 // Handle changes in Parva dropdown
     $('#parvaDropdown').change(debounce(async function () {
         const selectedParva = parvaDataCache[$(this).val()];
-        
+        showLoading();
         if (selectedParva) {
             await fetchSandhi(selectedParva.parva_number);
+            hideLoading();
         } else {
+            hideLoading();
             $('#sandhiDropdown').prop('disabled', true).empty();
             $('#padyaNumberDropdown').prop('disabled', true).empty();
             $('#padyaContent').empty(); // Clear content
@@ -125,7 +134,7 @@ $(document).ready(function () {
     // Handle changes in Sandhi dropdown
     $('#sandhiDropdown').change(debounce(async function () {
         const selectedSandhiId = $(this).val();
-        
+            showLoading();
         if (selectedSandhiId) {
             const sandhi = sandhiDataCache[selectedSandhiId];
     
@@ -143,9 +152,11 @@ $(document).ready(function () {
             }
     
             $('#padyaContent').empty(); // Clear content
+            hideLoading();
         } else {
             $('#padyaNumberDropdown').prop('disabled', true).empty();
             $('#padyaContent').empty(); // Clear content
+            hideLoading();
         }
     }, 300));
 
@@ -157,7 +168,7 @@ $('#padyaNumberDropdown').change(debounce(async function () {
 
     const sandhi = sandhiDataCache[selectedSandhi];
     const parva = parvaDataCache[selectedParvaNumber]
-
+    showLoading();
     if (selectedPadyaNumber) {
         try {
             // Fetch the padya content based on the selected Parva, Sandhi, and Padya Number
@@ -174,8 +185,10 @@ $('#padyaNumberDropdown').change(debounce(async function () {
             $('.gadya').html(formatText(data.gadya));
             $('.artha').html(formatText(data.artha));
             $('.tippani').html(formatText(data.tippani));
+            hideLoading();
 
         } catch (e) {
+            hideLoading();
             handleApiError(e, 'Error fetching Padya data', e.status, apiEndpoints.getPadyaByParvaSandhiPadya);
         }
     } else {
@@ -508,6 +521,22 @@ function updatePadya() {
     
 
 
+// Function to show loading overlay
+function showLoading() {
+    const loadingElement = document.getElementById('loadingOverlay');
+    if (loadingElement) {
+        loadingElement.style.display = 'flex';
+    }
+}
+
+// Function to hide loading overlay
+function hideLoading() {
+    const loadingElement = document.getElementById('loadingOverlay');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}
+
 
 
 //update padya
@@ -517,4 +546,5 @@ allSandhiTable();
 fetchAudioforPadya();
 
 });
+
 

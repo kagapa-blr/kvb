@@ -1,3 +1,30 @@
+<!-- Reusable Full-page loading GIF and message -->
+<div id="loadingOverlay" style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        flex-direction: column;
+        z-index: 9999;">
+    <img src="/static/images/loading.gif" alt="Loading..." style="width: 200px;">
+    <p style="
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;">
+        ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ....... 
+    </p>
+</div>
+
+<!-- Content that will be displayed after data is loaded -->
+<!-- <div id="loading-data" style="padding: 20px; text-align: center;"></div> -->
+
+<!-- Footer Section -->
 <div style="background-color: black; color: white; text-align: center; padding: 5px; width: 100%; margin-top: 20px;">
     <p>&copy; 2024 KAGAPA. All Rights Reserved.</p>
     <ul style="margin: 0; padding: 0; list-style: none; display: flex; justify-content: center;">
@@ -12,3 +39,12 @@
         </li>
     </ul>
 </div>
+
+<script>
+    // Function to hide loading overlay when the page is fully loaded
+window.addEventListener('load', () => {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'none';
+});
+
+</script>
