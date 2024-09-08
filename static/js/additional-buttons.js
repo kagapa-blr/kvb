@@ -167,9 +167,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 // case 'ಲೇಖನ ಸೂಚಿ':
                 //     fetchFunction = fetchLekhana;
                 //     break;
-                case 'ಅರ್ಥ ಕೋಶ':
-                    fetchFunction = fetchKosha;
-                    break;
+                // case 'ಅರ್ಥ ಕೋಶ':
+                //     fetchFunction = fetchKosha;
+                //     break;
                 case 'ವಿಷಯ ಪರಿವಿಡಿ':
                     fetchFunction = fetchParividi;
                     break;

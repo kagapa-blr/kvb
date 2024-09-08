@@ -79,3 +79,8 @@ def lekhana_suchi():
 @additonal_bp.get('/gadegal-suchi')
 def gadegala_suchi():
     return render_template('additional/gadegala-suchi.html')
+
+
+@additonal_bp.get('/artha-kosha')
+def artha_kosha():
+    return render_template('additional/artha-kosha.html')
