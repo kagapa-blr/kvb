@@ -4,32 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <!-- Bootstrap CSS via CDN -->
+    <!-- Bootstrap CSS via static file -->
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
 
-    <!-- jQuery via CDN -->
-    <!-- <script src="static/jquery/jquery-3.7.1.js"></script> -->
-    <!-- JavaScript -->
-       <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <!--    <script src="static/js/kavya_process.js"></script>-->
+    <!-- Bootstrap JS via static file -->
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-{% include 'navbar.html' %}
-<div class="container login-form">
-    <h1>Login</h1>
-    <form action="/login" method="POST">
-        <label for="username">Username:</label>
-        <input style="border-radius: 5px;" type="text" id="username" name="username" required><br><br>
-        <label for="password">Password:</label>
-        <input style="border-radius: 5px;" type="password" id="password" name="password" required><br><br>
-        <button type="submit" class="btn bg-primary text-lg-center">Login</button>
-    </form>
-    {% if error %}
-    <p style="color: red;">{{ error }}</p>
-    {% endif %}
-</div>
-{% include 'footer.html' %}
+    <!-- Navbar included -->
+    {% include 'navbar.html' %}
 
+    <div class="container" style="max-width: 500px; margin-top: 50px;margin-bottom: 150px; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+        <h1 style="text-align: center;">Login</h1>
+        <form action="/login" method="POST" style="margin-top: 20px;">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" id="username" name="username" class="form-control" style="border-radius: 5px;" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" id="password" name="password" class="form-control" style="border-radius: 5px;" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+        {% if error %}
+        <p style="color: red; text-align: center; margin-top: 10px;">{{ error }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Footer included -->
+    {% include 'footer.html' %}
 </body>
 </html>
