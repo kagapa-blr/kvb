@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ಅರ್ಥ ಕೋಶ</title>
+    <title>ಟಿಪ್ಪಣಿ</title>
     <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css">
     <script src="/static/jquery/jquery-3.7.1.js"></script>
@@ -151,7 +151,7 @@
     {% include 'navbar.html' %}
     <div class="container">
         <div class="title">
-            <h1 class="text-center mb-0">ಅರ್ಥ ಕೋಶ</h1>
+            <h1 class="text-center mb-0">ಟಿಪ್ಪಣಿ</h1>
             <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
         </div>
 
@@ -175,8 +175,7 @@
             <table id="dictionaryTable" class="table table-striped">
                 <thead>
                     <tr>
-                        <th>ಗಾದೆ</th>
-                        <th>ಅರ್ಥ</th>
+                        <th>ಟಿಪ್ಪಣಿ</th>
                         <th>ಪರ್ವ</th>
                         <th>ಸಂಧಿಯ ಹೆಸರು</th>
                         <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
@@ -210,12 +209,7 @@
         </div>
     </div>
 
-    <div id="loadingSpinner" class="spinner-overlay" style="display:none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-    
+
 
 
     <script>
@@ -241,8 +235,7 @@
                 "ordering": true,
                 "order": [[0, 'asc']],
                 "columns": [
-                    { "data": "padyafirstline", "title": "ಗಾದೆ" },
-                    { "data": "padyafirstline", "title": "ಅರ್ಥ" },
+                    { "data": "padyafirstline", "title": "ಟಿಪ್ಪಣಿ" },
                     { "data": "parva_name", "title": "ಪರ್ವ" },
                     { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
                     { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
@@ -286,7 +279,7 @@
                 if (selectedType === 'ಎಲ್ಲಾ ಪರ್ವಗಳು') {
                     table.column(1).search('').draw();
                 } else {
-                    table.column(2).search(selectedType).draw();
+                    table.column(1).search(selectedType).draw();
                 }
             });
 

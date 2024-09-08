@@ -176,9 +176,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'ಗಮಕ':
                     fetchFunction = fetchGamaka;
                     break;
-                case 'ಅನುಬಂಧ':
-                    fetchFunction = fetchAnubandha;
-                    break;
+                // case 'ಅನುಬಂಧ':
+                //     fetchFunction = fetchAnubandha;
+                //     break;
                 case 'ಟಿಪ್ಪಣಿ':
                     fetchFunction = fetchTippani;
                     break;

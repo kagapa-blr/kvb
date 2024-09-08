@@ -84,3 +84,13 @@ def gadegala_suchi():
 @additonal_bp.get('/artha-kosha')
 def artha_kosha():
     return render_template('additional/artha-kosha.html')
+
+
+@additonal_bp.get('/anuband-info')
+def anuband():
+    return render_template('additional/anuband.html')
+
+
+@additonal_bp.get('/tippani-info')
+def tippani():
+    return render_template('additional/tippani.html')
