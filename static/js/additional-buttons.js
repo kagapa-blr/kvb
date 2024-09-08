@@ -158,15 +158,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'ಹೆಚ್ಚಿನ ಶೋಧನೆ':
                     fetchFunction = fetchSearchWord;
                     break;
-                case 'ಅಕಾರಾದಿ ಸೂಚಿ':
-                    fetchFunction = fetchSuchi;
-                    break;
-                case 'ಗಾದೆಗಳ ಸೂಚಿ':
-                    fetchFunction = fetchGaadigala;
-                    break;
-                case 'ಲೇಖನ ಸೂಚಿ':
-                    fetchFunction = fetchLekhana;
-                    break;
+                // case 'ಅಕಾರಾದಿ ಸೂಚಿ':
+                //     fetchFunction = fetchSuchi;
+                //     break;
+                // case 'ಗಾದೆಗಳ ಸೂಚಿ':
+                //     fetchFunction = fetchGaadigala;
+                //     break;
+                // case 'ಲೇಖನ ಸೂಚಿ':
+                //     fetchFunction = fetchLekhana;
+                //     break;
                 case 'ಅರ್ಥ ಕೋಶ':
                     fetchFunction = fetchKosha;
                     break;
