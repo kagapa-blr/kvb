@@ -66,17 +66,23 @@ $(document).ready(function () {
             const data = await fetchData(apiEndpoints.parva);
             populateDropdown('#parvaDropdown', data, 'id', 'name', 'parva_number');
             allParvaTable(data);
-        // Cache the sandhi data for quick access
-        parvaDataCache = data.reduce((acc, parva) => {
-            acc[parva.id] = parva;
-            return acc;
-        }, {});
+    
+            // Set initial value for Parva dropdown
+            if (data.length > 0) {
+                $('#parvaDropdown').val(data[0].id).change(); // Trigger change event
+            }
 
+
+            // Cache the sandhi data for quick access
+            parvaDataCache = data.reduce((acc, parva) => {
+                acc[parva.id] = parva;
+                return acc;
+            }, {});
         } catch (e) {
             // Handle fetch error
         }
     }
-
+    
 
 
     async function fetchSandhi(parvaNumber) {
@@ -87,7 +93,12 @@ $(document).ready(function () {
             $('#padyaNumberDropdown').prop('disabled', true).empty(); // Reset Padya Number dropdown
             $('#padyaContent').empty(); // Clear content
     
-            // Cache the sandhi data for quick access
+            // Set initial value for Sandhi dropdown
+            if (data.length > 0) {
+                $('#sandhiDropdown').val(data[0].id).change(); // Trigger change event
+            }
+
+           // Cache the sandhi data for quick access
             sandhiDataCache = data.reduce((acc, sandhi) => {
                 acc[sandhi.id] = sandhi;
                 return acc;
@@ -98,41 +109,45 @@ $(document).ready(function () {
     }
     
  
-
 // Handle changes in Parva dropdown
-$('#parvaDropdown').change(debounce(async function () {
-    const selectedParva = parvaDataCache[$(this).val()]
+    $('#parvaDropdown').change(debounce(async function () {
+        const selectedParva = parvaDataCache[$(this).val()];
+        
+        if (selectedParva) {
+            await fetchSandhi(selectedParva.parva_number);
+        } else {
+            $('#sandhiDropdown').prop('disabled', true).empty();
+            $('#padyaNumberDropdown').prop('disabled', true).empty();
+            $('#padyaContent').empty(); // Clear content
+        }
+    }, 300));
+
+    // Handle changes in Sandhi dropdown
+    $('#sandhiDropdown').change(debounce(async function () {
+        const selectedSandhiId = $(this).val();
+        
+        if (selectedSandhiId) {
+            const sandhi = sandhiDataCache[selectedSandhiId];
     
-    if (selectedParva) {
-        await fetchSandhi(selectedParva.parva_number);
-    } else {
-        $('#sandhiDropdown').prop('disabled', true).empty();
-        $('#padyaNumberDropdown').prop('disabled', true).empty();
-        $('#padyaContent').empty(); // Clear content
-    }
-}, 300));
-
-// Handle changes in Sandhi dropdown
-$('#sandhiDropdown').change(debounce(function () {
-    const selectedSandhiId = $(this).val();
-
-    if (selectedSandhiId) {
-        const sandhi = sandhiDataCache[selectedSandhiId];
-
-        if (sandhi && sandhi.padya_numbers) {
-            // Populate Padya Number dropdown with padya_numbers from the selected Sandhi
-            populateDropdown('#padyaNumberDropdown', sandhi.padya_numbers.map(num => ({ padya_number: num, padya_number: num })), 'padya_number', 'padya_number');
-            $('#padyaNumberDropdown').prop('disabled', false);
+            if (sandhi && sandhi.padya_numbers) {
+                // Populate Padya Number dropdown with padya_numbers from the selected Sandhi
+                populateDropdown('#padyaNumberDropdown', sandhi.padya_numbers.map(num => ({ padya_number: num, padya_number: num })), 'padya_number', 'padya_number');
+                $('#padyaNumberDropdown').prop('disabled', false);
+                
+                // Set initial value for Padya Number dropdown
+                if (sandhi.padya_numbers.length > 0) {
+                    $('#padyaNumberDropdown').val(sandhi.padya_numbers[0]).change(); // Trigger change event
+                }
+            } else {
+                $('#padyaNumberDropdown').prop('disabled', true).empty();
+            }
+    
+            $('#padyaContent').empty(); // Clear content
         } else {
             $('#padyaNumberDropdown').prop('disabled', true).empty();
+            $('#padyaContent').empty(); // Clear content
         }
-
-        $('#padyaContent').empty(); // Clear content
-    } else {
-        $('#padyaNumberDropdown').prop('disabled', true).empty();
-        $('#padyaContent').empty(); // Clear content
-    }
-}, 300));
+    }, 300));
 
 // Handle changes in Padya Number dropdown
 $('#padyaNumberDropdown').change(debounce(async function () {
@@ -173,6 +188,9 @@ $('#padyaNumberDropdown').change(debounce(async function () {
     }
 }, 300));
 
+//allSandhiTable();
+// Initialize dropdowns
+fetchAndPopulateParva();
 
 
 
@@ -223,9 +241,6 @@ $('#padyainsertPadyaBtn').click(function () {
     postPadya(parvaNumber, sandhiNumber, padyaNumber, padya, pathantar, gadya, tippani, artha);
 });
     
-//allSandhiTable();
-// Initialize dropdowns
-fetchAndPopulateParva();
 
 
 function updatePadya() {
