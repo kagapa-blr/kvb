@@ -29,11 +29,13 @@ class Statistics:
                 GROUP BY p.id, p.name
             """)).fetchall()
 
-            # Total Padya in Each Sandhi
+            # Total Padya in Each Sandhi with Number and Parva Name
             total_padya_in_each_sandhi = connection.execute(text("""
-                SELECT sandhi_id, COUNT(*) AS total_padya 
-                FROM padya 
-                GROUP BY sandhi_id
+                SELECT s.sandhi_number AS sandhi_number, p.name AS parva_name, COUNT(pa.id) AS total_padya
+                FROM padya pa
+                JOIN sandhi s ON pa.sandhi_id = s.id
+                JOIN parva p ON s.parva_id = p.id
+                GROUP BY s.sandhi_number, p.name
             """)).fetchall()
 
             # Total Padya in Each Parva with Name
@@ -60,7 +62,8 @@ class Statistics:
             ]
 
             statistics['padya_in_each_sandhi'] = [
-                (row.sandhi_id, row.total_padya) for row in total_padya_in_each_sandhi
+                {'sandhi_number': row.sandhi_number, 'parva_name': row.parva_name, 'total_padya': row.total_padya}
+                for row in total_padya_in_each_sandhi
             ]
 
             statistics['padya_in_each_parva'] = [

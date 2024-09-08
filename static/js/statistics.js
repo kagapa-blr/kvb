@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Fetch and display the details
 async function fetchDetails() {
     try {
         const response = await fetch(statsEndpoints.parvaDetails);
@@ -33,43 +32,37 @@ async function fetchDetails() {
         document.getElementById('total-sandhi').innerText = data.total_sandhi || 'N/A';
         document.getElementById('total-padya-all').innerText = data.total_padya || 'N/A';
         document.getElementById('total-users').innerText = data.total_users || 'N/A';
-        // document.getElementById('padya_in_each_parva').innerText = data.padya_in_each_parva || 'N/A';
-        // document.getElementById('sandhi_in_each_parva').innerText = data.sandhi_in_each_parva || 'N/A';
-        
 
         // Populate Padya in Each Sandhi table
         const padyaTableBody = document.getElementById('total-padya');
         padyaTableBody.innerHTML = ''; // Clear existing data
         
-        data.padya_in_each_sandhi.forEach(([sandhi, padya]) => {
+        data.padya_in_each_sandhi.forEach(({ sandhi_number, parva_name, total_padya }) => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${sandhi}</td><td>${padya}</td>`;
+            row.innerHTML = `<td>${sandhi_number}</td><td>${parva_name}</td><td>${total_padya}</td>`;
             padyaTableBody.appendChild(row);
         });
     
-        const sandhiParvaTableBody = document.getElementById('sandhi-in-each-parva')
+        const sandhiParvaTableBody = document.getElementById('sandhi-in-each-parva');
         sandhiParvaTableBody.innerHTML = '';
 
-    // Assuming data.sandhi_in_each_parva is an array of objects with properties: parva_id, parva_name, and total_sandhi
-    data.sandhi_in_each_parva.forEach(({ parva_id, parva_name, total_sandhi }) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_sandhi}</td>`;
-        sandhiParvaTableBody.appendChild(row);
-    });
+        // Populate Sandhi in Each Parva table
+        data.sandhi_in_each_parva.forEach(({ parva_id, parva_name, total_sandhi }) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_sandhi}</td>`;
+            sandhiParvaTableBody.appendChild(row);
+        });
 
+        const parvaPadyaTableBody = document.getElementById('padya-in-each-parva');
+        parvaPadyaTableBody.innerHTML = '';
 
+        // Populate Padya in Each Parva table
+        data.padya_in_each_parva.forEach(({ parva_id, parva_name, total_padya }) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_padya}</td>`;
+            parvaPadyaTableBody.appendChild(row);
+        });
 
-const parvaPadyaTableBody = document.getElementById('padya-in-each-parva');
-parvaPadyaTableBody.innerHTML = '';
-
-// Assuming data.padya_in_each_parva is an array of objects with properties: parva_id, parva_name, and total_padya
-data.padya_in_each_parva.forEach(({ parva_id, parva_name, total_padya }) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `<td>${parva_id}</td><td>${parva_name}</td><td>${total_padya}</td>`;
-    parvaPadyaTableBody.appendChild(row);
-});
-
-    
     } catch (error) {
         console.error('Error fetching details:', error);
     }
