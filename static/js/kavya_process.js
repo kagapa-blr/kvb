@@ -283,6 +283,42 @@ $(document).ready(function () {
     }, 300)
   );
 
+  // Function to update dropdown value and trigger change event
+  function updateDropdownValue(newValue) {
+    const dropdown = $("#padyaNumberDropdown");
+    dropdown.val(newValue).trigger("change");
+  }
+
+  // Handle click for the "previous" arrow button
+  $("#prevPadya").click(function () {
+    const dropdown = $("#padyaNumberDropdown");
+    let currentIndex = dropdown.prop("selectedIndex");
+    if (currentIndex > 0) {
+      // Select the previous option
+      const prevValue = dropdown
+        .find("option")
+        .eq(currentIndex - 1)
+        .val();
+      updateDropdownValue(prevValue);
+    }
+  });
+
+  // Handle click for the "next" arrow button
+  $("#nextPadya").click(function () {
+    const dropdown = $("#padyaNumberDropdown");
+    let currentIndex = dropdown.prop("selectedIndex");
+    const totalOptions = dropdown.find("option").length;
+
+    if (currentIndex < totalOptions - 1) {
+      // Select the next option
+      const nextValue = dropdown
+        .find("option")
+        .eq(currentIndex + 1)
+        .val();
+      updateDropdownValue(nextValue);
+    }
+  });
+
   //allSandhiTable();
   // Initialize dropdowns
   fetchAndPopulateParva();
