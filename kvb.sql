@@ -58,3 +58,15 @@ CREATE TABLE IF NOT EXISTS akaradi_suchi (
     FOREIGN KEY (sandhi_id) REFERENCES sandhi(id),
     UNIQUE(parva_id, sandhi_id, padya_number) -- Ensure uniqueness of the combination
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+-- Create table gade_suchigalu with parva_name instead of parva_number
+CREATE TABLE IF NOT EXISTS gade_suchigalu (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    gade_suchi TEXT NOT NULL,
+    parva_name TEXT NOT NULL,
+    sandhi_number INT NOT NULL,
+    parva_number INT NOT NULL,
+    padya_number INT NOT NULL,
+    UNIQUE(gade_suchi, parva_name, sandhi_number, padya_number) -- Ensure uniqueness of the combination
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

@@ -84,3 +84,20 @@ class AkaradiSuchi(db.Model):
     __table_args__ = (
         db.UniqueConstraint('parva_id', 'sandhi_id', 'padya_number', name='unique_parva_sandhi_padya'),
     )
+
+
+class GadeSuchigalu(db.Model):
+    __tablename__ = 'gade_suchigalu'
+
+    id = db.Column(db.Integer, primary_key=True)
+    gade_suchi = db.Column(db.Text, nullable=False)
+    parva_name = db.Column(db.String(255), nullable=True)  # Store parva name
+    sandhi_number = db.Column(db.Integer, nullable=False)
+    parva_number = db.Column(db.Integer, nullable=False)
+    padya_number = db.Column(db.Integer, nullable=False)
+
+    # Ensure uniqueness of the combination of parva_name, sandhi_number, and padya_number
+    __table_args__ = (
+        db.UniqueConstraint('gade_suchi', 'parva_name', 'sandhi_number', 'padya_number',
+                            name='unique_gade_suchi_parva_sandhi_padya'),
+    )

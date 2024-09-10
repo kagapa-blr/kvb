@@ -90,25 +90,26 @@ def read_and_classify_paragraphs(docx_file):
     return classified_paragraphs
 
 
-# Specify the path to your DOCX file
-docx_file_path = '../docs/ಸಭಾಪರ್ವ-new.docx'
+def parva_extract():
+    # Specify the path to your DOCX file
+    docx_file_path = '../docs/ಸಭಾಪರ್ವ-new.docx'
 
-# Call the function to read and classify paragraphs
-classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
+    # Call the function to read and classify paragraphs
+    classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
 
-# Convert the list of dictionaries to a DataFrame
-df = pd.DataFrame(classified_paragraphs)
+    # Convert the list of dictionaries to a DataFrame
+    df = pd.DataFrame(classified_paragraphs)
 
-# Fill 'parva' column with the constant value 'parva' for all rows
-df['parva'] = 'ಸಭಾಪರ್ವ'
+    # Fill 'parva' column with the constant value 'parva' for all rows
+    df['parva'] = 'ಸಭಾಪರ್ವ'
 
-# Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
-df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
-df = df[df['padya'].notna() & (df['padya'].str.strip() != '')]
-# df = df[(df['padya'].str.strip() == '')]
+    # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
+    df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
+    df = df[df['padya'].notna() & (df['padya'].str.strip() != '')]
+    # df = df[(df['padya'].str.strip() == '')]
 
-# Save the DataFrame to a CSV file
-csv_file_path = 'ಸಭಾಪರ್ವ-new.csv'
-df.to_csv(csv_file_path, index=False, encoding='utf-8')
+    # Save the DataFrame to a CSV file
+    csv_file_path = 'ಸಭಾಪರ್ವ-new.csv'
+    df.to_csv(csv_file_path, index=False, encoding='utf-8')
 
-print(f"Classified paragraphs have been saved to {csv_file_path}")
+    print(f"Classified paragraphs have been saved to {csv_file_path}")

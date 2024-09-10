@@ -13,7 +13,6 @@
     <script src="/static/DataTables/datatables.min.js"></script>
 
 
-
     <style>
         body {
             /* background-color: #FFDAB9; */
@@ -148,242 +147,240 @@
 </head>
 
 <body>
-    {% include 'navbar.html' %}
-    <div class="container">
-        <div class="title">
-            <h1 class="text-center mb-0">ಗಾದೆಗಳ ಸೂಚಿ</h1>
-            <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
-        </div>
-
-        <div class="alphabet-grid">
-            <span>ಅ</span><span>ಆ</span><span>ಇ</span><span>ಈ</span><span>ಉ</span><span>ಊ</span><span>ಋ</span><span>ಎ</span><span>ಏ</span><span>ಐ</span><span>ಒ</span>
-            <span>ಓ</span><span>ಔ</span><span>ಕ</span><span>ಖ</span><span>ಗ</span><span>ಘ</span><span>ಙ</span><span>ಚ</span><span>ಛ</span><span>ಜ</span><span>ಝ</span>
-            <span>ಞ</span><span>ಟ</span><span>ಠ</span><span>ಡ</span><span>ಢ</span><span>ಣ</span><span>ತ</span><span>ಥ</span><span>ದ</span><span>ಧ</span>
-            <span>ನ</span><span>ಪ</span><span>ಫ</span><span>ಬ</span><span>ಭ</span><span>ಮ</span><span>ಯ</span><span>ರ</span><span>ಲ</span><span>ವ</span>
-            <span>ಶ</span><span>ಷ</span>
-        </div>
-
-        <div class="parva-dropdown">
-            <select id="parvaDropdown" class="form-select">
-                <!-- <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option> -->
-                
-            </select>
-        </div>
-
-
-        <div class="word-table">
-            <table id="dictionaryTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ಗಾದೆ</th>
-                        <th>ಪರ್ವ</th>
-                        <th>ಸಂಧಿಯ ಹೆಸರು</th>
-                        <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be populated here -->
-                </tbody>
-            </table>
-        </div>
-
-        <div class="footer text-center">
-            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ಪೂರ್ಣ ವಿವರನ್ನು ಪಡೆಯಲು ಪದ್ಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ 
-        </div>
+{% include 'navbar.html' %}
+<div class="container">
+    <div class="title">
+        <h1 class="text-center mb-0">ಗಾದೆಗಳ ಸೂಚಿ</h1>
+        <button class="btn btn-sm btn-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
     </div>
 
-    <!-- Modal for displaying padya details -->
-    <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+    <div class="alphabet-grid">
+        <span>ಅ</span><span>ಆ</span><span>ಇ</span><span>ಈ</span><span>ಉ</span><span>ಊ</span><span>ಋ</span><span>ಎ</span><span>ಏ</span><span>ಐ</span><span>ಒ</span>
+        <span>ಓ</span><span>ಔ</span><span>ಕ</span><span>ಖ</span><span>ಗ</span><span>ಘ</span><span>ಙ</span><span>ಚ</span><span>ಛ</span><span>ಜ</span><span>ಝ</span>
+        <span>ಞ</span><span>ಟ</span><span>ಠ</span><span>ಡ</span><span>ಢ</span><span>ಣ</span><span>ತ</span><span>ಥ</span><span>ದ</span><span>ಧ</span>
+        <span>ನ</span><span>ಪ</span><span>ಫ</span><span>ಬ</span><span>ಭ</span><span>ಮ</span><span>ಯ</span><span>ರ</span><span>ಲ</span><span>ವ</span>
+        <span>ಶ</span><span>ಷ</span>
+    </div>
+
+    <div class="parva-dropdown">
+        <select id="parvaDropdown" class="form-select">
+            <!-- <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option> -->
+
+        </select>
+    </div>
+
+
+    <div class="word-table">
+        <table id="dictionaryTable" class="table table-striped">
+            <thead>
+            <tr>
+                <th>ಗಾದೆ</th>
+                <th>ಪರ್ವ</th>
+                <th>ಸಂಧಿಯ ಹೆಸರು</th>
+                <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer text-center">
+        <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ಪೂರ್ಣ ವಿವರನ್ನು ಪಡೆಯಲು ಪದ್ಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ
+    </div>
+</div>
+
+<!-- Modal for displaying padya details -->
+<div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
 
+<script>
 
-
-    <script>
-
-        $(document).ready(function () {
-            // Initialize DataTable
-            const table = $('#dictionaryTable').DataTable({
-                "language": {
-                    "search": "ಹುಡುಕು:",
-                    "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
-                    "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
-                    "paginate": {
-                        "first": "ಮೊದಲ",
-                        "last": "ಕೊನೆಯ",
-                        "next": "ಮುಂದಿನ",
-                        "previous": "ಹಿಂದಿನ"
-                    },
-                    "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-                    "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
+    $(document).ready(function () {
+        // Initialize DataTable
+        const table = $('#dictionaryTable').DataTable({
+            "language": {
+                "search": "ಹುಡುಕು:",
+                "lengthMenu": "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
+                "info": "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
+                "paginate": {
+                    "first": "ಮೊದಲ",
+                    "last": "ಕೊನೆಯ",
+                    "next": "ಮುಂದಿನ",
+                    "previous": "ಹಿಂದಿನ"
                 },
-                "pageLength": 5,
-                "lengthMenu": [5, 10, 25, 50,100,500,1000],
-                "ordering": true,
-                "order": [[0, 'asc']],
-                "columns": [
-                    { "data": "padyafirstline", "title": "ಗಾದೆ" },
-                    { "data": "parva_name", "title": "ಪರ್ವ" },
-                    { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
-                    { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
-                ]
-            });
-
-            allParva=new Set()
-            // Fetch data from Flask API and populate the table
-            fetch('/akaradi-suchi/data')
-                .then(response => response.json())
-                .then(data => {
-                    if (Array.isArray(data)) {
-                        table.clear().rows.add(data).draw();
-
-
-                // Extract unique parva names and populate dropdown
-                data.forEach(item => allParva.add(item.parva_name));
-
-
-                // Populate dropdown
-                const dropdown = $('#parvaDropdown');
-                dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
-                allParva.forEach(parva => {
-                    dropdown.append(`<option value="${parva}">${parva}</option>`);
-                });
-
-
-
-                    } else {
-                        console.error("Unexpected data format:", data);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching data:", error);
-                    // Handle error here, maybe show a message to the user
-                });
-
-            // Filter by dropdown
-            $('#parvaDropdown').on('change', function () {
-                const selectedType = $(this).val();
-                if (selectedType === 'ಎಲ್ಲಾ ಪರ್ವಗಳು') {
-                    table.column(1).search('').draw();
-                } else {
-                    table.column(1).search(selectedType).draw();
-                }
-            });
-
-            // Filter by alphabet
-            $('.alphabet-grid span').on('click', function () {
-                const letter = $(this).text();
-                table.search(letter).draw();
-            });
-
-
-
-            // Handle row click event to show modal
-            $('#dictionaryTable tbody').on('click', 'tr', function () {
-                const rowData = table.row(this).data();
-                if (rowData) {
-                    const parva = rowData.parva_number; // Adjust this if necessary
-                    const sandhi = rowData.sandhi_number; // Adjust this if necessary
-                    const padya = rowData.padya_number; // Adjust this if necessary
-
-                    const firstline = rowData.padyafirstline;
-                    const parva_name = rowData.parva_name;
-                    const sandhi_name = rowData.sandhi_name;
-                    const sandhi_number = rowData.sandhi_number;
-                    const parva_number = rowData.sandhi_number;
-
-                    // Construct the URL for the API call
-                    const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
-
-                    // Show loading spinner
-                    $('#padyaModal .modal-body').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
-
-                    // Fetch details from the API
-                    fetch(apiUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data) {
-                                // Populate modal with data
-                                $('#padyafirstline').text(data.padyafirstline || 'N/A');
-                                $('#pathantar').text(data.pathantar || 'N/A');
-                                $('#gadya').text(data.gadya || 'N/A');
-                                $('#tippani').text(data.tippani || 'N/A');
-                                $('#artha').text(data.artha || 'N/A');
-                                $('#suchane').text(data.suchane || 'N/A');
-                                $('#padya').text(data.padya || 'N/A');
-
-                                // Hide loading spinner and show modal
-                                $('#padyaModal .modal-body').html(`
-
-
-                    <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
-                    <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
-                    <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
-                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(data.padya, firstline)}</pre></p>
-                    <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
-                    <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
-                    <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
-                    `);
-                                $('#padyaModal').modal('show');
-                            } else {
-                                console.error("No data returned from API");
-                                // Show error message in modal
-                                $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
-                                $('#padyaModal').modal('show');
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error fetching padya details:", error);
-                            // Show error message in modal
-                            $('#padyaModal .modal-body').html('<p>Error fetching padya details. Please try again later.</p>');
-                            $('#padyaModal').modal('show');
-                        });
-                }
-            });
-
-
-
-            // Function to escape HTML entities
-            function escapeHtml(text) {
-                const map = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                };
-                return text.replace(/[&<>"']/g, (m) => map[m]);
-            }
-
-            // Function to highlight the search word with a yellow background
-            function highlightWord(text, word) {
-                console.log('line', word)
-                const escapedWord = escapeHtml(word);
-                const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
-                return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
-            }
-
-
-
-            // Back button functionality
-            $('.back-button').on('click', function () {
-                alert('Navigating to previous page');
-            });
+                "sortAscending": ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
+                "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
+            },
+            "pageLength": 5,
+            "lengthMenu": [5, 10, 25, 50,100,500,1000],
+            "ordering": true,
+            "order": [[0, 'asc']],
+            "columns": [
+                { "data": "gade_suchi", "title": "ಗಾದೆ" },
+                { "data": "parva_name", "title": "ಪರ್ವ" },
+                { "data": "sandhi_number", "title": "ಸಂಧಿಯ ಹೆಸರು" },
+                { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
+            ]
         });
-    </script>
+
+        allParva=new Set()
+        // Fetch data from Flask API and populate the table
+        fetch('/gade-suchi/data')
+            .then(response => response.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    table.clear().rows.add(data).draw();
+
+
+            // Extract unique parva names and populate dropdown
+            data.forEach(item => allParva.add(item.parva_name));
+
+
+            // Populate dropdown
+            const dropdown = $('#parvaDropdown');
+            dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
+            allParva.forEach(parva => {
+                dropdown.append(`<option value="${parva}">${parva}</option>`);
+            });
+
+
+
+                } else {
+                    console.error("Unexpected data format:", data);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+                // Handle error here, maybe show a message to the user
+            });
+
+        // Filter by dropdown
+        $('#parvaDropdown').on('change', function () {
+            const selectedType = $(this).val();
+            if (selectedType === 'ಎಲ್ಲಾ ಪರ್ವಗಳು') {
+                table.column(1).search('').draw();
+            } else {
+                table.column(1).search(selectedType).draw();
+            }
+        });
+
+        // Filter by alphabet
+        $('.alphabet-grid span').on('click', function () {
+            const letter = $(this).text();
+            table.search(letter).draw();
+        });
+
+
+
+        // Handle row click event to show modal
+        $('#dictionaryTable tbody').on('click', 'tr', function () {
+            const rowData = table.row(this).data();
+            if (rowData) {
+                const parva = rowData.parva_number; // Adjust this if necessary
+                const sandhi = rowData.sandhi_number; // Adjust this if necessary
+                const padya = rowData.padya_number; // Adjust this if necessary
+
+                const firstline = rowData.gade_suchi;
+                const parva_name = rowData.parva_name;
+                const sandhi_name = rowData.sandhi_name;
+                const sandhi_number = rowData.sandhi_number;
+                const parva_number = rowData.sandhi_number;
+
+                // Construct the URL for the API call
+                const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+
+                // Show loading spinner
+                $('#padyaModal .modal-body').html('<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>');
+
+                // Fetch details from the API
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) {
+                            // Populate modal with data
+                            $('#padyafirstline').text(data.padyafirstline || 'N/A');
+                            $('#pathantar').text(data.pathantar || 'N/A');
+                            $('#gadya').text(data.gadya || 'N/A');
+                            $('#tippani').text(data.tippani || 'N/A');
+                            $('#artha').text(data.artha || 'N/A');
+                            $('#suchane').text(data.suchane || 'N/A');
+                            $('#padya').text(data.padya || 'N/A');
+
+                            // Hide loading spinner and show modal
+                            $('#padyaModal .modal-body').html(`
+
+
+                <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
+                <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
+                <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
+                <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(data.padya, firstline)}</pre></p>
+                <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
+                <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
+                <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
+                `);
+                            $('#padyaModal').modal('show');
+                        } else {
+                            console.error("No data returned from API");
+                            // Show error message in modal
+                            $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
+                            $('#padyaModal').modal('show');
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error fetching padya details:", error);
+                        // Show error message in modal
+                        $('#padyaModal .modal-body').html('<p>Error fetching padya details. Please try again later.</p>');
+                        $('#padyaModal').modal('show');
+                    });
+            }
+        });
+
+
+
+        // Function to escape HTML entities
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, (m) => map[m]);
+        }
+
+        // Function to highlight the search word with a yellow background
+        function highlightWord(text, word) {
+            console.log('line', word)
+            const escapedWord = escapeHtml(word);
+            const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
+            return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
+        }
+
+
+
+        // Back button functionality
+        $('.back-button').on('click', function () {
+            alert('Navigating to previous page');
+        });
+    });
+</script>
 
 
 {% include 'footer.html' %}
