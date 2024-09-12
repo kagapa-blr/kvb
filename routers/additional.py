@@ -217,9 +217,13 @@ def gade_suchi_upload():
             # Determine the file type based on the file extension
             file_type = filename.rsplit('.', 1)[1].lower()
 
-            # Call the function to extract and save data
-            result_message = extract_and_save_data(file_path, file_type)
-            flash(result_message)
+            try:
+                # Call the function to extract and save data
+                result_message = extract_and_save_data(file_path, file_type)
+                flash(result_message)
+            except Exception as e:
+                flash(f"Error processing file: {str(e)}")
+                return redirect(request.url)
 
             # Optionally, remove the file after processing
             os.remove(file_path)
@@ -227,7 +231,7 @@ def gade_suchi_upload():
             return 'successfully processed file'
 
     # If GET request, render the upload form
-    return render_template('upload.html')
+    return render_template('admin.html')
 
 
 @additonal_bp.route('/gade-suchi/data', methods=['GET'])

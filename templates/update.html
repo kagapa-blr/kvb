@@ -34,13 +34,14 @@
             </select>
         </div>
         <div class="dropdown" style="flex: 1;">
-            <label for="padyaNumberDropdown" class="form-label" style="display: block; margin-bottom: 8px;">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+            <label for="padyaNumberDropdown" class="form-label" style="display: block; margin-bottom: 8px;">ಪದ್ಯ
+                ಸಂಖ್ಯೆ</label>
             <select id="padyaNumberDropdown" class="form-select" style="width: 100%;" disabled>
                 <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
             </select>
         </div>
     </div>
-    
+
 
     <div class="audio-player-container mt-4">
         <div class="audio-player">
@@ -52,32 +53,52 @@
     </div>
 
     <div class="container mt-4" style="padding: 16px;">
-        <div class="grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-            <div class="grid-item" style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+        <div class="grid-container"
+             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+            <div class="grid-item"
+                 style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
                 <span class="label" style="font-weight: bold; margin-bottom: 8px;">ಪದ್ಯ:</span>
-                <div class="padya editable" contenteditable="true" style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">1</div>
+                <div class="updatepadya editable" contenteditable="true"
+                     style="min-height: auto; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">
+                    1
+                </div>
             </div>
-            <div class="grid-item" style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+            <div class="grid-item"
+                 style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
                 <span class="label" style="font-weight: bold; margin-bottom: 8px;">ಪಾಠಾಂತರ:</span>
-                <div class="pathantar editable" contenteditable="true" style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">2</div>
+                <div class="pathantar editable" contenteditable="true"
+                     style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">
+                    2
+                </div>
             </div>
-            <div class="grid-item" style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+            <div class="grid-item"
+                 style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
                 <span class="label" style="font-weight: bold; margin-bottom: 8px;">ಗದ್ಯ:</span>
-                <div class="gadya editable" contenteditable="true" style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">3</div>
+                <div class="gadya editable" contenteditable="true"
+                     style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">
+                    3
+                </div>
             </div>
-            <div class="grid-item" style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+            <div class="grid-item"
+                 style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
                 <span class="label" style="font-weight: bold; margin-bottom: 8px;">ಟಿಪ್ಪಣಿ:</span>
-                <div class="tippani editable" contenteditable="true" style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">4</div>
+                <div class="tippani editable" contenteditable="true"
+                     style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">
+                    4
+                </div>
             </div>
-            <div class="grid-item" style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+            <div class="grid-item"
+                 style="display: flex; flex-direction: column; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
                 <span class="label" style="font-weight: bold; margin-bottom: 8px;">ಅರ್ಥ:</span>
-                <div class="artha editable" contenteditable="true" style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">5</div>
+                <div class="artha editable" contenteditable="true"
+                     style="min-height: 200px; padding: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; overflow-y: auto; max-height: 300px; box-sizing: border-box;">
+                    5
+                </div>
             </div>
         </div>
     </div>
-    
-    
-    
+
+
     <div class="text-center mt-4">
         <button id="updateButton" class="btn btn-success">Update</button>
     </div>

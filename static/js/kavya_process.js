@@ -257,6 +257,7 @@ $(document).ready(function () {
             return text ? text.replace(/\n/g, "<br>") : "";
           }
           $(".padya").html(formatPadyaText(data.padya));
+          $(".updatepadya").html(formatText(data.padya));
 
           $(".pathantar").html(formatText(data.pathantar));
           $(".gadya").html(formatText(data.gadya));
@@ -418,7 +419,7 @@ $(document).ready(function () {
           .querySelector(".artha.editable")
           .innerText.trim();
         const padya = document
-          .querySelector(".padya.editable")
+          .querySelector(".updatepadya.editable")
           .innerText.trim();
 
         // Validate data

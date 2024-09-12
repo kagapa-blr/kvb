@@ -4,3 +4,4 @@ venv
 docs
 *.csv
 *.mp3
+migrations

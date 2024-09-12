@@ -9,7 +9,7 @@ from model.models import db, Parva, GadeSuchigalu
 additional_bp = Blueprint('additional', __name__)
 
 # Folder to save uploaded files
-UPLOAD_FOLDER = '/path/to/upload'  # Ensure this directory exists and is writable
+UPLOAD_FOLDER = 'uploadedfiles'  # Ensure this directory exists and is writable
 ALLOWED_EXTENSIONS = {'docx', 'csv'}
 
 
