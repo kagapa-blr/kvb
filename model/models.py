@@ -101,3 +101,39 @@ class GadeSuchigalu(db.Model):
         db.UniqueConstraint('gade_suchi', 'parva_name', 'sandhi_number', 'padya_number',
                             name='unique_gade_suchi_parva_sandhi_padya'),
     )
+
+
+class Tippani(db.Model):
+    """
+    A model representing the Tippani entries in the database.
+
+    Attributes:
+    id (int): The primary key of the entry.
+    tippani (str): The Tippani text.
+    parva_id (int): The foreign key referencing the Parva model.
+    sandhi_id (int): The foreign key referencing the Sandhi model.
+    padya_number (int): The number of the padya within the Sandhi.
+
+    Relationships:
+    parva (Parva): The Parva associated with the Tippani entry.
+    sandhi (Sandhi): The Sandhi associated with the Tippani entry.
+
+    Constraints:
+    UniqueConstraint: Ensures the combination of parva_id, sandhi_id, and padya_number is unique.
+    """
+
+    __tablename__ = 'tippani'
+    id = db.Column(db.Integer, primary_key=True)
+    tippani = db.Column(db.Text, nullable=False)
+    parva_id = db.Column(db.Integer, db.ForeignKey('parva.id'), nullable=False)
+    sandhi_id = db.Column(db.Integer, db.ForeignKey('sandhi.id'), nullable=False)
+    padya_number = db.Column(db.Integer, nullable=False)
+
+    # Relationships
+    parva = db.relationship('Parva', backref='tippani_entries')
+    sandhi = db.relationship('Sandhi', backref='tippani_entries')
+
+    # Unique constraint to ensure the combination of parva_id, sandhi_id, and padya_number is unique
+    __table_args__ = (
+        db.UniqueConstraint('parva_id', 'sandhi_id', 'padya_number', name='unique_parva_sandhi_padya_tippani'),
+    )

@@ -2,13 +2,13 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>ನಿರ್ವಾಹಕರ</title>
     <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <link rel="stylesheet" href="/static/css/admin.css" />
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+    <link rel="stylesheet" href="/static/css/admin.css"/>
     <!-- jQuery via CDN -->
     <script src="/static/jquery/jquery-3.7.1.min.js"></script>
     <!-- JavaScript -->
@@ -18,371 +18,403 @@
 </head>
 
 <body>
-    {% include 'navbar.html' %}
+{% include 'navbar.html' %}
 
-    <div class="container mt-5">
-        <div class="row">
-            <!-- Card for User Management -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">User Management</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Add User Button -->
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+<div class="container mt-5">
+    <div class="row">
+        <!-- Card for User Management -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">User Management</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add User Button -->
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#userModal">
-                            ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card for Padya Update -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">Update Padya</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Update Padya Button -->
-                        <a href="{{ url_for('update') }}" class="btn btn-primary"
-                            style="color: white; text-decoration: none">ಪದ್ಯ ನವೀಕರಿಸಿ</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Card for Padya Update -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
-                    </div>
-                    <div class="card-body">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#addPadyaModal">
-                            ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-
-            <!-- Card for File Upload -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">ಗಾದೆ-ಸೂಚಿ ಸೇರಿಸಿ(csv,docx)</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- File Upload Form -->
-                        <form action="/gade-suchi/upload" method="POST" enctype="multipart/form-data">
-                            <div class="input-group">
-                                <input type="file" class="form-control" id="fileInput" name="file" required />
-                                <button class="btn btn-success" type="submit">
-                                    Upload File
-                                </button>
-                            </div>
-                            <p>
-                                it should contain these coloumns <br />
-                                <strong>gade suchi,parva name,sandhi number,padya number</strong>
-                            </p>
-                        </form>
-
-                        <!-- Flash Messages -->
-                        <div class="mt-3">
-                            {% with messages = get_flashed_messages() %} {% if messages %}
-                            <div class="alert alert-info" role="alert">
-                                {{ messages[0] }}
-                            </div>
-                            {% endif %} {% endwith %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card for File Upload -->
-            <div class="col-lg-4 mb-4">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">ಅಕಾರಾದಿ ಸೂಚಿ ಸರಿಪಡಿಸಿ</h5>
-                    </div>
-                    <div class="card-body">
-                        <a href="/akaradi-suchi/update" class="btn btn-primary"
-                        style="color: white; text-decoration: none">ಅಕಾರಾದಿ ಸೂಚಿ</a>
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Add Padya Modal -->
-    <div class="modal fade" id="addPadyaModal" tabindex="-1" aria-labelledby="addPadyaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" style="max-width: 90%; margin: auto">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addPadyaModalLabel">Add New Padya</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-body">
-                            <div id="insertParva" class="mb-3">
-                                <label for="newParvaName" class="form-label">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</label>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <input type="text" id="newParvaName" class="form-control"
-                                            placeholder="ಪರ್ವದ ಹೆಸರು ಸೇರಿಸಿ" />
-                                    </div>
-                                </div>
-                                <button id="insertParvaBtn" class="btn btn-primary mt-2">
-                                    ಪರ್ವ ಸೇರಿಸಿ
-                                </button>
-                                <div id="parvaMessage" class="mt-2"></div>
-                            </div>
-
-                            <div id="insertSandhi" class="mb-3">
-                                <h5 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label for="parvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
-                                        <input type="number" id="parvaNumber" class="form-control"
-                                            placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
-                                        <input type="text" id="newSandhiName" class="form-control"
-                                            placeholder="ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ" />
-                                    </div>
-                                </div>
-                                <button id="insertSandhiBtn" class="btn btn-primary mt-2">
-                                    ಸಂಧಿ ಸೇರಿಸಿ
-                                </button>
-                                <div id="sandhiMessage" class="mt-2"></div>
-                            </div>
-
-                            <h5 class="card-title">Enter Padya Details</h5>
-                            <div id="insertPadya" class="mb-3">
-                                <h5 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
-                                <div class="row">
-                                    <div class="col-md-4" style="display: inline-block; width: 32%">
-                                        <label for="padyainsertParvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
-                                        <input type="number" id="padyainsertParvaNumber" class="form-control"
-                                            placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
-
-                                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#parvaModal">
-                                            Select Parva
-                                        </button>
-                                    </div>
-                                    <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
-                                        <label for="padyainsertSandhiNumber" class="form-label">ಸಂಧಿ ಸಂಖ್ಯೆ</label>
-                                        <input type="number" id="padyainsertSandhiNumber" class="form-control"
-                                            placeholder="ಸಂಧಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
-                                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#sandhiModal">
-                                            Select Sandhi
-                                        </button>
-                                    </div>
-                                    <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
-                                        <label for="padyainsertPadyaNumber" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                                        <input type="number" id="padyainsertPadyaNumber" class="form-control"
-                                            placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
-                                    </div>
-                                </div>
-
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <label for="padyainsertPadya" class="form-label mt-2">ಪದ್ಯ</label>
-                                        <textarea id="padyainsertPadya" class="form-control" rows="3"
-                                            placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="padyainsertPathantar" class="form-label">ಪಾಠಾಂತರ</label>
-                                        <textarea id="padyainsertPathantar" class="form-control" rows="3"
-                                            placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <label for="padyainsertGadya" class="form-label">ಗದ್ಯ</label>
-                                        <textarea id="padyainsertGadya" class="form-control" rows="3"
-                                            placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="padyainsertTippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
-                                        <textarea id="padyainsertTippani" class="form-control" rows="3"
-                                            placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
-                                    </div>
-                                </div>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <label for="padyainsertArtha" class="form-label">ಅರ್ಥ</label>
-                                        <textarea id="padyainsertArtha" class="form-control" rows="3"
-                                            placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
-                                    </div>
-                                </div>
-                                <button id="padyainsertPadyaBtn" class="btn btn-primary mt-2">
-                                    ಪದ್ಯ ಸೇರಿಸಿ
-                                </button>
-                                <div id="padyainsertPadyaMessage" class="mt-2"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Parva Modal -->
-    <div class="modal fade" id="parvaModal" tabindex="-1" aria-labelledby="parvaModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="parvaModalLabel">Parva Table</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body scrollable-table">
-                    <input type="text" id="parvaSearch" onkeyup="searchTable('parvaSearch', 'parvaTableBodyContent')"
-                        placeholder="Search for names.." />
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Parva Number</th>
-                                <th scope="col">Parva Name</th>
-                            </tr>
-                        </thead>
-                        <tbody id="parvaTableBodyContent">
-                            <!-- Data will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sandhi Modal -->
-    <div class="modal fade" id="sandhiModal" tabindex="-1" aria-labelledby="sandhiModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="sandhiModalLabel">Sandhi Table</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body scrollable-table">
-                    <input type="text" id="sandhiSearch" onkeyup="searchTable('sandhiSearch', 'sandhiTableBodyContent')"
-                        placeholder="Search for names.." />
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Sandhi Number</th>
-                                <th scope="col">Sandhi Name</th>
-                                <th scope="col">Parva Number</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sandhiTableBodyContent">
-                            <!-- Data will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- User Modal -->
-    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h6 class="modal-title" id="userModalLabel">
                         ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ
-                    </h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </button>
                 </div>
-                <div class="modal-body">
-                    <div class="user-add">
-                        <div class="message"></div>
+            </div>
+        </div>
 
-                        <div class="container p-4 border rounded">
-                            <form id="userForm">
-                                <div class="mb-3">
-                                    <label for="username" class="form-label">ಬಳಕೆದಾರರ ಹೆಸರು:</label>
-                                    <input type="text" id="username" name="username" class="form-control" required />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">ಪಾಸ್ವರ್ಡ್:</label>
-                                    <input type="password" id="password" name="password" class="form-control"
-                                        required />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone_number" class="form-label">ಫೋನ್ ಸಂಖ್ಯೆ:</label>
-                                    <input type="number" id="phone_number" name="phone_number" class="form-control"
-                                        required />
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">ಇಮೇಲ್:</label>
-                                    <input type="email" id="email" name="email" class="form-control" required />
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    ಸೇರಿಸಿ
-                                </button>
-                            </form>
+        <!-- Card for Padya Update -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Update Padya</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Update Padya Button -->
+                    <a href="{{ url_for('update') }}" class="btn btn-primary"
+                       style="color: white; text-decoration: none">ಪದ್ಯ ನವೀಕರಿಸಿ</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card for Padya Update -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
+                </div>
+                <div class="card-body">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#addPadyaModal">
+                        ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Card for File Upload -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">ಗಾದೆ-ಸೂಚಿ ಸೇರಿಸಿ(csv,docx)</h5>
+                </div>
+                <div class="card-body">
+                    <!-- File Upload Form -->
+                    <form action="/gade-suchi/upload" method="POST" enctype="multipart/form-data">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="fileInput" name="file" required/>
+                            <button class="btn btn-success" type="submit">
+                                Upload File
+                            </button>
                         </div>
+                        <p>
+                            it should contain these coloumns <br/>
+                            <strong>gade suchi,parva name,sandhi number,padya number</strong>
+                        </p>
+                    </form>
+
+                    <!-- Flash Messages -->
+                    <div class="mt-3">
+                        {% with messages = get_flashed_messages() %} {% if messages %}
+                        <div class="alert alert-info" role="alert">
+                            {{ messages[0] }}
+                        </div>
+                        {% endif %} {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Card for Akaradi Suchi Update -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ಅಕಾರಾದಿ ಸೂಚಿ ಸರಿಪಡಿಸಿ</h5>
+                </div>
+                <div class="card-body text-center">
+                    <a href="/akaradi-suchi/update" class="btn btn-primary">
+                        <i class="bi bi-pencil-square"></i> Update Akaradi Suchi
+                    </a>
+                </div>
+                <!-- Flash Messages -->
+                <div class="card-footer">
+                    {% if akaradi_message %}
+                    <div class="alert alert-info mb-0" role="alert">
+                        {{ akaradi_message }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Tippani Update -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ಟಿಪ್ಪಣಿಯ ಪುನಃಹೊಂದಿಸುವಿಕೆ</h5>
+                </div>
+                <div class="card-body text-center">
+                    <a href="/tippani/update" class="btn btn-primary">
+                        <i class="bi bi-pencil-square"></i> ಟಿಪ್ಪಣಿಯ ಅಪ್ಡೇಟ್
+                    </a>
+                </div>
+                <!-- Flash Messages -->
+                <div class="card-footer">
+                    {% if tippani_message %}
+                    <div class="alert alert-info mb-0" role="alert">
+                        {{ tippani_message }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Add Padya Modal -->
+<div class="modal fade" id="addPadyaModal" tabindex="-1" aria-labelledby="addPadyaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="max-width: 90%; margin: auto">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPadyaModalLabel">Add New Padya</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="insertParva" class="mb-3">
+                            <label for="newParvaName" class="form-label">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" id="newParvaName" class="form-control"
+                                           placeholder="ಪರ್ವದ ಹೆಸರು ಸೇರಿಸಿ"/>
+                                </div>
+                            </div>
+                            <button id="insertParvaBtn" class="btn btn-primary mt-2">
+                                ಪರ್ವ ಸೇರಿಸಿ
+                            </button>
+                            <div id="parvaMessage" class="mt-2"></div>
+                        </div>
+
+                        <div id="insertSandhi" class="mb-3">
+                            <h5 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="parvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
+                                    <input type="number" id="parvaNumber" class="form-control"
+                                           placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
+                                    <input type="text" id="newSandhiName" class="form-control"
+                                           placeholder="ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ"/>
+                                </div>
+                            </div>
+                            <button id="insertSandhiBtn" class="btn btn-primary mt-2">
+                                ಸಂಧಿ ಸೇರಿಸಿ
+                            </button>
+                            <div id="sandhiMessage" class="mt-2"></div>
+                        </div>
+
+                        <h5 class="card-title">Enter Padya Details</h5>
+                        <div id="insertPadya" class="mb-3">
+                            <h5 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
+                            <div class="row">
+                                <div class="col-md-4" style="display: inline-block; width: 32%">
+                                    <label for="padyainsertParvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
+                                    <input type="number" id="padyainsertParvaNumber" class="form-control"
+                                           placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+
+                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#parvaModal">
+                                        Select Parva
+                                    </button>
+                                </div>
+                                <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
+                                    <label for="padyainsertSandhiNumber" class="form-label">ಸಂಧಿ ಸಂಖ್ಯೆ</label>
+                                    <input type="number" id="padyainsertSandhiNumber" class="form-control"
+                                           placeholder="ಸಂಧಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#sandhiModal">
+                                        Select Sandhi
+                                    </button>
+                                </div>
+                                <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
+                                    <label for="padyainsertPadyaNumber" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
+                                    <input type="number" id="padyainsertPadyaNumber" class="form-control"
+                                           placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="padyainsertPadya" class="form-label mt-2">ಪದ್ಯ</label>
+                                    <textarea id="padyainsertPadya" class="form-control" rows="3"
+                                              placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="padyainsertPathantar" class="form-label">ಪಾಠಾಂತರ</label>
+                                    <textarea id="padyainsertPathantar" class="form-control" rows="3"
+                                              placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="padyainsertGadya" class="form-label">ಗದ್ಯ</label>
+                                    <textarea id="padyainsertGadya" class="form-control" rows="3"
+                                              placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="padyainsertTippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
+                                    <textarea id="padyainsertTippani" class="form-control" rows="3"
+                                              placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="padyainsertArtha" class="form-label">ಅರ್ಥ</label>
+                                    <textarea id="padyainsertArtha" class="form-control" rows="3"
+                                              placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
+                                </div>
+                            </div>
+                            <button id="padyainsertPadyaBtn" class="btn btn-primary mt-2">
+                                ಪದ್ಯ ಸೇರಿಸಿ
+                            </button>
+                            <div id="padyainsertPadyaMessage" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parva Modal -->
+<div class="modal fade" id="parvaModal" tabindex="-1" aria-labelledby="parvaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="parvaModalLabel">Parva Table</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body scrollable-table">
+                <input type="text" id="parvaSearch" onkeyup="searchTable('parvaSearch', 'parvaTableBodyContent')"
+                       placeholder="Search for names.."/>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Parva Number</th>
+                        <th scope="col">Parva Name</th>
+                    </tr>
+                    </thead>
+                    <tbody id="parvaTableBodyContent">
+                    <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sandhi Modal -->
+<div class="modal fade" id="sandhiModal" tabindex="-1" aria-labelledby="sandhiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sandhiModalLabel">Sandhi Table</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body scrollable-table">
+                <input type="text" id="sandhiSearch" onkeyup="searchTable('sandhiSearch', 'sandhiTableBodyContent')"
+                       placeholder="Search for names.."/>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">Sandhi Number</th>
+                        <th scope="col">Sandhi Name</th>
+                        <th scope="col">Parva Number</th>
+                    </tr>
+                    </thead>
+                    <tbody id="sandhiTableBodyContent">
+                    <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="userModalLabel">
+                    ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="user-add">
+                    <div class="message"></div>
+
+                    <div class="container p-4 border rounded">
+                        <form id="userForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">ಬಳಕೆದಾರರ ಹೆಸರು:</label>
+                                <input type="text" id="username" name="username" class="form-control" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">ಪಾಸ್ವರ್ಡ್:</label>
+                                <input type="password" id="password" name="password" class="form-control"
+                                       required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone_number" class="form-label">ಫೋನ್ ಸಂಖ್ಯೆ:</label>
+                                <input type="number" id="phone_number" name="phone_number" class="form-control"
+                                       required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">ಇಮೇಲ್:</label>
+                                <input type="email" id="email" name="email" class="form-control" required/>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                ಸೇರಿಸಿ
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <br /><br /><br />
-    {% include 'footer.html' %}
-    <script>
-        function searchTable(inputId, tableBodyId) {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById(inputId);
-            filter = input.value.toUpperCase();
-            table = document.getElementById(tableBodyId);
-            tr = table.getElementsByTagName("tr");
+<br/><br/><br/>
+{% include 'footer.html' %}
+<script>
+    function searchTable(inputId, tableBodyId) {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById(inputId);
+        filter = input.value.toUpperCase();
+        table = document.getElementById(tableBodyId);
+        tr = table.getElementsByTagName("tr");
 
-            for (i = 0; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td");
-                if (td) {
-                    let match = false;
-                    for (let j = 0; j < td.length; j++) {
-                        if (td[j]) {
-                            txtValue = td[j].textContent || td[j].innerText;
-                            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                                match = true;
-                                break;
-                            }
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td");
+            if (td) {
+                let match = false;
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
                         }
                     }
-                    if (match) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
+                }
+                if (match) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
                 }
             }
         }
-    </script>
+    }
+</script>
 </body>
 
 </html>

@@ -235,7 +235,7 @@
                 "ordering": true,
                 "order": [[0, 'asc']],
                 "columns": [
-                    { "data": "padyafirstline", "title": "ಟಿಪ್ಪಣಿ" },
+                    { "data": "tippani", "title": "ಟಿಪ್ಪಣಿ" },
                     { "data": "parva_name", "title": "ಪರ್ವ" },
                     { "data": "sandhi_name", "title": "ಸಂಧಿಯ ಹೆಸರು" },
                     { "data": "padya_number", "title": "ಪದ್ಯದ ಸಂಖ್ಯೆ" }
@@ -244,7 +244,7 @@
 
             allParva=new Set()
             // Fetch data from Flask API and populate the table
-            fetch('/akaradi-suchi/data')
+            fetch('/tippani/data')
                 .then(response => response.json())
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -299,7 +299,7 @@
                     const sandhi = rowData.sandhi_number; // Adjust this if necessary
                     const padya = rowData.padya_number; // Adjust this if necessary
 
-                    const firstline = rowData.padyafirstline;
+                    //const firstline = rowData.tippani;
                     const parva_name = rowData.parva_name;
                     const sandhi_name = rowData.sandhi_name;
                     const sandhi_number = rowData.sandhi_number;
@@ -317,7 +317,7 @@
                         .then(data => {
                             if (data) {
                                 // Populate modal with data
-                                $('#padyafirstline').text(data.padyafirstline || 'N/A');
+                                //$('#padyafirstline').text(data.tippani || 'N/A');
                                 $('#pathantar').text(data.pathantar || 'N/A');
                                 $('#gadya').text(data.gadya || 'N/A');
                                 $('#tippani').text(data.tippani || 'N/A');
@@ -332,7 +332,7 @@
                     <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
                     <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
                     <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
-                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(data.padya, firstline)}</pre></p>
+                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${data.padya}</pre></p>
                     <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
                     <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
                     <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>

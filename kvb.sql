@@ -70,3 +70,16 @@ CREATE TABLE IF NOT EXISTS gade_suchigalu (
     padya_number INT NOT NULL,
     UNIQUE(gade_suchi, parva_name, sandhi_number, padya_number) -- Ensure uniqueness of the combination
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+
+
+CREATE TABLE IF NOT EXISTS tippani (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tippani TEXT NOT NULL,
+    parva_id INT NOT NULL,
+    sandhi_id INT NOT NULL,
+    padya_number INT NOT NULL,
+    FOREIGN KEY (parva_id) REFERENCES parva(id),
+    FOREIGN KEY (sandhi_id) REFERENCES sandhi(id),
+    UNIQUE (parva_id, sandhi_id, padya_number) -- Ensure uniqueness of the combination
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

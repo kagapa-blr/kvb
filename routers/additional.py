@@ -2,11 +2,10 @@ import csv
 import os
 
 from docx import Document
-from flask import Blueprint, request, redirect, flash, render_template
-from flask import Response, jsonify
+from flask import Blueprint, request, redirect, flash, render_template, jsonify
 from werkzeug.utils import secure_filename
 
-from model.models import db, Parva, Sandhi, Padya, AkaradiSuchi, GadeSuchigalu
+from model.models import db, Parva, Sandhi, Padya, AkaradiSuchi, GadeSuchigalu, Tippani
 from utils.additonal_utility import allowed_file, UPLOAD_FOLDER, extract_and_save_data
 
 additonal_bp = Blueprint('additional', __name__)
@@ -45,10 +44,13 @@ def akaradi_suchi_update():
                     db.session.add(akaradi_suchi_entry)
 
         db.session.commit()
-        return Response("Akaradi Suchi updated successfully", status=200)
+        # return Response("Akaradi Suchi updated successfully", status=200)
+        akaradi_message = "Akaradi Suchi updated successfully"
     except Exception as e:
         db.session.rollback()
-        return Response(f"An error occurred: {e}", status=500)
+        # return Response(f"An error occurred: {e}", status=500)
+        akaradi_message = f"An error occurred: {str(e)}"
+    return render_template('admin.html', akaradi_message=akaradi_message)
 
 
 @additonal_bp.get("/akaradi-suchi")
@@ -257,3 +259,67 @@ def get_gade_suchi_data():
 
     # Return JSON response
     return jsonify(result)
+
+
+@additonal_bp.get('/tippani/update')
+def tippani_update():
+    try:
+        # Query all Parva entries
+        parvas = Parva.query.all()
+        for parva in parvas:
+            # For each Parva, get all Sandhis
+            sandhis = Sandhi.query.filter_by(parva_id=parva.id).all()
+            for sandhi in sandhis:
+                # For each Sandhi, get all Padyas
+                padyas = Padya.query.filter_by(sandhi_id=sandhi.id).all()
+                for padya in padyas:
+                    # Extract the Tippani from Padya
+                    tippani_text = padya.tippani
+                    # Create or update the Tippani entry
+                    tippani_entry = Tippani.query.filter_by(
+                        parva_id=parva.id,
+                        sandhi_id=sandhi.id,
+                        padya_number=padya.padya_number
+                    ).first()
+                    if tippani_entry:
+                        tippani_entry.tippani = tippani_text
+                    else:
+                        tippani_entry = Tippani(
+                            tippani=tippani_text,
+                            parva_id=parva.id,
+                            sandhi_id=sandhi.id,
+                            padya_number=padya.padya_number
+                        )
+
+                    db.session.add(tippani_entry)
+
+        db.session.commit()
+        # return Response("Tippani updated successfully", status=200)
+        tippani_message = "Tippani updated successfully"
+    except Exception as e:
+        db.session.rollback()
+        # return Response(f"An error occurred: {e}", status=500)
+        tippani_message = f"Error Occurred: {str(e)}"
+    return render_template('admin.html', tippani_message=tippani_message)
+
+
+@additonal_bp.get('/tippani/data')
+def tippani_data():
+    try:
+        # Query all Tippani entries
+        tippani_entries = Tippani.query.all()
+        # Convert the results to a list of dictionaries
+        data = [
+            {
+                'tippani': entry.tippani,
+                'parva_name': entry.sandhi.parva.name,  # Fetch the name of the Parva
+                'sandhi_name': entry.sandhi.name,  # Fetch the name of the Sandhi
+                'padya_number': entry.padya_number,
+                'parva_number': entry.sandhi.parva.parva_number,  # Fetch the Parva number
+                'sandhi_number': entry.sandhi.sandhi_number,  # Fetch the Sandhi number
+            }
+            for entry in tippani_entries
+        ]
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
