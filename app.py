@@ -95,6 +95,18 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/videos')
+def play_videos():
+    video_dir = 'static/videos/'
+    videos = [f for f in os.listdir(video_dir) if os.path.isfile(os.path.join(video_dir, f))]
+    return render_template('additional/video-player.html', videos=videos)
+
+
+@app.route('/static/videos/<filename>')
+def get_video(filename):
+    return send_from_directory('static/videos/', filename)
+
+
 # Add other routes here...
 
 if __name__ == '__main__':
