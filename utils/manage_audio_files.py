@@ -1,3 +1,6 @@
+import os
+import shutil
+
 from pydub import AudioSegment
 
 
@@ -30,68 +33,80 @@ def convert_all_swf_in_directory(directory):
                 print(f"Failed to convert {input_file}: {e}")
 
 
-import os
-import shutil
+def organise_mp3_files():
+    # Define the path to your audio files
+    audio_directory = '../static/audio'
+
+    # Get a list of all files in the audio directory
+    files = [f for f in os.listdir(audio_directory) if os.path.isfile(os.path.join(audio_directory, f))]
+
+    # Process each file
+    for file in files:
+        # Get the starting name of the file (e.g., "03" from "Aranya_10_31.mp3")
+        starting_name = file.split('_')[0]
+
+        # Define the new directory path
+        new_directory = os.path.join(audio_directory, starting_name)
+
+        # Create the directory if it doesn't exist
+        if not os.path.exists(new_directory):
+            os.makedirs(new_directory)
+
+        # Define the source and destination paths
+        src_path = os.path.join(audio_directory, file)
+        dest_path = os.path.join(new_directory, file)
+
+        # Move the file to the new directory
+        shutil.move(src_path, dest_path)
+
+    print("Files have been organized.")
 
 
-def segregate_mp3_files(base_dir):
-    # Ensure the base directory exists
-    if not os.path.isdir(base_dir):
-        raise FileNotFoundError(f"The directory {base_dir} does not exist.")
+def rename_mp3_files():
+    # Define the path to your audio files
+    audio_directory = '../static/audio'
 
-    # Initialize a dictionary to track directory prefixes and their corresponding directory numbers
-    dir_counter = 1
-    dir_mapping = {}
+    def format_number(number):
+        """Format the number to ensure it's at least two digits."""
+        number_str = str(number)
+        if len(number_str) == 1:
+            return f"0{number_str}"
+        return number_str
 
-    # List all mp3 files in the base directory
-    for filename in os.listdir(base_dir):
-        if filename.endswith('.mp3'):
-            # Extract the prefix and numbers from the filename
-            parts = filename.split('_')
-            if len(parts) < 3:
-                print(f"Skipping file {filename} due to incorrect format.")
-                continue
-            prefix = parts[0]
-            middle_number = parts[1]
-            last_number = parts[2].split('.')[0]
+    # Iterate over each directory in the audio directory
+    for directory in os.listdir(audio_directory):
+        dir_path = os.path.join(audio_directory, directory)
 
-            # Check if this prefix already has a directory assigned
-            if prefix not in dir_mapping:
-                # Create the directory name with incrementing number and 'parva' suffix
-                directory_name = f"{str(dir_counter).zfill(2)}-{prefix.lower()}parva"
-                target_dir = os.path.join(base_dir, directory_name)
+        if os.path.isdir(dir_path):
+            # Iterate over each file in the directory
+            for file in os.listdir(dir_path):
+                file_path = os.path.join(dir_path, file)
 
-                # Create the directory if it doesn't exist
-                if not os.path.isdir(target_dir):
-                    os.makedirs(target_dir)
+                if os.path.isfile(file_path):
+                    # Extract the filename without the extension
+                    filename, ext = os.path.splitext(file)
 
-                # Map this prefix to the directory number
-                dir_mapping[prefix] = {
-                    'dir_number': str(dir_counter).zfill(2),
-                    'target_dir': target_dir
-                }
+                    # Split the filename by underscore
+                    parts = filename.split('-')
 
-                # Increment the directory counter for the next unique prefix
-                dir_counter += 1
+                    # Construct the new filename
+                    if len(parts) == 3:
+                        formatted_parts = [format_number(part) for part in parts[1:3]]
+                        new_filename = f"{directory}-{formatted_parts[0]}-{formatted_parts[1]}{ext}"
+                        # Define the new file path
+                        new_file_path = os.path.join(dir_path, new_filename)
+                        # Rename the file
+                        os.rename(file_path, new_file_path)
 
-            # Get the directory info from the mapping
-            dir_info = dir_mapping[prefix]
-            dir_number = dir_info['dir_number']
-            target_dir = dir_info['target_dir']
-
-            # Create the new mp3 filename in the format XX-XX-XX.mp3
-            new_filename = f"{dir_number}-{middle_number.zfill(2)}-{last_number.zfill(2)}.mp3"
-
-            # Copy the mp3 file to the target directory with the new filename
-            source_path = os.path.join(base_dir, filename)
-            target_path = os.path.join(target_dir, new_filename)
-            shutil.copy2(source_path, target_path)
+    print("Files have been renamed.")
 
 
 if __name__ == "__main__":
     # audio_directory = "/home/rpawar/Downloads/kvb/Audio"  # Replace with your directory path
     #
     # convert_all_swf_in_directory(audio_directory)
-    # Example usage
-    base_audio_directory = '../static/audio'
-    segregate_mp3_files(base_audio_directory)
+
+    # base_audio_directory = '../static/audio'
+
+    # organise_mp3_files()
+    rename_mp3_files()

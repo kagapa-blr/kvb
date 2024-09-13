@@ -652,9 +652,10 @@ $(document).ready(function () {
       ); // Replace with your actual value
       const padya = formatNumber($padyaNumberDropdown.val());
 
+      const parvadir = formatNumber(parva_number)
       if (parva_number && sandhi_number && padya) {
         const fileName = `${parva_number}-${sandhi_number}-${padya}.mp3`;
-        $audioSource.attr("src", `/static/audio/01-aadiparva/${fileName}`);
+        $audioSource.attr("src", `/static/audio/${parvadir}/${fileName}`);
         $audioElement.load(); // Reload audio element with new source
       }
     }
