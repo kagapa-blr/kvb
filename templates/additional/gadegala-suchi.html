@@ -298,11 +298,45 @@
           }
         });
 
-        // Filter by alphabet
-        $(".alphabet-grid span").on("click", function () {
-          const letter = $(this).text();
+      // Event handler for alphabet click
+      $(".alphabet-grid span").on("click", function() {
+          const letter = $(this).text();  // Get the clicked Kannada letter
+
+          // Clear any previous search
+          table.search('').draw();
+
+          // Update the custom filter and redraw the table
+          updateFilter(letter);
+      });
+
+      // Function to update the custom filter
+      function updateFilter(letter) {
+          $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+              const padyafirstline = data[0]; // Adjust this if the property name is different
+
+              if (!letter) {
+                  return true; // If no letter is selected, show all rows
+              }
+
+              // Check if padyafirstline exists and starts with the letter
+              if (padyafirstline && padyafirstline.length > 0) {
+                  const firstChar = padyafirstline.charAt(0);
+                  console.log(firstChar)
+                  if(letter==firstChar){
+                    console.log('match found', padyafirstline)
+                  }
+                  return firstChar === letter;
+              }
+              return false;
+          });
+
+          // Redraw the table with the new filter
           table.search(letter).draw();
-        });
+
+          // Remove the custom filter function after use to avoid unintended filtering in future searches
+          $.fn.dataTable.ext.search.pop();
+      }
+
 
         // Handle row click event to show modal
         $("#dictionaryTable tbody").on("click", "tr", function () {

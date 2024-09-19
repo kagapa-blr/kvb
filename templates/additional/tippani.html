@@ -166,7 +166,7 @@
         <div class="parva-dropdown">
             <select id="parvaDropdown" class="form-select">
                 <!-- <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option> -->
-                
+
             </select>
         </div>
 
@@ -188,7 +188,7 @@
         </div>
 
         <div class="footer text-center">
-            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ಪೂರ್ಣ ವಿವರನ್ನು ಪಡೆಯಲು ಪದ್ಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ 
+            <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ಪೂರ್ಣ ವಿವರನ್ನು ಪಡೆಯಲು ಪದ್ಯದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ
         </div>
     </div>
 
@@ -231,7 +231,7 @@
                     "sortDescending": ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ"
                 },
                 "pageLength": 5,
-                "lengthMenu": [5, 10, 25, 50,100,500,1000],
+                "lengthMenu": [5, 10, 25, 50, 100, 500, 1000],
                 "ordering": true,
                 "order": [[0, 'asc']],
                 "columns": [
@@ -242,7 +242,7 @@
                 ]
             });
 
-            allParva=new Set()
+            allParva = new Set()
             // Fetch data from Flask API and populate the table
             fetch('/tippani/data')
                 .then(response => response.json())
@@ -251,16 +251,16 @@
                         table.clear().rows.add(data).draw();
 
 
-                // Extract unique parva names and populate dropdown
-                data.forEach(item => allParva.add(item.parva_name));
+                        // Extract unique parva names and populate dropdown
+                        data.forEach(item => allParva.add(item.parva_name));
 
 
-                // Populate dropdown
-                const dropdown = $('#parvaDropdown');
-                dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
-                allParva.forEach(parva => {
-                    dropdown.append(`<option value="${parva}">${parva}</option>`);
-                });
+                        // Populate dropdown
+                        const dropdown = $('#parvaDropdown');
+                        dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
+                        allParva.forEach(parva => {
+                            dropdown.append(`<option value="${parva}">${parva}</option>`);
+                        });
 
 
 
@@ -283,11 +283,45 @@
                 }
             });
 
-            // Filter by alphabet
-            $('.alphabet-grid span').on('click', function () {
-                const letter = $(this).text();
-                table.search(letter).draw();
+            // Event handler for alphabet click
+            $(".alphabet-grid span").on("click", function () {
+                const letter = $(this).text();  // Get the clicked Kannada letter
+
+                // Clear any previous search
+                table.search('').draw();
+
+                // Update the custom filter and redraw the table
+                updateFilter(letter);
             });
+
+            // Function to update the custom filter
+            function updateFilter(letter) {
+                $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+                    const padyafirstline = data[0]; // Adjust this if the property name is different
+
+                    if (!letter) {
+                        return true; // If no letter is selected, show all rows
+                    }
+
+                    // Check if padyafirstline exists and starts with the letter
+                    if (padyafirstline && padyafirstline.length > 0) {
+                        const firstChar = padyafirstline.charAt(0);
+                        console.log(firstChar)
+                        if (letter == firstChar) {
+                            console.log('match found', padyafirstline)
+                        }
+                        return firstChar === letter;
+                    }
+                    return false;
+                });
+
+                // Redraw the table with the new filter
+                table.search(letter).draw();
+
+                // Remove the custom filter function after use to avoid unintended filtering in future searches
+                $.fn.dataTable.ext.search.pop();
+            }
+
 
 
 
@@ -328,7 +362,6 @@
                                 // Hide loading spinner and show modal
                                 $('#padyaModal .modal-body').html(`
 
-
                     <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
                     <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
                     <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
@@ -337,8 +370,11 @@
                     <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
                     <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
                     `);
-                                $('#padyaModal').modal('show');
-                            } else {
+                    $('#padyaModal').modal('show');
+                            } 
+                            
+                            
+                            else {
                                 console.error("No data returned from API");
                                 // Show error message in modal
                                 $('#padyaModal .modal-body').html('<p>Error: No data returned from the API.</p>');
@@ -386,7 +422,7 @@
     </script>
 
 
-{% include 'footer.html' %}
+    {% include 'footer.html' %}
 </body>
 
 </html>

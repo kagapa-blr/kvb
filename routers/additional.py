@@ -318,7 +318,7 @@ def tippani_data():
                 'parva_number': entry.sandhi.parva.parva_number,  # Fetch the Parva number
                 'sandhi_number': entry.sandhi.sandhi_number,  # Fetch the Sandhi number
             }
-            for entry in tippani_entries
+            for entry in tippani_entries if len(entry.tippani) > 3
         ]
         return jsonify(data)
     except Exception as e:
