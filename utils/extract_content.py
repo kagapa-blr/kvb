@@ -92,7 +92,7 @@ def read_and_classify_paragraphs(docx_file):
 
 def parva_extract():
     # Specify the path to your DOCX file
-    docx_file_path = '../docs/ಸಭಾಪರ್ವ-new.docx'
+    docx_file_path = '../docs/virata_parva.docx'
 
     # Call the function to read and classify paragraphs
     classified_paragraphs = read_and_classify_paragraphs(docx_file_path)
@@ -101,7 +101,7 @@ def parva_extract():
     df = pd.DataFrame(classified_paragraphs)
 
     # Fill 'parva' column with the constant value 'parva' for all rows
-    df['parva'] = 'ಸಭಾಪರ್ವ'
+    df['parva'] = 'ವಿರಾಟಪರ್ವ'
 
     # Propagate the 'sandhi' value to subsequent rows if the current 'sandhi' is empty
     df['sandhi'] = df['sandhi'].replace('', pd.NA).ffill()
@@ -109,7 +109,10 @@ def parva_extract():
     # df = df[(df['padya'].str.strip() == '')]
 
     # Save the DataFrame to a CSV file
-    csv_file_path = 'ಸಭಾಪರ್ವ-new.csv'
+    csv_file_path = 'virata_parva.csv'
     df.to_csv(csv_file_path, index=False, encoding='utf-8')
 
     print(f"Classified paragraphs have been saved to {csv_file_path}")
+
+
+parva_extract()

@@ -1,5 +1,6 @@
 import csv
 import re
+import time
 
 import requests
 
@@ -196,6 +197,7 @@ class ParvaSandhiManager:
                                 artha=artha,
                                 padya=padya
                                 )
+                time.sleep(1)  # Wait for 2 seconds before the next API call
 
     def add_user(self):
         user_data = {
@@ -215,10 +217,13 @@ class ParvaSandhiManager:
 if __name__ == "__main__":
     manager = ParvaSandhiManager(BASE_URL)
     # file = "Parva.csv"
-    file = "SabhaParva.csv"
+    file = "virata_parva_final.csv"
+
     # First insert parva and sandhi
     # first run for parva
     # manager.process_parva_sandhi(file)
+
     # Then process padya entries
-    # manager.process_csv(file)
-    manager.add_user()
+    manager.process_csv(file)
+
+    # manager.add_user()

@@ -1,5 +1,6 @@
 import os
 import secrets
+from datetime import timedelta
 
 from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session
 from flask_migrate import Migrate
@@ -17,6 +18,9 @@ app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql://root:@127.0.0.1/kvb')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Set session timeout to 30 minutes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -24,6 +28,11 @@ migrate = Migrate(app, db)
 app.register_blueprint(parvya_bp, url_prefix='/api')
 app.register_blueprint(additonal_bp)
 app.register_blueprint(users_bp)
+
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
 
 
 @app.route('/')
