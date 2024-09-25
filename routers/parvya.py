@@ -375,7 +375,7 @@ def update_padya():
     sandhi_number = data.get('sandhi_number')
     padya_number = data.get('padya_number')
 
-    if not all([parva_number, sandhi_number, padya_number]):
+    if not all([parva_number, sandhi_number]):
         return jsonify({'error': 'parva_number, sandhi_number, and padya_number are required'}), 400
 
     # Get the sandhi_id from parva_number and sandhi_number

@@ -32,6 +32,7 @@ app.register_blueprint(users_bp)
 
 @app.before_request
 def make_session_permanent():
+    """Extend session for 30 minutes on each request."""
     session.permanent = True
 
 
@@ -87,10 +88,10 @@ def login():
             user = User.query.filter_by(username=username).first()
             if user and check_password_hash(user.password, password):
                 session['user_id'] = user.id
+                session.permanent = True  # Mark the session as permanent (for 30 min)
                 return redirect(url_for('admin'))
             error = 'Invalid username or password'
         except Exception as e:
-            # Log the error here if needed
             error = 'An error occurred while accessing the database. Please try again later.' + str(e)
 
         return render_template('login.html', error=error)
@@ -115,8 +116,6 @@ def play_videos():
 def get_video(filename):
     return send_from_directory('static/videos/', filename)
 
-
-# Add other routes here...
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
