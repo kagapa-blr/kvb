@@ -555,8 +555,8 @@ def get_all_sandhi_by_parva(parva_number):
             # Query to get all padya records for the current sandhi
             padyas = db.session.query(Padya).filter_by(sandhi_id=sandhi.id).all()
 
-            # Create a list of padya numbers for the current sandhi
-            padya_numbers = [padya.padya_number for padya in padyas]
+            # Create a sorted list of padya numbers for the current sandhi
+            padya_numbers = sorted([padya.padya_number for padya in padyas])
 
             sandhi_list.append({
                 'id': sandhi.id,
