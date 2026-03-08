@@ -3,3 +3,7 @@ Flask-SQLAlchemy
 mysql-connector-python
 mysqlclient
 sqlalchemy
+python-dotenv
+python-docx
+alembic
+pymysql
