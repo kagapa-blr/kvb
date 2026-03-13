@@ -53,39 +53,62 @@
                 </div>
 
                 <!-- Audio Player - Perfect JS Integration -->
-                <div class="audio-section mb-3">
-                    <div class="audio-player-container mb-3">
-                        <label class="form-label mb-2 d-block"><i class="fa fa-volume-up me-2"></i>ಗಮಕವಾಚನ</label>
+                <div class="audio-section mb-2">
+
+                    <!-- Audio Player -->
+                    <div class="audio-player-container mb-2">
+                        <label class="form-label mb-1 d-block">
+                            <i class="fa fa-volume-up me-2"></i>ಗಮಕವಾಚನ
+                        </label>
+
                         <audio id="audio" controls class="w-100">
                             <source id="audioSource" src="" type="audio/mpeg" />
-                            Your browser does not support the audio element.
                         </audio>
                     </div>
 
-                    <!-- Audio Metadata Card -->
+                    <!-- Gamaka Metadata -->
                     <div class="card audio-details-card shadow-sm border-0">
-                        <div class="card-body p-2">
-                            <div class="row align-items-center g-2">
-                                <!-- Singer Photo & Name -->
-                                <div class="col-5 text-center">
-                                    <div class="photo-container mb-2">
-                                        <img id="singerPhoto" src="" alt="ಗಾಯಕ"
-                                            class="singer-photo rounded-circle mx-auto d-block"
-                                            style="width: 85px; height: 85px; object-fit: cover; border: 3px solid #DEB887;">
-                                    </div>
-                                    <div id="singerName" class="singer-name fw-bold small">ಗಾಯಕ ಲಭ್ಯವಿಲ್ಲ</div>
+                        <div class="card-body py-2">
+
+                            <div class="d-flex align-items-center">
+
+                                <!-- Singer Photo -->
+                                <div class="me-3 text-center">
+                                    <img id="singerPhoto" src="" alt="ಗಮಕ ವಾಚಕರು" class="rounded-circle" style="
+                            width:150px;
+                            height:150px;
+                            object-fit:cover;
+                            border:2px solid #DEB887;
+                         ">
                                 </div>
 
-                                <!-- Raga Name -->
-                                <div class="col-7 d-flex align-items-center ps-3">
-                                    <div class="raga-container text-start">
-                                        <div class="raga-label tiny text-muted mb-1">ರಾಗ</div>
-                                        <div id="ragaName" class="raga-name fw-bold">ರಾಗ ಲಭ್ಯವಿಲ್ಲ</div>
+                                <!-- Singer + Raga -->
+                                <div class="flex-grow-1">
+
+                                    <!-- Singer -->
+                                    <div class="mb-2">
+                                        <div class="small text-muted">ಗಮಕ ವಾಚಕರು</div>
+                                        <div id="singerName" class="fw-bold fs-5"></div>
                                     </div>
+
+                                    <!-- Raga -->
+                                    <div>
+                                        <div class="fw-bold text-dark">ರಾಗ</div>
+                                        <div id="ragaName" class="fw-bold" style="
+                                font-size:1.4rem;
+                                color:#8B0000;
+                                letter-spacing:1px;
+                             ">
+                                        </div>
+                                    </div>
+
                                 </div>
+
                             </div>
+
                         </div>
                     </div>
+
                 </div>
 
 
