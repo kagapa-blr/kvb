@@ -86,6 +86,54 @@ class Padya(db.Model):
     def __repr__(self):
         return f"<Padya {self.padya_number}>"
 
+# -------------------------------------------------------
+# GAMAKA VACHANA
+# -------------------------------------------------------
+
+class GamakaVachana(db.Model):
+    __tablename__ = "gamaka_vachana"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    parva_id = db.Column(
+        db.Integer,
+        db.ForeignKey("parva.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    sandhi_id = db.Column(
+        db.Integer,
+        db.ForeignKey("sandhi.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True
+    )
+
+    padya_number = db.Column(db.Integer, nullable=False, index=True)
+
+    raga = db.Column(db.String(255), nullable=False)
+
+    gamaka_vachakara_name = db.Column(db.String(255), nullable=False)
+
+    gamaka_vachakar_photo_path = db.Column(db.String(500))
+
+    # relationships
+    parva = db.relationship("Parva", backref="gamaka_vachana_entries")
+    sandhi = db.relationship("Sandhi", backref="gamaka_vachana_entries")
+
+    # allow multiple singers for same padya
+    __table_args__ = (
+        db.UniqueConstraint(
+            "parva_id",
+            "sandhi_id",
+            "padya_number",
+            "gamaka_vachakara_name",
+            name="unique_gamaka_vachana"
+        ),
+    )
+
+    def __repr__(self):
+        return f"<GamakaVachana {self.gamaka_vachakara_name} - {self.raga}>"
 
 # -------------------------------------------------------
 # USERS

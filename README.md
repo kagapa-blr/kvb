@@ -30,3 +30,11 @@ flask db migrate -m "Add example_column to User model"
 flask db upgrade
 Rollback migration
 flask db downgrade
+```
+
+alembic migration
+```bash
+alembic init migrations
+alembic revision --autogenerate -m "initial schema updated"
+alembic upgrade head
+```

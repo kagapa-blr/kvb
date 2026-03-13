@@ -646,19 +646,61 @@ $(document).ready(function () {
     function updateAudioSource() {
       const parva_number = formatNumber(
         parvaDataCache[$("#parvaDropdown").val()].parva_number
-      ); // Replace with your actual value
+      );
       const sandhi_number = formatNumber(
         sandhiDataCache[$("#sandhiDropdown").val()].sandhi_number
-      ); // Replace with your actual value
+      );
       const padya = formatNumber($padyaNumberDropdown.val());
 
-      const parvadir = formatNumber(parva_number)
+      const parvadir = formatNumber(parva_number);
+
       if (parva_number && sandhi_number && padya) {
+
+        // upate the audio source
         const fileName = `${parva_number}-${sandhi_number}-${padya}.mp3`;
         $audioSource.attr("src", `/static/audio/${parvadir}/${fileName}`);
         $audioElement.load(); // Reload audio element with new source
+
+        // Fetch gamaka data for the selected padya to update metadata
+        const parva_id = parvaDataCache[$("#parvaDropdown").val()].id;
+        const sandhi_id = sandhiDataCache[$("#sandhiDropdown").val()].id;
+        const padya_number = parseInt($padyaNumberDropdown.val());
+
+        fetch(`/api/gamaka/padya?parva_id=${parva_id}&sandhi_id=${sandhi_id}&padya_number=${padya_number}`)
+          .then(response => response.json())
+          .then(gamakaData => {
+            updateAudioMetadata(gamakaData);
+          })
+          .catch(error => console.error("Gamaka API error:", error));
       }
+
+
+
     }
+
+    // Add this new function for metadata
+    // gamaka data expected correct it 
+    function updateAudioMetadata(gamakaData) {
+
+      if (!gamakaData || gamakaData.length === 0) {
+        $('#singerPhoto').attr('src', '');
+        $('#singerName').text('');
+        $('#ragaName').text('');
+        return;
+      }
+
+      const gamaka = gamakaData[0];
+
+      const photoUrl = `/static/photos/${gamaka.photo}`;
+      const singerName = gamaka.gamaka_vachakara_name;
+      const ragaName = gamaka.raga;
+
+      $('#singerPhoto').attr('src', photoUrl);
+      $('#singerName').text(singerName);
+      $('#ragaName').text(`${ragaName} ರಾಗ`);
+    }
+
+
 
     // Add event listener to padya dropdown
     $padyaNumberDropdown.on("change", updateAudioSource);
