@@ -18,32 +18,26 @@ additonal_bp = Blueprint('additional', __name__)
 def get_dashboard_stats():
     """
     Get dashboard statistics for admin panel.
-    
-    Returns:
-        - total_users: Count of all admin users
-        - total_padyas: Count of all padyas in database
-        - total_parvas: Count of all parvas
-        - total_sandhis: Count of all sandhis
-        - total_gamaka_vachana: Count of all gamaka vachana entries
+    Simple stats: count of all tables.
     """
     try:
         total_users = User.query.count()
         total_padyas = Padya.query.count()
         total_parvas = Parva.query.count()
         total_sandhis = Sandhi.query.count()
-        total_gamaka_vachana = db.session.query(db.func.count(db.func.distinct(
-            db.Concatenate(Parva.id, Sandhi.id)
-        ))).join(Sandhi).scalar()
+        total_gade_suchi = GadeSuchigalu.query.count()
         
         return jsonify({
             'total_users': total_users,
             'total_padyas': total_padyas,
             'total_parvas': total_parvas,
             'total_sandhis': total_sandhis,
-            'total_gamaka_vachana': total_gamaka_vachana or 0,
+            'total_gade_suchi': total_gade_suchi,
             'status': 'success'
         }), 200
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'error': str(e),
             'status': 'error'

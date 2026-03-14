@@ -181,4 +181,102 @@ If still seeing 500 error:
 The error message in the response JSON will tell you exactly what failed!
 """
 
-# This is a documentation file - no Python code
+# ADDITIONAL BUGS FIXED (March 14, 2026)
+========================================
+
+## Bug 1: Stats API - db.Concatenate Not Available
+**File**: routers/additional.py (lines 31-34)
+**Issue**: `db.Concatenate()` doesn't exist in SQLAlchemy - caused 500 error
+**Fix**: Replaced with proper SQLAlchemy syntax using db.tuple_() for distinct counts
+```python
+# OLD (BROKEN):
+total_gamaka_vachana = db.session.query(db.func.count(db.func.distinct(
+    db.Concatenate(Parva.id, Sandhi.id)  # ❌ NOT AVAILABLE
+))).join(Sandhi).scalar()
+
+# NEW (FIXED):
+total_gamaka_vachana = db.session.query(
+    db.func.count(db.func.distinct(db.tuple_(GadeSuchigalu.parva_id, GadeSuchigalu.sandhi_id)))
+).scalar() or 0
+```
+
+## Bug 2: JavaScript - Undefined 'replace' Errors in gadegala-suchi.html
+
+### Issue 2a: `escapeHtml()` receiving undefined/null text (line 419)
+**Error**: `TypeError: Cannot read properties of undefined (reading 'replace')`
+**Location**: Line 419 in gadegala-suchi.html
+**Fix**: Added null/type checks at start of function
+```javascript
+// OLD (BROKEN):
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;")  // ❌ Fails if text is undefined
+  // ...
+}
+
+// NEW (FIXED):
+function escapeHtml(text) {
+  if (!text || typeof text !== 'string') {
+    return '';  // ✅ Handle undefined/null gracefully
+  }
+  return text.replace(/&/g, "&amp;");
+  // ...
+}
+```
+
+### Issue 2b: `highlightWords()` receiving undefined text (line 450)
+**Error**: `TypeError: Cannot read properties of undefined (reading 'replace')`
+**Fix**: Added null checks for text parameter at start of function
+```javascript
+function highlightWords(text, line) {
+  if (!text || typeof text !== 'string') {
+    return text || '';  // ✅ Guard against undefined
+  }
+  // ... rest of function
+}
+```
+
+### Issue 2c: `data.tippani.replace()` called on undefined (line 393)
+**Error**: Tippani field can be null, causing .replace() to fail
+**Location**: Modal body HTML template (line 393-394)
+**Fix**: Added null coalescing operator and fallback
+```javascript
+// OLD (BROKEN):
+${data.tippani.replace("nan", "-")}  // ❌ Fails if tippani is undefined
+
+// NEW (FIXED):
+${(data.tippani || "").replace("nan", "-") || "N/A"}  // ✅ Proper fallback chain
+```
+
+### Issue 2d: highlightContent initialization (line 376)
+**Fix**: Ensure highlightContent has default value and better error handling
+```javascript
+// OLD (BROKEN):
+let highlightContent = data.padya;  // ❌ Could be undefined
+try {
+  highlightContent = highlightWords(data.padya, gade);
+} catch {  // ❌ Silent fail
+  highlightContent = data.padya;
+}
+
+// NEW (FIXED):
+let highlightContent = data.padya || "N/A";  // ✅ Default value
+try {
+  highlightContent = highlightWords(data.padya, gade);
+} catch (err) {  // ✅ Log error for debugging
+  console.error("Error highlighting words:", err);
+  highlightContent = data.padya || "N/A";
+}
+```
+
+## Summary of Changes
+=====================
+✅ Fixed 1 Python backend error (500 error)
+✅ Fixed 4 JavaScript errors (undefined reference errors)
+
+These fixes ensure:
+- Stats endpoint returns valid data instead of 500 error
+- Modal popup doesn't crash when data fields are null/undefined
+- Better error logging for debugging
+- Graceful fallbacks to "N/A" instead of breaking UI
+
+This is a documentation file - no Python code
