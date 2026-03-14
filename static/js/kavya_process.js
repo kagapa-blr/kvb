@@ -108,6 +108,45 @@ function handleApiError(error, context = "API") {
 }
 
 /**
+ * Get the base path for static resources
+ * Extracts from ApiClient.baseUrl or derives from location
+ * 
+ * @returns {string} Base path (e.g., '/kvb/' or '/')
+ */
+function getBasePath() {
+  // Try to get base URL from ApiClient if it's initialized
+  if (typeof window.ApiClient !== 'undefined' && window.ApiClient.baseUrl) {
+    return window.ApiClient.baseUrl;
+  }
+
+  // Fallback: derive from current pathname
+  const pathname = window.location.pathname;
+  // If path contains '/kvb/', extract it
+  const kvbMatch = pathname.match(/^(.*?\/kvb\/)/);
+  if (kvbMatch) {
+    return kvbMatch[1];
+  }
+
+  // Default to root
+  return '/';
+}
+
+/**
+ * Construct full URL for static resources (audio, photos, etc.)
+ * 
+ * @param {string} path - Relative path (e.g., '/static/audio/01/01-01-01.mp3')
+ * @returns {string} Full URL with base path
+ */
+function getStaticUrl(path) {
+  const basePath = getBasePath();
+  // Remove leading slash from path if present to avoid double slashes
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  // Remove trailing slash from basePath to avoid double slashes, then combine
+  const cleanBasePath = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+  return `${cleanBasePath}${cleanPath}`;
+}
+
+/**
  * Debounce function to limit the rate of function calls
  * Useful for input handlers and resize events
  * 
@@ -714,7 +753,8 @@ $(document).ready(function () {
 
         // update the audio source
         const fileName = `${parva_number}-${sandhi_number}-${padya}.mp3`;
-        $audioSource.attr("src", `/static/audio/${parvadir}/${fileName}`);
+        const audioUrl = getStaticUrl(`/static/audio/${parvadir}/${fileName}`);
+        $audioSource.attr("src", audioUrl);
         $audioElement.load(); // Reload audio element with new source
 
         // Fetch gamaka data for the selected padya to update metadata using ApiClient
@@ -752,7 +792,7 @@ $(document).ready(function () {
 
       const gamaka = gamakaData[0];
 
-      const photoUrl = `/static/photos/${gamaka.photo}`;
+      const photoUrl = getStaticUrl(`/static/photos/${gamaka.photo}`);
       const singerName = gamaka.gamaka_vachakara_name;
       const ragaName = gamaka.raga;
 

@@ -1,135 +1,200 @@
 /**
- * API ENDPOINTS - Centralized definition of all API routes
+ * API ENDPOINTS - Centralized configuration for all backend API routes
  * 
- * PURPOSE: Single source of truth for all backend API endpoints
- * BENEFITS:
- *   - Easy to maintain and update endpoints
- *   - No hardcoded URLs scattered across files
- *   - Clear documentation of available endpoints
- *   - Easy to find and refactor endpoints
+ * PURPOSE: Single source of truth for API configuration and endpoint definitions
  * 
- * HOW TO USE:
- *   1. Import this file after restclient.js
- *   2. Use endpoints as: ApiEndpoints.USERS.LIST (returns '/api/users')
- *   3. For dynamic endpoints: ApiEndpoints.buildUrl(ApiEndpoints.USERS.GET_BY_ID, 'username')
+ * ARCHITECTURE:
+ *   - Centralized API base path configuration
+ *   - Consistent naming conventions for all endpoints
+ *   - Helper methods for common operations
+ *   - Clear separation of concerns
  * 
- * EXAMPLES:
+ * FEATURES:
+ *   - Dynamic endpoint construction with parameter substitution
+ *   - Built-in path validation and normalization
+ *   - Resource-based organization (REST principles)
+ *   - Easy discovery of available endpoints
+ * 
+ * USAGE EXAMPLES:
  *   // Simple endpoints
- *   $.get(ApiEndpoints.USERS.LIST)
+ *   ApiClient.get(ApiEndpoints.PARVA.list())
  *   
- *   // Dynamic endpoints with parameters
- *   ApiClient.delete(ApiEndpoints.USERS.DELETE('admin_user'))
- *   ApiClient.get(ApiEndpoints.PARVA.GET_SANDHIS_BY_PARVA(1))
+ *   // Dynamic endpoints with IDs
+ *   ApiClient.get(ApiEndpoints.PARVA.byId(5))
+ *   ApiClient.delete(ApiEndpoints.USERS.delete('admin'))
+ *   
+ *   // Complex endpoints with multiple parameters
+ *   ApiClient.get(ApiEndpoints.PADYA.getByParvaSandhiPadya(1, 2, 3))
+ *   ApiClient.get(ApiEndpoints.GAMAKA.byPadya('?parva_id=1&sandhi_id=2&padya_number=3'))
  */
 
 const ApiEndpoints = {
+    /**
+     * API CONFIGURATION
+     * Centralized settings for all API calls
+     */
+    CONFIG: {
+        // Base path for all API calls
+        API_BASE: '/api',
+
+        // Response format
+        FORMAT: 'json',
+
+        // Timeout (managed by ApiClient, but documented here)
+        TIMEOUT: 30000,
+
+        // Enable/disable detailed logging
+        DEBUG: false
+    },
+
+    /**
+     * Helper to construct full endpoint paths
+     * @param {string} path - Relative path from API base
+     * @returns {string} Full endpoint path
+     */
+    _buildPath(path) {
+        const base = this.CONFIG.API_BASE;
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return `${base}${cleanPath}`;
+    },
     // ========================================
     // USER MANAGEMENT ENDPOINTS
     // ========================================
     USERS: {
+        list: () => ApiEndpoints._buildPath('/users'),
+        create: () => ApiEndpoints._buildPath('/users'),
+        get: (username) => ApiEndpoints._buildPath(`/users/${username}`),
+        delete: (username) => ApiEndpoints._buildPath(`/users/${username}`),
+
+        // Backward compatibility
         LIST: '/api/users',
         CREATE: '/api/users',
         DELETE: (username) => `/api/users/${username}`,
-
-        // Helper description
-        DESCRIPTION: 'Admin user management - Create, list, delete users'
     },
 
     // ========================================
     // PARVA (Book/Section) ENDPOINTS
     // ========================================
     PARVA: {
+        list: () => ApiEndpoints._buildPath('/parva'),
+        create: () => ApiEndpoints._buildPath('/parva'),
+        get: (id) => ApiEndpoints._buildPath(`/parva/${id}`),
+        sandhisByParva: (parvaNumber) => ApiEndpoints._buildPath(`/all_sandhi/by_parva/${parvaNumber}`),
+
+        // Backward compatibility
         LIST: '/api/parva',
         GET_BY_ID: (id) => `/api/parva/${id}`,
-
-        // Sandhi endpoints
         ALL_SANDHIS: '/api/sandhi',
         SANDHIS_BY_PARVA: (parvaNumber) => `/api/all_sandhi/by_parva/${parvaNumber}`,
-
-        DESCRIPTION: 'Parva (18 sections of Mahabharata) management'
     },
 
     // ========================================
     // SANDHI (Chapter/Division) ENDPOINTS
     // ========================================
     SANDHI: {
+        list: () => ApiEndpoints._buildPath('/sandhi'),
+        get: (id) => ApiEndpoints._buildPath(`/sandhi/${id}`),
+        byParva: (parvaNumber) => ApiEndpoints._buildPath(`/all_sandhi/by_parva/${parvaNumber}`),
+        padyas: (sandhiId) => ApiEndpoints._buildPath(`/padya/by_sandhi/${sandhiId}`),
+
+        // Backward compatibility
         LIST: '/api/sandhi',
         GET_BY_ID: (id) => `/api/sandhi/${id}`,
         BY_PARVA: (parvaNumber) => `/api/all_sandhi/by_parva/${parvaNumber}`,
-
-        // Padya endpoints (verses within sandhi)
         PADYAS_BY_SANDHI: (sandhiId) => `/api/padya/by_sandhi/${sandhiId}`,
-
-        DESCRIPTION: 'Sandhi (chapters) management'
     },
 
     // ========================================
     // PADYA (Verse) ENDPOINTS
     // ========================================
     PADYA: {
+        list: () => ApiEndpoints._buildPath('/padya'),
+        create: () => ApiEndpoints._buildPath('/padya'),
+        get: (id) => ApiEndpoints._buildPath(`/padya/${id}`),
+        update: () => ApiEndpoints._buildPath('/padya'),
+        delete: (id) => ApiEndpoints._buildPath(`/padya/${id}`),
+        byParva: (parvaNumber, sandhiNumber, padyaNumber) =>
+            ApiEndpoints._buildPath(`/padya/by_parva_sandhi_padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
+
+        // Backward compatibility
         LIST: '/api/padya',
         CREATE: '/api/padya',
         GET_BY_ID: (sandhiId, padyaNumber) => `/api/padya/${sandhiId}/${padyaNumber}`,
         UPDATE: '/api/padya',
         DELETE: (id) => `/api/padya/${id}`,
-
-        // Query endpoints
         BY_SANDHI: (sandhiId) => `/api/padya/by_sandhi/${sandhiId}`,
-
-        // For content update modal
         GET_CONTENT: (sandhiId, padyaNumber) => `/api/padya/${sandhiId}/${padyaNumber}`,
-
-        // Get padya by parva, sandhi, and padya number - Used in kavya_process.js
         GET_BY_PARVA_SANDHI_PADYA: (parvaNumber, sandhiNumber, padyaNumber) =>
             `/api/padya/by_parva_sandhi_padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
-
-        DESCRIPTION: 'Padya (verses) management with 5 content fields: padya, pathantar, gadya, tippani, artha'
     },
 
     // ========================================
     // GAMAKA VACHANA (Musical Raag/Singer Info) ENDPOINTS
     // ========================================
     GAMAKA: {
+        list: () => ApiEndpoints._buildPath('/gamaka'),
+        create: () => ApiEndpoints._buildPath('/gamaka'),
+        get: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
+        update: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
+        delete: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
+        byPadya: (queryParams = '') => ApiEndpoints._buildPath(`/gamaka/padya${queryParams}`),
+
+        // Backward compatibility
         LIST: '/api/gamaka',
         CREATE: '/api/gamaka',
         GET_BY_ID: (id) => `/api/gamaka/${id}`,
         UPDATE: (id) => `/api/gamaka/${id}`,
         DELETE: (id) => `/api/gamaka/${id}`,
-
-        // Query endpoints
-        BY_PADYA: () => '/api/gamaka/padya', // Requires query parameters
-
-        DESCRIPTION: 'Gamaka Vachana - Raag, vocalist, and photo mapping for verses'
+        BY_PADYA: () => '/api/gamaka/padya',
     },
 
     // ========================================
     // DASHBOARD STATISTICS ENDPOINTS
     // ========================================
     DASHBOARD: {
-        STATS: '/api/dashboard/stats',
+        stats: () => ApiEndpoints._buildPath('/dashboard/stats'),
 
-        DESCRIPTION: 'Dashboard statistics: total users, padyas, parvas, sandhis'
+        // Backward compatibility
+        STATS: '/api/dashboard/stats',
     },
 
     // ========================================
     // ADDITIONAL CONTENT MANAGEMENT ENDPOINTS
     // ========================================
     ADDITIONAL: {
-        // Akaradi Suchi (Alphabetical index)
+        akaradiUpdate: () => ApiEndpoints._buildPath('/akaradi-suchi/update'),
+        gadeUpload: () => ApiEndpoints._buildPath('/gade-suchi/upload'),
+        tippaniUpdate: () => ApiEndpoints._buildPath('/tippani/update'),
+
+        // Backward compatibility
         AKARADI_UPDATE: '/akaradi-suchi/update',
-
-        // Gade Suchi (Table of contents)
         GADE_UPLOAD: '/gade-suchi/upload',
-
-        // Tippani (Commentary index)
         TIPPANI_UPDATE: '/tippani/update',
-
-        DESCRIPTION: 'Additional content management - Indices and uploads'
     },
 
-    // ========================================
-    // UTILITY METHODS
-    // ========================================
+    /**
+     * UTILITY METHODS
+     * Helper functions for endpoint management and discovery
+     */
+
+    /**
+     * Update API base path dynamically
+     * Useful if API base changes at runtime
+     * 
+     * @param {string} newBase - New API base path (e.g., '/api/v2')
+     */
+    setApiBase(newBase) {
+        this.CONFIG.API_BASE = newBase;
+        console.log(`[ApiEndpoints] API base updated to: ${newBase}`);
+    },
+
+    /**
+     * Get current API base configuration
+     * @returns {Object} Current API configuration
+     */
+    getConfig() {
+        return { ...this.CONFIG };
+    },
 
     /**
      * Build URL with parameters
@@ -151,6 +216,7 @@ const ApiEndpoints = {
 
     /**
      * Get all endpoints as a reference object
+     * Returns both new (camelCase) and old (UPPERCASE) formats for compatibility
      * 
      * PURPOSE: Developer reference - List all available endpoints
      * HOW TO USE: console.log(ApiEndpoints.getAllEndpoints());
@@ -171,12 +237,15 @@ const ApiEndpoints = {
 
     /**
      * Print all available endpoints to console
+     * Shows both new camelCase and old UPPERCASE formats
      * 
      * PURPOSE: Quick reference during development
      * HOW TO USE: ApiEndpoints.printEndpoints();
      */
     printEndpoints() {
         console.log('=== AVAILABLE API ENDPOINTS ===\n');
+        console.log('API Base:', this.CONFIG.API_BASE);
+        console.log('');
 
         const endpoints = this.getAllEndpoints();
         Object.keys(endpoints).forEach(category => {
@@ -184,13 +253,37 @@ const ApiEndpoints = {
             const categoryEndpoints = endpoints[category];
             Object.keys(categoryEndpoints).forEach(key => {
                 if (typeof categoryEndpoints[key] === 'function') {
-                    console.log(`  ${key} (function)`);
+                    console.log(`  ${key}(...) [function]`);
                 } else if (typeof categoryEndpoints[key] === 'string') {
                     console.log(`  ${key}: ${categoryEndpoints[key]}`);
                 }
             });
             console.log('');
         });
+    },
+
+    /**
+     * Format query parameters for API calls
+     * 
+     * @param {Object} params - Query parameters object
+     * @returns {string} Formatted query string (e.g., '?key=value&foo=bar')
+     */
+    formatQueryParams(params) {
+        if (!params || Object.keys(params).length === 0) return '';
+        const query = new URLSearchParams(params).toString();
+        return query ? `?${query}` : '';
+    },
+
+    /**
+     * Validate if an endpoint exists
+     * 
+     * @param {string} category - Category name (e.g., 'USERS', 'PADYA')
+     * @param {string} endpoint - Endpoint name (e.g., 'list', 'create')
+     * @returns {boolean} True if endpoint exists
+     */
+    hasEndpoint(category, endpoint) {
+        return this[category] &&
+            (this[category][endpoint] !== undefined || this[category][endpoint.toUpperCase()] !== undefined);
     }
 };
 
@@ -198,36 +291,70 @@ const ApiEndpoints = {
 // ApiEndpoints.printEndpoints();
 
 /**
- * MAPPING REFERENCE - Quick lookup of endpoints by purpose:
+ * =============================================================================
+ * ENDPOINT USAGE GUIDE - Quick Reference for Common Operations
+ * =============================================================================
+ * 
+ * Modern Style (Recommended - camelCase):
+ * ─────────────────────────────────────
  * 
  * Get all parvas:
- *   ApiEndpoints.PARVA.LIST
+ *   ApiClient.get(ApiEndpoints.PARVA.list())
  * 
  * Get sandhis for parva 1:
- *   ApiEndpoints.PARVA.SANDHIS_BY_PARVA(1)
+ *   ApiClient.get(ApiEndpoints.PARVA.sandhisByParva(1))
  * 
  * Get padyas for sandhi 5:
- *   ApiEndpoints.SANDHI.PADYAS_BY_SANDHI(5)
+ *   ApiClient.get(ApiEndpoints.SANDHI.padyas(5))
  * 
  * Get specific padya content:
- *   ApiEndpoints.PADYA.GET_CONTENT(5, 3)
+ *   ApiClient.get(ApiEndpoints.PADYA.byParva(1, 2, 3))
+ * 
+ * Create new padya:
+ *   ApiClient.post(ApiEndpoints.PADYA.create(), {...data})
  * 
  * Update padya:
- *   ApiEndpoints.PADYA.UPDATE
+ *   ApiClient.put(ApiEndpoints.PADYA.update(), {...data})
  * 
- * Create gamaka:
- *   ApiEndpoints.GAMAKA.CREATE
+ * Delete item:
+ *   ApiClient.delete(ApiEndpoints.GAMAKA.delete(gamakaId))
  * 
- * Delete gamaka:
- *   ApiEndpoints.GAMAKA.DELETE(gamakaId)
+ * Get gamaka with query params:
+ *   ApiClient.get(ApiEndpoints.GAMAKA.byPadya('?parva_id=1&sandhi_id=2&padya_number=3'))
  * 
  * Get dashboard stats:
- *   ApiEndpoints.DASHBOARD.STATS
+ *   ApiClient.get(ApiEndpoints.DASHBOARD.stats())
+ * 
+ * 
+ * Legacy Style (Still supported for backward compatibility):
+ * ───────────────────────────────────────────────────────
+ * 
+ * Get all parvas:
+ *   ApiClient.get(ApiEndpoints.PARVA.LIST)
  * 
  * Delete user:
- *   ApiEndpoints.USERS.DELETE('username')
+ *   ApiClient.delete(ApiEndpoints.USERS.DELETE('username'))
+ * 
+ * 
+ * CONFIGURATION:
+ * ──────────────
+ * 
+ * Change API base path:
+ *   ApiEndpoints.setApiBase('/api/v2')
+ * 
+ * Get current config:
+ *   ApiEndpoints.getConfig()
+ * 
+ * Format query parameters:
+ *   ApiEndpoints.formatQueryParams({user_id: 1, limit: 10})
+ *   // Returns: '?user_id=1&limit=10'
+ * 
+ * Check if endpoint exists:
+ *   ApiEndpoints.hasEndpoint('PADYA', 'list')
+ * 
+ * =============================================================================
  */
 
-// Make ApiEndpoints globally available
+// Export globally for access across all pages
 window.ApiEndpoints = ApiEndpoints;
-console.log('[Endpoints] ApiEndpoints exported to window.ApiEndpoints');
+console.log('[Endpoints] ✓ ApiEndpoints initialized with centralized configuration');
