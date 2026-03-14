@@ -3,6 +3,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+MYSQL_TABLE_ARGS = {
+    "mysql_engine": "InnoDB",
+    "mysql_charset": "utf8mb4",
+    "mysql_collate": "utf8mb4_unicode_ci",
+}
+
 
 # -------------------------------------------------------
 # PARVA
@@ -10,6 +16,7 @@ db = SQLAlchemy()
 
 class Parva(db.Model):
     __tablename__ = "parva"
+    __table_args__ = MYSQL_TABLE_ARGS
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -27,13 +34,13 @@ class Parva(db.Model):
         return f"<Parva {self.parva_number} - {self.name}>"
 
 
-
 # -------------------------------------------------------
 # SANDHI
 # -------------------------------------------------------
 
 class Sandhi(db.Model):
     __tablename__ = "sandhi"
+    __table_args__ = MYSQL_TABLE_ARGS
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -64,6 +71,10 @@ class Sandhi(db.Model):
 
 class Padya(db.Model):
     __tablename__ = "padya"
+    __table_args__ = (
+        db.Index("idx_padya_lookup", "sandhi_id", "padya_number"),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -74,7 +85,7 @@ class Padya(db.Model):
         index=True
     )
 
-    padya_number = db.Column(db.Integer, nullable=False, index=True)
+    padya_number = db.Column(db.Integer, nullable=False)
 
     pathantar = db.Column(db.Text)
     gadya = db.Column(db.Text)
@@ -86,12 +97,23 @@ class Padya(db.Model):
     def __repr__(self):
         return f"<Padya {self.padya_number}>"
 
+
 # -------------------------------------------------------
 # GAMAKA VACHANA
 # -------------------------------------------------------
 
 class GamakaVachana(db.Model):
     __tablename__ = "gamaka_vachana"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "parva_id",
+            "sandhi_id",
+            "padya_number",
+            "gamaka_vachakara_name",
+            name="unique_gamaka_vachana"
+        ),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -112,28 +134,15 @@ class GamakaVachana(db.Model):
     padya_number = db.Column(db.Integer, nullable=False, index=True)
 
     raga = db.Column(db.String(255), nullable=False)
-
     gamaka_vachakara_name = db.Column(db.String(255), nullable=False)
-
     gamaka_vachakar_photo_path = db.Column(db.String(500))
 
-    # relationships
     parva = db.relationship("Parva", backref="gamaka_vachana_entries")
     sandhi = db.relationship("Sandhi", backref="gamaka_vachana_entries")
 
-    # allow multiple singers for same padya
-    __table_args__ = (
-        db.UniqueConstraint(
-            "parva_id",
-            "sandhi_id",
-            "padya_number",
-            "gamaka_vachakara_name",
-            name="unique_gamaka_vachana"
-        ),
-    )
-
     def __repr__(self):
         return f"<GamakaVachana {self.gamaka_vachakara_name} - {self.raga}>"
+
 
 # -------------------------------------------------------
 # USERS
@@ -141,6 +150,7 @@ class GamakaVachana(db.Model):
 
 class User(db.Model):
     __tablename__ = "users"
+    __table_args__ = MYSQL_TABLE_ARGS
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -166,6 +176,15 @@ class User(db.Model):
 
 class AkaradiSuchi(db.Model):
     __tablename__ = "akaradi_suchi"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "parva_id",
+            "sandhi_id",
+            "padya_number",
+            name="unique_parva_sandhi_padya"
+        ),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -188,15 +207,6 @@ class AkaradiSuchi(db.Model):
     parva = db.relationship("Parva", backref="akaradi_suchi_entries")
     sandhi = db.relationship("Sandhi", backref="akaradi_suchi_entries")
 
-    __table_args__ = (
-        db.UniqueConstraint(
-            "parva_id",
-            "sandhi_id",
-            "padya_number",
-            name="unique_parva_sandhi_padya"
-        ),
-    )
-
     def __repr__(self):
         return f"<AkaradiSuchi Parva:{self.parva_id} Sandhi:{self.sandhi_id} Padya:{self.padya_number}>"
 
@@ -207,6 +217,16 @@ class AkaradiSuchi(db.Model):
 
 class GadeSuchigalu(db.Model):
     __tablename__ = "gade_suchigalu"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "gade_suchi",
+            "parva_name",
+            "sandhi_number",
+            "padya_number",
+            name="unique_gade_suchi_parva_sandhi_padya"
+        ),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -216,16 +236,6 @@ class GadeSuchigalu(db.Model):
     sandhi_number = db.Column(db.Integer, nullable=False)
     parva_number = db.Column(db.Integer, nullable=False)
     padya_number = db.Column(db.Integer, nullable=False)
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "gade_suchi",
-            "parva_name",
-            "sandhi_number",
-            "padya_number",
-            name="unique_gade_suchi_parva_sandhi_padya"
-        ),
-    )
 
     def __repr__(self):
         return f"<GadeSuchigalu {self.gade_suchi[:30]}>"
@@ -237,6 +247,15 @@ class GadeSuchigalu(db.Model):
 
 class Tippani(db.Model):
     __tablename__ = "tippani"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "parva_id",
+            "sandhi_id",
+            "padya_number",
+            name="unique_parva_sandhi_padya_tippani"
+        ),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -258,15 +277,6 @@ class Tippani(db.Model):
 
     parva = db.relationship("Parva", backref="tippani_entries")
     sandhi = db.relationship("Sandhi", backref="tippani_entries")
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "parva_id",
-            "sandhi_id",
-            "padya_number",
-            name="unique_parva_sandhi_padya_tippani"
-        ),
-    )
 
     def __repr__(self):
         return f"<Tippani Parva:{self.parva_id} Sandhi:{self.sandhi_id} Padya:{self.padya_number}>"

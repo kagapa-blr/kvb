@@ -128,9 +128,9 @@ class GamakaDataProcessor:
     # -------------------------------------------------------
     def parse_filenames(self):
 
-        print("Reading filenames...")
+        print("Reading filenames with UTF-8 encoding...")
 
-        with open(self.input_file, "r", encoding="utf-8") as f:
+        with open(self.input_file, "r", encoding="utf-8-sig") as f:
             for line in f:
 
                 filename = line.strip()
@@ -170,7 +170,7 @@ class GamakaDataProcessor:
     # -------------------------------------------------------
     def generate_csv(self):
 
-        print("Generating CSV...")
+        print("Generating CSV with UTF-8 encoding...")
 
         with open(self.output_csv, "w", newline="", encoding="utf-8") as f:
 
@@ -260,37 +260,55 @@ class GamakaApiUploader:
         self.api_url = api_url
 
     def upload_from_csv(self, csv_file):
+        """
+        Upload gamaka data from CSV file with proper UTF-8 encoding.
+        
+        IMPORTANT: All Kannada text is properly encoded as UTF-8 in the request
+        """
+        print("\n[Gamaka Uploader] Starting CSV upload with UTF-8 encoding...")
+        print(f"[Gamaka Uploader] CSV file: {csv_file}")
+        print(f"[Gamaka Uploader] API endpoint: {self.api_url}\n")
 
-        print("Uploading data from CSV:", csv_file)
+        success_count = 0
+        error_count = 0
 
-        with open(csv_file, "r", encoding="utf-8") as f:
-
+        with open(csv_file, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
 
-            for row in reader:
-
-                payload = {
-                    "raga": row["raga"],
-                    "gamaka_vachakara_name": row["gamaka_vachakara_name"],
-                    "parva_id": int(row["parva_id"]),
-                    "sandhi_id": int(row["sandhi_id"]),
-                    "padya_number": int(row["padya_number"]),
-                    "gamaka_vachakar_photo_path": row["gamaka_vachakar_photo_path"]
-                }
-
+            for row_num, row in enumerate(reader, start=2):  # Start at 2 (header is row 1)
                 try:
+                    # Ensure all string values are properly encoded
+                    payload = {
+                        "raga": str(row["raga"]).strip(),
+                        "gamaka_vachakara_name": str(row["gamaka_vachakara_name"]).strip(),
+                        "parva_id": int(row["parva_id"]),
+                        "sandhi_id": int(row["sandhi_id"]),
+                        "padya_number": int(row["padya_number"]),
+                        "gamaka_vachakar_photo_path": str(row["gamaka_vachakar_photo_path"]).strip()
+                    }
 
-                    response = requests.post(self.api_url, json=payload)
+                    # Send request with UTF-8 encoding headers
+                    headers = {'Content-Type': 'application/json; charset=utf-8'}
+                    response = requests.post(self.api_url, json=payload, headers=headers)
 
                     if response.status_code == 201:
-                        print("Inserted:", payload["raga"], payload["gamaka_vachakara_name"])
+                        print(f"✓ Row {row_num}: Inserted - {payload.get('raga')} | {payload.get('gamaka_vachakara_name')}")
+                        success_count += 1
                     else:
-                        print("Failed:", payload, response.text)
+                        print(f"✗ Row {row_num}: Failed (HTTP {response.status_code})")
+                        print(f"  Response: {response.text}")
+                        error_count += 1
 
+                except ValueError as e:
+                    print(f"✗ Row {row_num}: Invalid data format - {str(e)}")
+                    error_count += 1
                 except Exception as e:
-                    print("API Error:", e)
+                    print(f"✗ Row {row_num}: API Error - {str(e)}")
+                    error_count += 1
 
-        print("Upload finished.")
+        print(f"\n[Gamaka Uploader] Upload finished.")
+        print(f"[Gamaka Uploader] Successfully inserted: {success_count}")
+        print(f"[Gamaka Uploader] Errors: {error_count}")
 
 
 processor = GamakaDataProcessor(
