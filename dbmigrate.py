@@ -1,18 +1,22 @@
 from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.exc import OperationalError
 from dotenv import load_dotenv
-import os
+from config.db_config import get_config
 
-# ---------------- LOAD ENV ---------------- #
-
+# Load environment variables
 load_dotenv()
 
-db_name = os.getenv("DB_NAME")
-db_user = os.getenv("DB_USER")
-db_password = os.getenv("DB_PASSWORD")
-db_host = os.getenv("DB_HOST")
+# Get database configuration from centralized config
+db_config = get_config()
+db_url = db_config.get_database_url('pymysql')
 
-db_url = f"mysql+mysqldb://{db_user}:{db_password}@{db_host}/{db_name}"
+
+# Replace the db_name, db_user, db_password, db_host, db_port variables for backward compatibility
+db_name = db_config.db_name
+db_user = db_config.db_user
+db_password = db_config.db_password
+db_host = db_config.db_host
+db_port = db_config.db_port
 
 
 # ---------------- HELPER FUNCTIONS ---------------- #

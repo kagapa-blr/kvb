@@ -2,419 +2,1112 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ನಿರ್ವಾಹಕರ</title>
-    <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="/static/css/style.css"/>
-    <link rel="stylesheet" href="/static/css/admin.css"/>
-    <!-- jQuery via CDN -->
-    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
-    <!-- JavaScript -->
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/users.js"></script>
-    <script src="/static/js/kavya_process.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
+    <!-- Font Awesome Icons (Local) -->
+    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css" />
+    <!-- DataTables CSS (Local) -->
+    <link rel="stylesheet" href="/static/DataTables/datatables.min.css" />
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/admin.css" />
+    <!-- Inline Styles -->
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --secondary: #6610f2;
+            --success: #28a745;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
+            height: 100vh;
+            position: fixed;
+            width: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            margin: 0.25rem 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-left: 1.5rem;
+        }
+
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+            border-left: 3px solid white;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* Stats card styling - Better Bootstrap integration */
+        .stats-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border: none;
+            border-left: 5px solid;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: rgba(13, 110, 253, 0.05);
+            border-radius: 50% 0 0 50%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+            border-left-width: 6px;
+        }
+
+        .stats-card-users {
+            border-left-color: var(--primary);
+        }
+
+        .stats-card-padyas {
+            border-left-color: var(--success);
+        }
+
+        .stats-card-parvas {
+            border-left-color: var(--warning);
+        }
+
+        .stats-card-sandhis {
+            border-left-color: var(--info);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            opacity: 0.6;
+        }
+
+        /* User management table */
+        .user-table {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .user-table thead {
+            background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .user-table tbody tr {
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .user-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .action-buttons {
+            gap: 0.25rem;
+            display: flex;
+        }
+
+        .action-buttons .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+        }
+
+        /* Modal styling - Enhanced */
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+
+        .modal-dialog {
+            margin-top: 3rem;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .card-icon {
+                font-size: 2rem;
+            }
+        }
+
+        .section-header {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 2px;
+        }
+
+        /* User guide tooltips */
+        .guide-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: help;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .guide-badge:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Quick action cards */
+        .card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            border-radius: 0.75rem 0.75rem 0 0;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Form improvements */
+        .form-control,
+        .form-select {
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-label {
+            color: #495057;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Alert improvements */
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-info {
+            background-color: #e7f3ff;
+            color: #004085;
+            border-left: 4px solid var(--info);
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid var(--warning);
+        }
+    </style>
 </head>
 
 <body>
-{% include 'navbar.html' %}
+    {% include 'navbar.html' %}
 
-<div class="container mt-5">
-    <div class="row">
-        <!-- Card for User Management -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">User Management</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Add User Button -->
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#userModal">
-                        ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card for Padya Update -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Update Padya</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Update Padya Button -->
-                    <a href="{{ url_for('update') }}" class="btn btn-primary"
-                       style="color: white; text-decoration: none">ಪದ್ಯ ನವೀಕರಿಸಿ</a>
-                </div>
-            </div>
-        </div>
-        <!-- Card for Padya Update -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
-                </div>
-                <div class="card-body">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#addPadyaModal">
-                        ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Card for File Upload -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">ಗಾದೆ-ಸೂಚಿ ಸೇರಿಸಿ(csv,docx)</h5>
-                </div>
-                <div class="card-body">
-                    <!-- File Upload Form -->
-                    <form action="/gade-suchi/upload" method="POST" enctype="multipart/form-data">
-                        <div class="input-group">
-                            <input type="file" class="form-control" id="fileInput" name="file" required/>
-                            <button class="btn btn-success" type="submit">
-                                Upload File
-                            </button>
-                        </div>
-                        <p>
-                            it should contain these coloumns <br/>
-                            <strong>gade suchi,parva name,sandhi number,padya number</strong>
-                        </p>
-                    </form>
-
-                    <!-- Flash Messages -->
-                    <div class="mt-3">
-                        {% with messages = get_flashed_messages() %} {% if messages %}
-                        <div class="alert alert-info" role="alert">
-                            {{ messages[0] }}
-                        </div>
-                        {% endif %} {% endwith %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Card for Akaradi Suchi Update -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">ಅಕಾರಾದಿ ಸೂಚಿ ಸರಿಪಡಿಸಿ</h5>
-                </div>
-                <div class="card-body text-center">
-                    <a href="/akaradi-suchi/update" class="btn btn-primary">
-                        <i class="bi bi-pencil-square"></i> Update Akaradi Suchi
-                    </a>
-                </div>
-                <!-- Flash Messages -->
-                <div class="card-footer">
-                    {% if akaradi_message %}
-                    <div class="alert alert-info mb-0" role="alert">
-                        {{ akaradi_message }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Card for Tippani Update -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">ಟಿಪ್ಪಣಿಯ ಪುನಃಹೊಂದಿಸುವಿಕೆ</h5>
-                </div>
-                <div class="card-body text-center">
-                    <a href="/tippani/update" class="btn btn-primary">
-                        <i class="bi bi-pencil-square"></i> ಟಿಪ್ಪಣಿಯ ಅಪ್ಡೇಟ್
-                    </a>
-                </div>
-                <!-- Flash Messages -->
-                <div class="card-footer">
-                    {% if tippani_message %}
-                    <div class="alert alert-info mb-0" role="alert">
-                        {{ tippani_message }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-
+    <!-- Sidebar Navigation -->
+    <div class="sidebar d-flex flex-column p-3 text-white">
+        <h5 class="mb-4">
+            <i class="fa-solid fa-gauge me-2"></i>ನಿರ್ವಾಹಕ Dashboard
+        </h5>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="#stats">
+                <i class="fa-solid fa-home me-2"></i>ಮುಖ್ಯ ಪುಟ
+            </a>
+            <a class="nav-link" href="#users" data-bs-toggle="modal" data-bs-target="#userListModal">
+                <i class="fa-solid fa-users me-2"></i>ನಿರ್ವಾಹಕರು
+            </a>
+            <a class="nav-link" href="{{ url_for('update') }}">
+                <i class="fa-solid fa-square-pen me-2"></i>ಪದ್ಯ ನವೀಕರಣೆ
+            </a>
+            <a class="nav-link" href="/gade-suchi/upload">
+                <i class="fa-solid fa-file-arrow-up me-2"></i>ಗಾದೆ-ಸೂಚಿ
+            </a>
+            <a class="nav-link" href="/akaradi-suchi/update">
+                <i class="fa-solid fa-list me-2"></i>ಅಕಾರಾದಿ ಸೂಚಿ
+            </a>
+            <a class="nav-link" href="/tippani/update">
+                <i class="fa-solid fa-message me-2"></i>ಟಿಪ್ಪಣಿ
+            </a>
+        </nav>
     </div>
-</div>
 
-<!-- Add Padya Modal -->
-<div class="modal fade" id="addPadyaModal" tabindex="-1" aria-labelledby="addPadyaModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" style="max-width: 90%; margin: auto">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addPadyaModalLabel">Add New Padya</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Display any error messages -->
+        {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong> {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
 
-            <div class="modal-body">
-                <div class="card">
+        <!-- Dashboard Title Section -->
+        <div class="section-header">
+            <h2>
+                <i class="fa-solid fa-gauge me-2"></i>ನಿರ್ವಾಹಕ ಪ್ರಶಾಸನ
+                <span class="guide-badge" title="Admin Dashboard - View system statistics and manage content">?</span>
+            </h2>
+            <p class="text-muted mb-0">ವ್ಯವಸ್ಥೆಯ ಸ್ಥಿತಿ ಮತ್ತು ಡೇಟಾ ನಿರ್ವಹಣೆ</p>
+        </div>
+
+        <!-- Statistics Overview Section -->
+        <div class="row mb-5" id="stats">
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card stats-card stats-card-users shadow-sm h-100">
                     <div class="card-body">
-                        <div id="insertParva" class="mb-3">
-                            <label for="newParvaName" class="form-label">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</label>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <input type="text" id="newParvaName" class="form-control"
-                                           placeholder="ಪರ್ವದ ಹೆಸರು ಸೇರಿಸಿ"/>
-                                </div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">ನಿರ್ವಾಹಕರು</p>
+                                <h3 class="mb-0" id="totalUsers">{{ total_users or 0 }}</h3>
                             </div>
-                            <button id="insertParvaBtn" class="btn btn-primary mt-2">
-                                ಪರ್ವ ಸೇರಿಸಿ
-                            </button>
-                            <div id="parvaMessage" class="mt-2"></div>
+                            <i class="fa-solid fa-users card-icon text-primary"></i>
                         </div>
-
-                        <div id="insertSandhi" class="mb-3">
-                            <h5 class="mb-4">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <label for="parvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
-                                    <input type="number" id="parvaNumber" class="form-control"
-                                           placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="newSandhiName" class="form-label mt-2">ಸಂಧಿಯ ಹೆಸರು</label>
-                                    <input type="text" id="newSandhiName" class="form-control"
-                                           placeholder="ಸಂಧಿಯ ಹೆಸರು ನಮೂದಿಸಿ"/>
-                                </div>
-                            </div>
-                            <button id="insertSandhiBtn" class="btn btn-primary mt-2">
-                                ಸಂಧಿ ಸೇರಿಸಿ
-                            </button>
-                            <div id="sandhiMessage" class="mt-2"></div>
-                        </div>
-
-                        <h5 class="card-title">Enter Padya Details</h5>
-                        <div id="insertPadya" class="mb-3">
-                            <h5 class="mb-4">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
-                            <div class="row">
-                                <div class="col-md-4" style="display: inline-block; width: 32%">
-                                    <label for="padyainsertParvaNumber" class="form-label">ಪರ್ವ ಸಂಖ್ಯೆ</label>
-                                    <input type="number" id="padyainsertParvaNumber" class="form-control"
-                                           placeholder="ಪರ್ವ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
-
-                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#parvaModal">
-                                        Select Parva
-                                    </button>
-                                </div>
-                                <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
-                                    <label for="padyainsertSandhiNumber" class="form-label">ಸಂಧಿ ಸಂಖ್ಯೆ</label>
-                                    <input type="number" id="padyainsertSandhiNumber" class="form-control"
-                                           placeholder="ಸಂಧಿ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
-                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
-                                            data-bs-target="#sandhiModal">
-                                        Select Sandhi
-                                    </button>
-                                </div>
-                                <div class="col-md-4" style="display: inline-block; width: 32%; margin-left: 1%">
-                                    <label for="padyainsertPadyaNumber" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ</label>
-                                    <input type="number" id="padyainsertPadyaNumber" class="form-control"
-                                           placeholder="ಪದ್ಯ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ"/>
-                                </div>
-                            </div>
-
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <label for="padyainsertPadya" class="form-label mt-2">ಪದ್ಯ</label>
-                                    <textarea id="padyainsertPadya" class="form-control" rows="3"
-                                              placeholder="ಪದ್ಯ ನಮೂದಿಸಿ"></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="padyainsertPathantar" class="form-label">ಪಾಠಾಂತರ</label>
-                                    <textarea id="padyainsertPathantar" class="form-control" rows="3"
-                                              placeholder="ಪಥಾಂತರ ನಮೂದಿಸಿ"></textarea>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <label for="padyainsertGadya" class="form-label">ಗದ್ಯ</label>
-                                    <textarea id="padyainsertGadya" class="form-control" rows="3"
-                                              placeholder="ಗದ್ಯ ನಮೂದಿಸಿ"></textarea>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="padyainsertTippani" class="form-label">ಟಿಪ್ಪಣಿ</label>
-                                    <textarea id="padyainsertTippani" class="form-control" rows="3"
-                                              placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ"></textarea>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <label for="padyainsertArtha" class="form-label">ಅರ್ಥ</label>
-                                    <textarea id="padyainsertArtha" class="form-control" rows="3"
-                                              placeholder="ಅರ್ಥ ನಮೂದಿಸಿ"></textarea>
-                                </div>
-                            </div>
-                            <button id="padyainsertPadyaBtn" class="btn btn-primary mt-2">
-                                ಪದ್ಯ ಸೇರಿಸಿ
-                            </button>
-                            <div id="padyainsertPadyaMessage" class="mt-2"></div>
-                        </div>
+                        <small class="text-muted">ನೋಂದಾಯಿತ ಅಧಿಕಾರಿಗಳು</small>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Parva Modal -->
-<div class="modal fade" id="parvaModal" tabindex="-1" aria-labelledby="parvaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="parvaModalLabel">Parva Table</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card stats-card stats-card-padyas shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">ಪದ್ಯಗಳು</p>
+                                <h3 class="mb-0" id="totalPadyas">{{ total_padyas or 0 }}</h3>
+                            </div>
+                            <i class="fa-solid fa-book card-icon text-success"></i>
+                        </div>
+                        <small class="text-muted">ಒಟ್ಟು ಪದ್ಯ</small>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body scrollable-table">
-                <input type="text" id="parvaSearch" onkeyup="searchTable('parvaSearch', 'parvaTableBodyContent')"
-                       placeholder="Search for names.."/>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">Parva Number</th>
-                        <th scope="col">Parva Name</th>
-                    </tr>
-                    </thead>
-                    <tbody id="parvaTableBodyContent">
-                    <!-- Data will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Sandhi Modal -->
-<div class="modal fade" id="sandhiModal" tabindex="-1" aria-labelledby="sandhiModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="sandhiModalLabel">Sandhi Table</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card stats-card stats-card-parvas shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">ಪರ್ವ</p>
+                                <h3 class="mb-0" id="totalParvas">{{ total_parvas or 0 }}</h3>
+                            </div>
+                            <i class="fa-solid fa-layer-group card-icon text-warning"></i>
+                        </div>
+                        <small class="text-muted">ಪುಸ್ತಕ ವಿಭಾಗಗಳು</small>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body scrollable-table">
-                <input type="text" id="sandhiSearch" onkeyup="searchTable('sandhiSearch', 'sandhiTableBodyContent')"
-                       placeholder="Search for names.."/>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">Sandhi Number</th>
-                        <th scope="col">Sandhi Name</th>
-                        <th scope="col">Parva Number</th>
-                    </tr>
-                    </thead>
-                    <tbody id="sandhiTableBodyContent">
-                    <!-- Data will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary mt-2" data-bs-dismiss="modal">
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- User Modal -->
-<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title" id="userModalLabel">
-                    ನಿರ್ವಾಹಕರನ್ನು ಸೇರಿಸಿ
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="user-add">
-                    <div class="message"></div>
-
-                    <div class="container p-4 border rounded">
-                        <form id="userForm">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">ಬಳಕೆದಾರರ ಹೆಸರು:</label>
-                                <input type="text" id="username" name="username" class="form-control" required/>
+            <div class="col-12 col-md-6 col-lg-3 mb-4">
+                <div class="card stats-card stats-card-sandhis shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-1">ಸಂಧಿ</p>
+                                <h3 class="mb-0" id="totalSandhis">{{ total_sandhis or 0 }}</h3>
                             </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">ಪಾಸ್ವರ್ಡ್:</label>
-                                <input type="password" id="password" name="password" class="form-control"
-                                       required/>
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone_number" class="form-label">ಫೋನ್ ಸಂಖ್ಯೆ:</label>
-                                <input type="number" id="phone_number" name="phone_number" class="form-control"
-                                       required/>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">ಇಮೇಲ್:</label>
-                                <input type="email" id="email" name="email" class="form-control" required/>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">
-                                ಸೇರಿಸಿ
-                            </button>
-                        </form>
+                            <i class="fa-solid fa-diagram-project card-icon text-info"></i>
+                        </div>
+                        <small class="text-muted">ಅಧ್ಯಾಯ ವಿಭಾಗಗಳು</small>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Quick Action Cards Section -->
+        <div class="section-header mt-5">
+            <h4>
+                <i class="fa-solid fa-bolt me-2"></i>ತ್ವರಿತ ಕ್ರಿಯೆಗಳು
+                <span class="guide-badge" title="Quick actions for common admin tasks">?</span>
+            </h4>
+        </div>
+
+        <div class="row g-4">
+            <!-- Add User -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-primary text-white border-0">
+                        <i class="fa-solid fa-user-plus me-2"></i>ನೊವೆ ನಿರ್ವಾಹಕ ಸೇರಿಸಿ
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>ನವೆ ಬಳಕೆದಾರ ಖಾತೆ ರಚಿಸಿ ಮತ್ತು ದತ್ತಾಂಶ ನಿರ್ವಹಣಾ ಅಧಿಕಾರ ನೀಡಿ</small>
+                        </p>
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="fa-solid fa-user-plus me-1"></i>ನಿರ್ವಾಹಕ ಸೇರಿಸಿ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Users -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-info text-white border-0">
+                        <i class="fa-solid fa-users me-2"></i>ನಿರ್ವಾಹಕರ ನೋಂದಣಿ
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>ಎಲ್ಲಾ ನೋಂದಾಯಿತ ನಿರ್ವಾಹಕರ ಪಟ್ಟಿ ನೋಡಿ ಮತ್ತು ನಿರ್ವಹಿಸಿ</small>
+                        </p>
+                        <button class="btn btn-info w-100 text-white" data-bs-toggle="modal"
+                            data-bs-target="#userListModal">
+                            <i class="fa-solid fa-list me-1"></i>ಪಟ್ಟಿ ವೀಕ್ಷಿಸಿ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Gade Suchi -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-success text-white border-0">
+                        <i class="fa-solid fa-file-arrow-up me-2"></i>ಗಾದೆ-ಸೂಚಿ ಅಪ್‌ಲೋಡ್
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>CSV ಅಥವಾ DOCX ಫೈಲ್‌ನಿಂದ ಗಾದೆ ಸೂಚಿ ಮಾಹಿತಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</small>
+                        </p>
+                        <a href="/gade-suchi/upload" class="btn btn-success w-100">
+                            <i class="fa-solid fa-arrow-up-from-bracket me-1"></i>ಅಪ್‌ಲೋಡ್ ಪುಟ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Akaradi Suchi -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-warning text-dark border-0">
+                        <i class="fa-solid fa-arrow-rotate-right me-2"></i>ಅಕಾರಾದಿ ಸೂಚಿ ನವೀಕರಣೆ
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>ಪದ್ಯಗಳ ಮೊದಲ ಸಾಲುಗಳಿಂದ ಅಕಾರಾದಿ ಸೂಚಿ ಮರು-ಜನರೇಟ್ ಮಾಡಿ</small>
+                        </p>
+                        <a href="/akaradi-suchi/update" class="btn btn-warning w-100">
+                            <i class="fa-solid fa-arrow-rotate-right me-1"></i>ನವೀಕರಣೆ
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Update -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-primary text-white border-0">
+                        <i class="fa-solid fa-square-pen me-2"></i>ಪದ್ಯ ಸಂಪಾದನೆ
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>ಪದ್ಯ, ಪಾಠಾಂತರ, ಗದ್ಯ, ಟಿಪ್ಪಣಿ, ಅರ್ಥ ಸಂಪಾದನೆ ಮತ್ತು ನವೀಕರಣೆ</small>
+                        </p>
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal"
+                            data-bs-target="#contentUpdateModal">
+                            <i class="fa-solid fa-pencil me-1"></i>ಸಂಪಾದನೆ ಮೋಡ್
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gamaka Vachana Management -->
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm h-100 border-0">
+                    <div class="card-header bg-danger text-white border-0">
+                        <i class="fa-solid fa-music me-2"></i>ಗಾಮಕ ವಾಚನ
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <p class="text-muted">
+                            <small>ಪದ್ಯಗಳಿಗೆ ರಾಗ, ಶಿಲ್ಪಿ ಮತ್ತು ಚಿತ್ರ ಪಾಸ್ (Gamaka Vachana) ಸೇರಿಸಿ</small>
+                        </p>
+                        <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#gamakaModal">
+                            <i class="fa-solid fa-circle-plus me-1"></i>ನಿರ್ವಹಿಸಿ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info Section -->
+        <div class="alert alert-info mt-5" role="alert">
+            <h5>
+                <i class="fa-solid fa-circle-info me-2"></i>ಬಳಕೆದಾರ ಮಾರ್ಗದರ್ಶನ
+            </h5>
+            <ul class="mb-0">
+                <li><strong>ನಿರ್ವಾಹಕರು:</strong> ವ್ಯವಸ್ಥೆಯನ್ನು ನಿರ್ವಹಿಸುವ ಅನುಮತಿ ಹೊಂದಿರುವ ಬಳಕೆದಾರರು</li>
+                <li><strong>ಪದ್ಯಗಳು:</strong> ಕವ್ಯದಲ್ಲಿನ ಒಟ್ಟು ಸ್ಲೋಕ/ಪದ್ಯ</li>
+                <li><strong>ಪರ್ವ:</strong> ಮಹಾಭಾರತದ ೧೮ ಭಾಗಗಳು</li>
+                <li><strong>ಸಂಧಿ:</strong> ಪ್ರತಿಯೊಂದು ಪರ್ವದಲ್ಲಿರುವ ಅಧ್ಯಾಯ/ವಿಭಾಗಗಳು</li>
+            </ul>
+        </div>
     </div>
-</div>
 
-<br/><br/><br/>
-{% include 'footer.html' %}
-<script>
-    function searchTable(inputId, tableBodyId) {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById(inputId);
-        filter = input.value.toUpperCase();
-        table = document.getElementById(tableBodyId);
-        tr = table.getElementsByTagName("tr");
+    <!-- ========================================
+         MODALS
+         ======================================== -->
 
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td");
-            if (td) {
-                let match = false;
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        txtValue = td[j].textContent || td[j].innerText;
-                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                            match = true;
-                            break;
-                        }
-                    }
+    <!-- Content Update Modal -->
+    <div class="modal fade" id="contentUpdateModal" tabindex="-1" size="lg">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-square-pen me-2"></i>ಪದ್ಯ ಸಂಪಾದನೆ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Dropdown section -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="contentParvaDropdown" class="form-label">ಪರ್ವ *</label>
+                            <select id="contentParvaDropdown" class="form-select" required>
+                                <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contentSandhiDropdown" class="form-label">ಸಂಧಿ *</label>
+                            <select id="contentSandhiDropdown" class="form-select" disabled required>
+                                <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contentPadyaDropdown" class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ *</label>
+                            <select id="contentPadyaDropdown" class="form-select" disabled required>
+                                <option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Editable fields -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ಪದ್ಯ:</label>
+                            <textarea class="form-control" id="contentPadya" rows="4"
+                                placeholder="ಪದ್ಯ ಲೇಖನ"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ಪಾಠಾಂತರ:</label>
+                            <textarea class="form-control" id="contentPathantar" rows="4"
+                                placeholder="ಪಾಠಾಂತರ"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ಗದ್ಯ:</label>
+                            <textarea class="form-control" id="contentGadya" rows="4"
+                                placeholder="ಗದ್ಯ (Kadamba version)"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">ಟಿಪ್ಪಣಿ:</label>
+                            <textarea class="form-control" id="contentTippani" rows="4"
+                                placeholder="ಟಿಪ್ಪಣಿ (Commentary)"></textarea>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">ಅರ್ಥ:</label>
+                            <textarea class="form-control" id="contentArtha" rows="4"
+                                placeholder="ಪದ್ಯನ ಸಾರ ಮತ್ತು ಅರ್ಥ"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="contentUpdateMessage" class="alert" style="display: none;" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark me-1"></i>ರದ್ದು
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="savePadyaContent()">
+                        <i class="fa-solid fa-check me-1"></i>ಸ್ಥಿತಿಕೊ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gamaka Vachana Management Modal -->
+    <div class="modal fade" id="gamakaModal" tabindex="-1" size="lg">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-music me-2"></i>ಗಾಮಕ ವಾಚನ ನಿರ್ವಹಣೆ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Add new Gamaka -->
+                    <div class="mb-4 pb-3 border-bottom">
+                        <h6 class="mb-3">
+                            <i class="fa-solid fa-circle-plus me-2"></i>ನೊವೆ ಗಾಮಕ ವಾಚನ ಸೇರಿಸಿ
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">ಪರ್ವ *</label>
+                                <select id="gamakaParvaDropdown" class="form-select" required>
+                                    <option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ಸಂಧಿ *</label>
+                                <select id="gamakaSandhiDropdown" class="form-select" disabled required>
+                                    <option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ಪದ್ಯ ಸಂಖ್ಯೆ *</label>
+                                <select id="gamakaPadyaDropdown" class="form-select" disabled required>
+                                    <option selected>ಪದ್ಯ ಸಂಖ್ಯೆ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label class="form-label">ರಾಗ *</label>
+                                <input type="text" class="form-control" id="gamakaRaga"
+                                    placeholder="ರಾಗದ ಹೆಸರು (ಉ.ದಾ: ಭೈರವ)" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">ಗಾಮಕ ವಾಚಕರ ಹೆಸರು *</label>
+                                <input type="text" class="form-control" id="gamakaVachakaraName"
+                                    placeholder="ಶಿಲ್ಪಿಯ ಹೆಸರು" required>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <label class="form-label">ಚಿತ್ರ ಪಾಸ್ (Photo Path)</label>
+                                <input type="text" class="form-control" id="gamakaPhotoPath"
+                                    placeholder="/static/photos/singer.jpg">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-danger mt-3 w-100" onclick="addGamakaVachana()">
+                            <i class="fa-solid fa-plus me-1"></i>ಸೇರಿಸಿ
+                        </button>
+                        <div id="gamakaFormMessage" class="alert" style="display: none; margin-top: 10px;" role="alert">
+                        </div>
+                    </div>
+
+                    <!-- List existing Gamaka -->
+                    <div>
+                        <h6 class="mb-3">
+                            <i class="fa-solid fa-list me-2"></i>ಗಾಮಅ ವಾಚನ ಪಟ್ಟಿ
+                        </h6>
+                        <div id="gamakaLoadingSpinner" class="text-center">
+                            <div class="spinner-border text-danger" role="status">
+                                <span class="visually-hidden">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</span>
+                            </div>
+                        </div>
+                        <div id="gamakaList" style="display: none;">
+                            <!-- Gamaka entries will be populated here -->
+                        </div>
+                        <div id="noGamers" class="alert alert-warning" style="display: none;">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>ಗಾಮಕ ವಾಚನ ಲಭ್ಯವಿಲ್ಲ
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-user-plus me-2"></i>ನೊವೆ ನಿರ್ವಾಹಕ ಸೇರಿಸಿ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">ಬಳಕೆದಾರನಾಮ *</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <small class="form-text text-muted">ಅನನ್ಯ ಬಳಕೆದಾರನಾಮ (ಕನ್ನಡ/ಇಂಗ್ರೇಜಿ)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">ಪಾಸ್‌ವರ್ಡ್ *</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <small class="form-text text-muted">ಕನಿಷ್ಠ ೬ ಅಕ್ಷರ</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">ಇಮೇಲ್</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone_number" class="form-label">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number">
+                        </div>
+                        <div class="alert alert-info" role="alert">
+                            <small>
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                ಅವಶ್ಯಕ ಕ್ಷೇತ್ರಗಳು (*) ಚಿಹ್ನೆಯಿಂದ ಗುರುತಿಸಲಾಗಿದೆ
+                            </small>
+                        </div>
+                        <div id="formMessage" class="alert" style="display: none;" role="alert"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark me-1"></i>ರದ್ದು
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="submitUserForm()">
+                        <i class="fa-solid fa-check me-1"></i>ಸಹಿ ಮಾಡಿ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User List Modal -->
+    <div class="modal fade" id="userListModal" tabindex="-1" size="lg">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-users me-2"></i>ನಿರ್ವಾಹಕರ ಪಟ್ಟಿ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="loadingSpinner" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">ಲೋಡ್ ಆಗುತ್ತಿದೆ...</span>
+                        </div>
+                    </div>
+                    <table class="table table-hover user-table" id="usersTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>ಬಳಕೆದಾರನಾಮ</th>
+                                <th>ಇಮೇಲ್</th>
+                                <th>ಫೋನ್</th>
+                                <th>ಕ್ರಿಯೆ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                        </tbody>
+                    </table>
+                    <div id="noUsers" class="alert alert-warning" style="display: none;">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>ಕೋಣೆ ನಿರ್ವಾಹಕರು ಲಭ್ಯವಿಲ್ಲ
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>ಅಪೋಹನ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>ನೀವು <strong id="deleteUsername"></strong> ನಿರ್ವಾಹಕನನ್ನು ಖಚಿತವಾಗಿ ಅಳಿಸಲು ಬಯಸುತ್ತೀರಾ?</p>
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>
+                        <small>ಈ ಕ್ರಿಯೆ ರದ್ದು ಮಾಡಲಾಗುವುದಿಲ್ಲ</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark me-1"></i>ಮುಂದುವರೆಯಬೇಡಿ
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                        <i class="fa-solid fa-trash me-1"></i>ಅಳಿಸಿ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery via Local -->
+    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap JS via Local -->
+    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS via Local -->
+    <script src="/static/DataTables/datatables.min.js"></script>
+    <!-- REST Client & Endpoints -->
+    <script src="/static/js/restclient.js"></script>
+    <script src="/static/js/endpoints.js"></script>
+    <!-- Application Scripts -->
+    <script src="/static/js/users.js"></script>
+    <script src="/static/js/padya_gamaka.js"></script>
+    <script src="/static/js/kavya_process.js"></script>
+
+    <script>
+        // ========================================
+        // USER GUIDE AND INLINE DOCUMENTATION
+        // ========================================
+
+        /**
+         * ADMIN DASHBOARD FUNCTIONS
+         * 
+         * This dashboard provides comprehensive admin management:
+         * 
+         * 1. USER MANAGEMENT:
+         *    - Add new admin users with credentials
+         *    - View all existing admin users
+         *    - Delete/remove admin users with confirmation
+         * 
+         * 2. CONTENT UPDATE (ಪದ್ಯ ಸಂಪಾದನೆ):
+         *    - Edit padya (ಪದ್ಯ) - Original Sanskrit verse
+         *    - Edit pathantar (ಪಾಠಾಂತರ) - Alternative reading variants
+         *    - Edit gadya (ಗದ್ಯ) - Kadamba Prose version
+         *    - Edit tippani (ಟಿಪ್ಪಣಿ) - Commentary/Explanation
+         *    - Edit artha (ಅರ್ಥ) - Meaning and significance
+         *    
+         *    HOW TO USE:
+         *    1. Click "ಪದ್ಯ ಸಂಪಾದನೆ" (Content Edit) card
+         *    2. Select Parva > Sandhi > Padya from dropdowns
+         *    3. Edit any of the 5 fields
+         *    4. Click "ಸ್ಥಿತಿಕೊ" (Save) to save changes
+         * 
+         * 3. GAMAKA VACHANA MANAGEMENT (ಗಾಮಕ ವಾಚನ):
+         *    - Add Raga (ರಾಗ) - Musical raag/mode
+         *    - Add Singer (ಗಾಮಕ ವಾಚಕರು) - Vocalist name
+         *    - Add Photo Path - Singer's photograph
+         *    - View all gamaka entries for all padyas
+         *    - Delete gamaka entries
+         *    
+         *    HOW TO USE:
+         *    1. Click "ಗಾಮಕ ವಾಚನ" (Gamaka Vachana) card
+         *    2. In "Add New" section:
+         *       - Select Parva > Sandhi > Padya
+         *       - Enter Raga name (e.g., Bhairava, Yaman, etc.)
+         *       - Enter Singer name
+         *       - Optionally enter photo path
+         *       - Click "ಸೇರಿಸಿ" (Add)
+         *    3. In "List" section, all gamakas are displayed
+         *    4. Click delete button to remove an entry
+         * 
+         * 4. SYSTEM STATISTICS:
+         *    - View total admin users
+         *    - View total padyas in system
+         *    - View total parvas (books)
+         *    - View total sandhis (chapters)
+         * 
+         * 5. QUICK CONTENT MANAGEMENT:
+         *    - Upload Gade Suchi (Index/Table of Contents)
+         *    - Update Akaradi Suchi (Alphabetical Index)
+         *    - Direct links to all management pages
+         */
+
+        /**
+         * FUNCTION: loadDashboardStats()
+         * PURPOSE: Fetch dashboard statistics from API and update display
+         * HOW TO USE: Called automatically on page load and after data changes
+         */
+        function loadDashboardStats() {
+            $.ajax({
+                url: '/api/dashboard/stats',
+                type: 'GET',
+                success: function (data) {
+                    // Update stats display with fetched data
+                    document.getElementById('totalUsers').textContent = data.total_users || 0;
+                    document.getElementById('totalPadyas').textContent = data.total_padyas || 0;
+                    document.getElementById('totalParvas').textContent = data.total_parvas || 0;
+                    document.getElementById('totalSandhis').textContent = data.total_sandhis || 0;
+                },
+                error: function () {
+                    console.error('Failed to load dashboard statistics');
                 }
-                if (match) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
+            });
         }
-    }
-</script>
+
+        // Load stats on page load
+        $(document).ready(function () {
+            loadDashboardStats();
+        });
+
+        // Load users when modal is shown
+        $('#userListModal').on('show.bs.modal', function () {
+            loadUsersList();
+            loadDashboardStats();
+        });
+
+        // Reset form when add user modal is closed
+        $('#addUserModal').on('hidden.bs.modal', function () {
+            document.getElementById('userForm').reset();
+            document.getElementById('formMessage').style.display = 'none';
+            loadDashboardStats();
+        });
+
+        // Initialize content update modal
+        $('#contentUpdateModal').on('show.bs.modal', function () {
+            initializeContentUpdateDropdowns();
+            loadDashboardStats();
+        });
+
+        // Initialize gamaka modal
+        $('#gamakaModal').on('show.bs.modal', function () {
+            initializeGamakaDropdowns();
+            loadGamakaList();
+            loadDashboardStats();
+        });
+
+        /**
+         * FUNCTION: submitUserForm()
+         * PURPOSE: Submit new user form and add user to database
+         * HOW TO USE: Click "ಸಹಿ ಮಾಡಿ" button in "Add Admin" modal
+         * REQUIRED FIELDS: username, password
+         */
+        function submitUserForm() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone_number').value;
+
+            if (!username || !password) {
+                showMessage('formMessage', 'ಬಳಕೆದಾರನಾಮ ಮತ್ತು ಪಾಸ್‌ವರ್ಡ್ ಅವಶ್ಯಕ', 'danger');
+                return;
+            }
+
+            $.ajax({
+                url: '/api/users',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    username: username,
+                    password: password,
+                    email: email,
+                    phone_number: phone
+                }),
+                success: function (response) {
+                    showMessage('formMessage', '✓ ನಿರ್ವಾಹಕ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ', 'success');
+                    document.getElementById('userForm').reset();
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+                        loadUsersList();
+                        loadDashboardStats();
+                    }, 1500);
+                },
+                error: function (xhr) {
+                    const response = JSON.parse(xhr.responseText);
+                    showMessage('formMessage', '✗ ' + (response.error || 'ದೋಷ ಸಂಭವಿಸಿದೆ'), 'danger');
+                }
+            });
+        }
+
+        /**
+         * FUNCTION: loadUsersList()
+         * PURPOSE: Fetch and display all admin users from database
+         * HOW TO USE: Automatically called when user list modal is opened
+         */
+        function loadUsersList() {
+            $.ajax({
+                url: '/api/users',
+                type: 'GET',
+                success: function (users) {
+                    const tableBody = document.getElementById('usersTableBody');
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    const usersTable = document.getElementById('usersTable');
+                    const noUsers = document.getElementById('noUsers');
+
+                    if (users.length === 0) {
+                        loadingSpinner.style.display = 'none';
+                        noUsers.style.display = 'block';
+                        usersTable.style.display = 'none';
+                        return;
+                    }
+
+                    tableBody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>
+                                <i class="fa-solid fa-circle-user me-2"></i>
+                                <strong>${escapeHtml(user.username)}</strong>
+                            </td>
+                            <td>${escapeHtml(user.email || '-')}</td>
+                            <td>${escapeHtml(user.phone_number || '-')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" 
+                                        onclick="prepareDelete('${escapeHtml(user.username)}')"
+                                        title="ಅಳಿಸಿ">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    loadingSpinner.style.display = 'none';
+                    usersTable.style.display = 'table';
+                    noUsers.style.display = 'none';
+                },
+                error: function () {
+                    document.getElementById('loadingSpinner').innerHTML =
+                        '<div class="alert alert-danger">ನಿರ್ವಾಹಕರನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ</div>';
+                }
+            });
+        }
+
+        /**
+         * FUNCTION: prepareDelete(username)
+         * PURPOSE: Show confirmation modal before deleting user
+         * HOW TO USE: Click delete button next to user in list
+         * PARAM: username - Username of admin to delete
+         */
+        function prepareDelete(username) {
+            document.getElementById('deleteUsername').textContent = username;
+            window.deleteUsername = username;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteModal.show();
+        }
+
+        /**
+         * FUNCTION: confirmDelete()
+         * PURPOSE: Actually delete the admin user after confirmation
+         * HOW TO USE: Click "ಅಳಿಸಿ" in confirmation modal
+         */
+        function confirmDelete() {
+            const username = window.deleteUsername;
+            $.ajax({
+                url: `/api/users/${username}`,
+                type: 'DELETE',
+                success: function () {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    loadUsersList();
+                    loadDashboardStats();
+                },
+                error: function () {
+                    alert('ನಿರ್ವಾಹಕನನ್ನು ಅಳಿಸಲಲ್ಲಿ ದೋಷ');
+                }
+            });
+        }
+
+        /**
+         * FUNCTION: showMessage(elementId, message, type)
+         * PURPOSE: Display success/error messages in modals
+         * PARAM: elementId - ID of message container
+         * PARAM: message - Message text to display
+         * PARAM: type - 'success' or 'danger'
+         */
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `alert alert-${type}`;
+            element.style.display = 'block';
+        }
+
+        /**
+         * FUNCTION: escapeHtml(text)
+         * PURPOSE: Prevent XSS attacks by escaping HTML special characters
+         * SECURITY: Required for user-generated content
+         */
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+
+    {% include 'footer.html' %}
 </body>
 
 </html>

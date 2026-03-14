@@ -5,10 +5,49 @@ from docx import Document
 from flask import Blueprint, request, redirect, flash, render_template, jsonify
 from werkzeug.utils import secure_filename
 
-from model.models import db, Parva, Sandhi, Padya, AkaradiSuchi, GadeSuchigalu, Tippani
+from model.models import db, Parva, Sandhi, Padya, AkaradiSuchi, GadeSuchigalu, Tippani, User
 from utils.additonal_utility import allowed_file, UPLOAD_FOLDER, extract_and_save_data
 
 additonal_bp = Blueprint('additional', __name__)
+
+
+# -----------------------------------------------
+# ADMIN DASHBOARD STATISTICS ENDPOINT
+# -----------------------------------------------
+@additonal_bp.route('/api/dashboard/stats', methods=['GET'])
+def get_dashboard_stats():
+    """
+    Get dashboard statistics for admin panel.
+    
+    Returns:
+        - total_users: Count of all admin users
+        - total_padyas: Count of all padyas in database
+        - total_parvas: Count of all parvas
+        - total_sandhis: Count of all sandhis
+        - total_gamaka_vachana: Count of all gamaka vachana entries
+    """
+    try:
+        total_users = User.query.count()
+        total_padyas = Padya.query.count()
+        total_parvas = Parva.query.count()
+        total_sandhis = Sandhi.query.count()
+        total_gamaka_vachana = db.session.query(db.func.count(db.func.distinct(
+            db.Concatenate(Parva.id, Sandhi.id)
+        ))).join(Sandhi).scalar()
+        
+        return jsonify({
+            'total_users': total_users,
+            'total_padyas': total_padyas,
+            'total_parvas': total_parvas,
+            'total_sandhis': total_sandhis,
+            'total_gamaka_vachana': total_gamaka_vachana or 0,
+            'status': 'success'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
 
 
 @additonal_bp.get('/akaradi-suchi/update')

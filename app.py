@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session
 from werkzeug.security import check_password_hash
 
-from model.models import db, User
+from config.db_config import get_config
+from model.models import db, User, Parva, Sandhi, Padya
 from routers.additional import additonal_bp
 from routers.gamaka_vachana import gamaka_bp
 from routers.parvya import parvya_bp
@@ -21,17 +22,9 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 # Secret key
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
-# Database configuration
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "")
-DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = os.getenv("DB_NAME", "new_kvb")
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-)
+# Database configuration using centralized config
+db_config = get_config()
+DATABASE_URL = db_config.get_database_url('pymysql')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -88,9 +81,36 @@ def kavya():
 
 @app.route('/admin')
 def admin():
+    """
+    Admin Dashboard Route
+    
+    FUNCTIONALITY:
+    - Display admin statistics (users, padyas, parvas, sandhis)
+    - Manage admin users (add, view, delete)
+    - Upload and manage additional content (Gade Suchi, Akaradi Suchi, Tippani)
+    - Update database with new content
+    
+    ACCESS: Requires user login (session['user_id'])
+    """
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('admin.html')
+    
+    try:
+        # Fetch statistics for dashboard
+        total_users = User.query.count()
+        total_padyas = Padya.query.count()
+        total_parvas = Parva.query.count()
+        total_sandhis = Sandhi.query.count()
+        
+        return render_template(
+            'admin.html',
+            total_users=total_users,
+            total_padyas=total_padyas,
+            total_parvas=total_parvas,
+            total_sandhis=total_sandhis
+        )
+    except Exception as e:
+        return render_template('admin.html', error=str(e))
 
 
 @app.route('/stats')

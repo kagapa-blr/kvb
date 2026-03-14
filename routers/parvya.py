@@ -6,10 +6,40 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
 from model.models import db, Parva, Sandhi, Padya
-from utils.statistics import Statistics
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 parvya_bp = Blueprint('parvya', __name__)
-stats = Statistics()
+
+# Lazy-load Statistics instance (don't initialize at import time)
+_stats_instance = None
+
+
+def get_stats():
+    """
+    Lazy-load the Statistics instance on first use.
+    
+    This avoids initialization issues at module import time.
+    Statistics is only created when first needed.
+    
+    Returns:
+        Statistics: Instance of Statistics class, or None if initialization fails
+    """
+    global _stats_instance
+    
+    if _stats_instance is None:
+        try:
+            logger.info("Initializing Statistics module (lazy-load)...")
+            from utils.statistics import Statistics
+            _stats_instance = Statistics()
+            logger.info("✓ Statistics module initialized successfully")
+        except Exception as e:
+            logger.error(f"✗ Failed to initialize Statistics module: {str(e)}", exc_info=True)
+            _stats_instance = None
+    
+    return _stats_instance
 
 
 # Parva API endpoints
@@ -579,28 +609,91 @@ def get_all_sandhi_by_parva(parva_number):
 ################################################################
 @parvya_bp.route('/stats', methods=['GET'])
 def statistics():
+    """
+    Get dashboard statistics.
+    
+    This endpoint returns various statistics about the database:
+    - Total counts of parva, sandhi, padya, users
+    - Breakdown of sandhi per parva
+    - Breakdown of padya per sandhi and parva
+    """
     try:
+        stats = get_stats()
+        
+        if stats is None:
+            logger.error("Statistics module failed to initialize - returning empty stats")
+            return jsonify({
+                'error': 'Statistics module not available',
+                'message': 'Database configuration error. Check server logs for details.',
+                'total_parva': 0,
+                'total_sandhi': 0,
+                'total_padya': 0,
+                'total_users': 0
+            }), 500
+        
+        # Fetch statistics
+        logger.debug("Fetching statistics...")
         data = stats.fetch_statistics()
+        logger.info(f"✓ Statistics fetched successfully")
+        return jsonify(data)
+        
     except Exception as e:
-        return f"unable to fetch statistics please restart the database server", 500
-    return jsonify(data)
+        logger.error(f"Error fetching statistics: {str(e)}", exc_info=True)
+        return jsonify({
+            'error': 'Unable to fetch statistics',
+            'details': str(e),
+            'total_parva': 0,
+            'total_sandhi': 0,
+            'total_padya': 0,
+            'total_users': 0
+        }), 500
 
 
 @parvya_bp.route('/stats/search_word', methods=['POST'])
 def search_padya_by_word():
-    request_data = request.get_json()
-    search_word = request_data.get('search_word', '').strip()
+    """
+    Search for padyas by word.
+    
+    POST request with JSON body:
+    {
+        "search_word": "search term"
+    }
+    
+    Returns matching padyas with parva and sandhi information.
+    """
+    try:
+        request_data = request.get_json()
+        search_word = request_data.get('search_word', '').strip()
 
-    if not search_word:
-        return jsonify({'error': 'No search word provided'}), 400
+        if not search_word:
+            return jsonify({'error': 'No search word provided'}), 400
 
-    data = stats.search_padya_by_word(search_word)
+        stats = get_stats()
+        
+        if stats is None:
+            logger.error("Statistics module not available for search")
+            return jsonify({
+                'error': 'Search module not available',
+                'message': 'Database configuration error. Check server logs.'
+            }), 500
 
-    for padya in data:
-        sandhi = Sandhi.query.get(padya['sandhi_id'])
-        if sandhi:
-            parva_name = sandhi.parva.name
-            padya['parva_name'] = parva_name
-            padya['sandhi_number'] = sandhi.sandhi_number
+        logger.debug(f"Searching for word: {search_word}")
+        data = stats.search_padya_by_word(search_word)
+        logger.info(f"✓ Found {len(data)} matching padyas for: {search_word}")
 
-    return jsonify(data)
+        # Enrich results with parva and sandhi information
+        for padya in data:
+            sandhi = Sandhi.query.get(padya['sandhi_id'])
+            if sandhi:
+                parva_name = sandhi.parva.name
+                padya['parva_name'] = parva_name
+                padya['sandhi_number'] = sandhi.sandhi_number
+
+        return jsonify(data)
+        
+    except Exception as e:
+        logger.error(f"Error searching padyas: {str(e)}", exc_info=True)
+        return jsonify({
+            'error': 'Search failed',
+            'details': str(e)
+        }), 500
