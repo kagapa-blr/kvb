@@ -1,18 +1,17 @@
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: black;">
     <div class="container-fluid">
         <a class="navbar-brand" href="/" title="Home" style="height: 35px;">
-            <img src="/static/images/kgp_logo.png" alt="Logo" height="35px"/>
+            <img src="{{ url_for('static', filename='images/kgp_logo.png') }}" alt="Logo" height="35px" />
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/kavya" title="ಕಾವ್ಯಪ್ರವೇಶ"
-                       style="color: white; text-decoration: none;">
+                    <a class="nav-link" href="/kavya" title="ಕಾವ್ಯಪ್ರವೇಶ" style="color: white; text-decoration: none;">
                         ಕಾವ್ಯಪ್ರವೇಶ
                     </a>
                 </li>
@@ -33,7 +32,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/chitra-samputa" title="ಚಿತ್ರ ಸಂಪುಟ"
-                       style="color: white; text-decoration: none;">
+                        style="color: white; text-decoration: none;">
                         ಚಿತ್ರ ಸಂಪುಟ
                     </a>
                 </li>
@@ -51,7 +50,7 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" href="/admin" title="ನಿರ್ವಾಹಕರ ಪುಟ​"
-                       style="color: white; text-decoration: none;">
+                        style="color: white; text-decoration: none;">
                         ನಿರ್ವಾಹಕರ ಪುಟ​
                     </a>
                 </li>
@@ -68,8 +67,11 @@
 <style>
     /* Optional: Add hover styles using <style> block or inline CSS */
     .navbar-nav .nav-link:hover {
-        background-color: #5d9185 !important; /* Hover background color */
-        color: white !important; /* Ensure text stays white on hover */
-        border-radius: 5px; /* Optional: Rounded corners */
+        background-color: #5d9185 !important;
+        /* Hover background color */
+        color: white !important;
+        /* Ensure text stays white on hover */
+        border-radius: 5px;
+        /* Optional: Rounded corners */
     }
 </style>

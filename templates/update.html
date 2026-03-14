@@ -5,25 +5,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ಕಾವ್ಯ ಪ್ರವೇಶ - ನವೀಕರಿಸಿ</title>
-    <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
-    <!-- jQuery via CDN -->
-    <script src="/static/jquery/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}" />
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
     <!-- Bootstrap JS -->
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
     <!-- Custom JS -->
-    <script src="/static/js/kavya_process.js"></script>
-    <script src="/static/js/additional-buttons.js"></script>
+    <script src="{{ url_for('static', filename='js/kavya_process.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/additional-buttons.js') }}"></script>
 </head>
 
 <body style="background-color: rgb(240, 221, 188);">
     {% include 'navbar.html' %}
-    
+
     <div class="container mt-4 p-4" style="
         border-radius: 8px;
         background-color: rgb(253, 243, 207);
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-        
+
         <!-- Dropdown Section -->
         <div class="row mb-3">
             <div class="col-md-4">
@@ -45,7 +45,7 @@
                 </select>
             </div>
         </div>
-        
+
         <!-- Audio Player Section -->
         <div class="row audio-update align-items-center mb-3">
             <div class="col-md-6">
@@ -56,7 +56,7 @@
                     </audio>
                 </div>
             </div>
-            
+
             <!-- File Upload -->
             <div class="col-md-6 text-start">
                 <input type="file" class="form-control-file" style="margin-left: -10px;">

@@ -1,160 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ಅಂಕಿ ಅಂಶಗಳು</title>
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/js/statistics.js"></script>
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/statistics.js') }}"></script>
+    <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
     <style>
         .card {
             margin-bottom: 20px;
         }
+
         .stat-title {
             font-size: 1.5rem;
             margin-bottom: 10px;
         }
+
         #search-results {
             margin-top: 20px;
         }
+
         .collapse.show {
             display: block !important;
         }
     </style>
 </head>
+
 <body>
-{% include 'navbar.html' %}
-<div class="container">
-    <h2 class="text-center mb-4">ಅಂಕಿ ಅಂಶಗಳು</h2>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h2 class="text-center mb-4">ಅಂಕಿ ಅಂಶಗಳು</h2>
 
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <div class="stat-title">ಒಟ್ಟು ಪರ್ವ</div>
-                    <h2 id="total-parva" class="card-title">ಲೋಡಿಂಗ್...</h2>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="stat-title">ಒಟ್ಟು ಪರ್ವ</div>
+                        <h2 id="total-parva" class="card-title">ಲೋಡಿಂಗ್...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-title">ಒಟ್ಟು ಸಂಧಿ</div>
+                        <h2 id="total-sandhi" class="card-title">ಲೋಡಿಂಗ್...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-title">ಒಟ್ಟು ಪದ್ಯ</div>
+                        <h2 id="total-padya-all" class="card-title">ಲೋಡಿಂಗ್...</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-title">ಒಟ್ಟು ಬಳಕೆದಾರರು</div>
+                        <h2 id="total-users" class="card-title">ಲೋಡಿಂಗ್...</h2>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <div class="stat-title">ಒಟ್ಟು ಸಂಧಿ</div>
-                    <h2 id="total-sandhi" class="card-title">ಲೋಡಿಂಗ್...</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <div class="stat-title">ಒಟ್ಟು ಪದ್ಯ</div>
-                    <h2 id="total-padya-all" class="card-title">ಲೋಡಿಂಗ್...</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <div class="stat-title">ಒಟ್ಟು ಬಳಕೆದಾರರು</div>
-                    <h2 id="total-users" class="card-title">ಲೋಡಿಂಗ್...</h2>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="total-padya-in-each-sandhi">
+        <div class="total-padya-in-each-sandhi">
 
-        <h4 class="text-center my-4">
-            ಪ್ರತಿ ಸಂಧಿಯಲ್ಲಿನ ಪದ್ಯ
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaTable"
+            <h4 class="text-center my-4">
+                ಪ್ರತಿ ಸಂಧಿಯಲ್ಲಿನ ಪದ್ಯ
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaTable"
                     aria-expanded="false" aria-controls="padyaTable">
-                ಟೇಬಲ್ ತೋಚಿಸು
-            </button>
-        </h4>
-        <div class="collapse" id="padyaTable">
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                <tr>
-                    <th scope="col">ಸಂಧಿ</th>
-                    <th scope="col">ಪರ್ವ</th>
-                    <th scope="col">ಪದ್ಯ</th>
-                </tr>
-                </thead>
-                <tbody id="total-padya">
-                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
-                </tbody>
-            </table>
+                    ಟೇಬಲ್ ತೋಚಿಸು
+                </button>
+            </h4>
+            <div class="collapse" id="padyaTable">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">ಸಂಧಿ</th>
+                            <th scope="col">ಪರ್ವ</th>
+                            <th scope="col">ಪದ್ಯ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="total-padya">
+                        <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                    </tbody>
+                </table>
+            </div>
+
         </div>
 
+        <div class="sandhi-in-each-parva">
+
+            <h4 class="text-center my-4">
+                ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಸಂಧಿಗಳು
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#sandhiParvaTable" aria-expanded="false" aria-controls="sandhiParvaTable">
+                    ಟೇಬಲ್ ತೋಚಿಸು
+                </button>
+            </h4>
+            <div class="collapse" id="sandhiParvaTable">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">ಪರ್ವ ID</th>
+                            <th scope="col">ಪರ್ವ</th>
+                            <th scope="col">ಸಂಧಿ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sandhi-in-each-parva">
+                        <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="padya-in-each-parva">
+            <h4 class="text-center my-4">
+                ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಪದ್ಯಗಳು
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#padyaParvaTable" aria-expanded="false" aria-controls="padyaParvaTable">
+                    ಟೇಬಲ್ ತೋಚಿಸು
+                </button>
+            </h4>
+            <div class="collapse" id="padyaParvaTable">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">ಪರ್ವ ID</th>
+                            <th scope="col">ಪರ್ವ</th>
+                            <th scope="col">ಪದ್ಯ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="padya-in-each-parva">
+                        <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <h2 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h2>
+        <form id="search-form" class="mb-4">
+            <div class="input-group">
+                <input id="search-input" type="text" class="form-control" placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..."
+                    required>
+                <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
+            </div>
+        </form>
+
+        <ul id="search-results" class="list-group">
+            <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
+        </ul>
     </div>
 
-    <div class="sandhi-in-each-parva">
-
-        <h4 class="text-center my-4">
-            ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಸಂಧಿಗಳು
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sandhiParvaTable"
-                    aria-expanded="false" aria-controls="sandhiParvaTable">
-                ಟೇಬಲ್ ತೋಚಿಸು
-            </button>
-        </h4>
-        <div class="collapse" id="sandhiParvaTable">
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                <tr>
-                    <th scope="col">ಪರ್ವ ID</th>
-                    <th scope="col">ಪರ್ವ</th>
-                    <th scope="col">ಸಂಧಿ</th>
-                </tr>
-                </thead>
-                <tbody id="sandhi-in-each-parva">
-                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-
-    <div class="padya-in-each-parva">
-        <h4 class="text-center my-4">
-            ಪ್ರತಿ ಪರ್ವದಲ್ಲಿನ ಪದ್ಯಗಳು
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#padyaParvaTable"
-                    aria-expanded="false" aria-controls="padyaParvaTable">
-                ಟೇಬಲ್ ತೋಚಿಸು
-            </button>
-        </h4>
-        <div class="collapse" id="padyaParvaTable">
-            <table class="table table-bordered">
-                <thead class="table-dark">
-                <tr>
-                    <th scope="col">ಪರ್ವ ID</th>
-                    <th scope="col">ಪರ್ವ</th>
-                    <th scope="col">ಪದ್ಯ</th>
-                </tr>
-                </thead>
-                <tbody id="padya-in-each-parva">
-                <!-- JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುವ ವಿಷಯ -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-
-    <h2 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h2>
-    <form id="search-form" class="mb-4">
-        <div class="input-group">
-            <input id="search-input" type="text" class="form-control" placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..."
-                   required>
-            <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
-        </div>
-    </form>
-
-    <ul id="search-results" class="list-group">
-        <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
-    </ul>
-</div>
-
-{% include 'footer.html' %}
+    {% include 'footer.html' %}
 </body>
+
 </html>

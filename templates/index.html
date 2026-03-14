@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ಮುಖಪುಟ</title>
-    <!-- Bootstrap CSS via CDN -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css"/>
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}" />
+    <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* Prevents horizontal scrolling */
+            overflow-x: hidden;
+            /* Prevents horizontal scrolling */
         }
 
         body {
-            background-image: url('/static/images/background/homepage.jpg');
-            background-size:contain; /* Ensures the image covers the entire page */
-            background-repeat:no-repeat; /* Prevents the image from repeating */
-            background-position: center center; /* Centers the image on the page */
-            background-attachment: fixed; /* Keeps the background fixed on scroll */
-            width: 100vw; /* Full viewport width */
+            background-image: url('{{ url_for("static", filename="images/background/homepage.jpg") }}');
+            background-size: contain;
+            /* Ensures the image covers the entire page */
+            background-repeat: no-repeat;
+            /* Prevents the image from repeating */
+            background-position: center center;
+            /* Centers the image on the page */
+            background-attachment: fixed;
+            /* Keeps the background fixed on scroll */
+            width: 100vw;
+            /* Full viewport width */
         }
 
         .content-wrapper {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Ensure footer stays at the bottom */
+            justify-content: space-between;
+            /* Ensure footer stays at the bottom */
         }
 
         .content {
@@ -38,10 +47,11 @@
 </head>
 
 <body>
-<div class="content-wrapper">
-    {% include 'navbar.html' %}
-    <div class="content"></div>
-    {% include 'footer.html' %}
-</div>
+    <div class="content-wrapper">
+        {% include 'navbar.html' %}
+        <div class="content"></div>
+        {% include 'footer.html' %}
+    </div>
 </body>
+
 </html>

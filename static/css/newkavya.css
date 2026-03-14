@@ -145,18 +145,6 @@ body {
     background: rgba(255, 255, 255, 0.95);
 }
 
-/* Photo styling */
-.photo-container {
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.audio-details-card img {
-    transition: none;
-}
-
 .singer-name {
     font-weight: 700 !important;
     color: #8B4513 !important;
@@ -219,4 +207,176 @@ body {
 .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== ENHANCED GAMAKA VACHAKARA UI ===== */
+.audio-section {
+    background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
+    border: 2px solid #8B4513;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 1.5rem auto;
+    max-width: 650px;
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.15);
+    transition: all 0.3s ease;
+}
+
+.audio-section:hover {
+    box-shadow: 0 6px 20px rgba(139, 69, 19, 0.25);
+}
+
+.audio-player-container label {
+    font-size: 1.05rem;
+    color: #8B4513;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-player-container audio {
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    border: 2px solid #D2691E;
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    box-shadow: 0 3px 10px rgba(139, 69, 19, 0.15);
+    cursor: pointer;
+}
+
+.audio-player-container audio:hover {
+    border-color: #8B4513;
+    box-shadow: 0 4px 12px rgba(139, 69, 19, 0.2);
+}
+
+/* Enhanced Audio Details Card */
+.audio-details-card {
+    background: linear-gradient(135deg, #FFF8E7 0%, #FFE8C4 50%, #FFDBB3 100%);
+    border: 2px solid #D2691E;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.12);
+    transition: all 0.3s ease;
+}
+
+.audio-details-card:hover {
+    box-shadow: 0 6px 20px rgba(139, 69, 19, 0.2);
+    transform: translateY(-2px);
+}
+
+.audio-details-card .card-body {
+    padding: 18px !important;
+}
+
+/* Photo and Info Column Spacing */
+.singer-photo-col {
+    padding-right: 24px;
+}
+
+.singer-info-col {
+    padding-left: 12px;
+}
+
+/* Label Styling for Singer and Raga */
+.singer-raga-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #8B4513;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+/* Photo Container - Simple and Clean */
+.photo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    box-shadow: none;
+}
+
+.photo-container img {
+    transition: none !important;
+    cursor: default;
+}
+
+/* Singer Info Section */
+.singer-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #8B4513;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+}
+
+/* Raga Badge Style */
+#ragaName {
+    font-size: 1.3rem;
+    color: #8B0000;
+    letter-spacing: 1px;
+    padding: 8px 14px;
+    background: rgba(255, 192, 203, 0.25);
+    border-radius: 8px;
+    display: inline-block;
+    margin-top: 4px;
+    border-left: 4px solid #8B0000;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(139, 0, 0, 0.1);
+}
+
+/* Responsive Improvements */
+@media (max-width: 768px) {
+    .audio-section {
+        margin: 1rem auto;
+        border-radius: 8px;
+        max-width: 100%;
+        padding: 14px;
+    }
+
+    .audio-details-card .card-body {
+        padding: 14px !important;
+    }
+
+    .singer-photo-col {
+        padding-right: 16px;
+    }
+
+    .singer-info-col {
+        padding-left: 8px;
+    }
+
+    .photo-container img {
+        width: 120px !important;
+        height: 120px !important;
+    }
+
+    #ragaName {
+        font-size: 1.1rem;
+    }
+
+    .singer-name {
+        font-size: 1rem;
+    }
+}
+
+/* Animation Enhancement */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.audio-details-card {
+    animation: slideIn 0.3s ease-out;
 }

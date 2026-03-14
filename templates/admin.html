@@ -6,14 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ನಿರ್ವಾಹಕರ</title>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}" />
     <!-- Font Awesome Icons (Local) -->
-    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/font-awesome-6.6.0-all.min.css') }}" />
     <!-- DataTables CSS (Local) -->
-    <link rel="stylesheet" href="/static/DataTables/datatables.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/css/style.css" />
-    <link rel="stylesheet" href="/static/css/admin.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
     <!-- Inline Styles -->
     <style>
         :root {
