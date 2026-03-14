@@ -305,7 +305,7 @@ processor.fix_photo_names()
 
 
 uploader = GamakaApiUploader(
-    api_url="http://127.0.0.1:8443/api/gamaka"
+    api_url="https://kagapa.com/kvb/api/gamaka"
 )
 
 uploader.upload_from_csv("gamaka_vachana.csv")

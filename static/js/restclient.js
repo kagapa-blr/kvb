@@ -34,7 +34,6 @@
  *   - If you see "ApiClient is not defined", check script loading order
  *   - If you see "ApiClient.get is not a function", axios is not loaded
  *   - Check browser console for [ApiClient] diagnostic messages
- *   - Run apiClient_diagnostic.js to verify all components
  * 
  * ENVIRONMENT CONFIGURATION:
  *   - Development: http://localhost:8443

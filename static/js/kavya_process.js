@@ -712,30 +712,35 @@ $(document).ready(function () {
 
       if (parva_number && sandhi_number && padya) {
 
-        // upate the audio source
+        // update the audio source
         const fileName = `${parva_number}-${sandhi_number}-${padya}.mp3`;
         $audioSource.attr("src", `/static/audio/${parvadir}/${fileName}`);
         $audioElement.load(); // Reload audio element with new source
 
-        // Fetch gamaka data for the selected padya to update metadata
+        // Fetch gamaka data for the selected padya to update metadata using ApiClient
         const parva_id = parvaDataCache[$("#parvaDropdown").val()].id;
         const sandhi_id = sandhiDataCache[$("#sandhiDropdown").val()].id;
         const padya_number = parseInt($padyaNumberDropdown.val());
 
-        fetch(`/api/gamaka/padya?parva_id=${parva_id}&sandhi_id=${sandhi_id}&padya_number=${padya_number}`)
-          .then(response => response.json())
-          .then(gamakaData => {
-            updateAudioMetadata(gamakaData);
-          })
-          .catch(error => console.error("Gamaka API error:", error));
+        // Use ApiClient for consistent error handling and base URL support
+        const client = window.__ApiClientRef || window.ApiClient;
+        if (typeof client !== 'undefined' && typeof client.get === 'function') {
+          client.get(`/api/gamaka/padya?parva_id=${parva_id}&sandhi_id=${sandhi_id}&padya_number=${padya_number}`)
+            .then(gamakaData => {
+              updateAudioMetadata(gamakaData);
+            })
+            .catch(error => {
+              console.error("Gamaka API error:", error.userMessage || error.message);
+              updateAudioMetadata([]); // Clear metadata on error
+            });
+        } else {
+          console.warn("ApiClient not available for gamaka metadata fetch");
+          updateAudioMetadata([]); // Clear metadata if ApiClient unavailable
+        }
       }
-
-
-
     }
 
-    // Add this new function for metadata
-    // gamaka data expected correct it 
+    // Add this function to update audio metadata from gamaka data
     function updateAudioMetadata(gamakaData) {
 
       if (!gamakaData || gamakaData.length === 0) {
