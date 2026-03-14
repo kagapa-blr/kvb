@@ -79,6 +79,10 @@ const ApiEndpoints = {
         // For content update modal
         GET_CONTENT: (sandhiId, padyaNumber) => `/api/padya/${sandhiId}/${padyaNumber}`,
 
+        // Get padya by parva, sandhi, and padya number - Used in kavya_process.js
+        GET_BY_PARVA_SANDHI_PADYA: (parvaNumber, sandhiNumber, padyaNumber) =>
+            `/api/padya/by_parva_sandhi_padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
+
         DESCRIPTION: 'Padya (verses) management with 5 content fields: padya, pathantar, gadya, tippani, artha'
     },
 
@@ -223,3 +227,7 @@ const ApiEndpoints = {
  * Delete user:
  *   ApiEndpoints.USERS.DELETE('username')
  */
+
+// Make ApiEndpoints globally available
+window.ApiEndpoints = ApiEndpoints;
+console.log('[Endpoints] ApiEndpoints exported to window.ApiEndpoints');

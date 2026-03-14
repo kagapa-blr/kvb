@@ -266,9 +266,9 @@ function savePadyaContent() {
 
     console.log('Saving padya content:', data);
 
-    // API call using RestClient
+    // API call using RestClient with Axios promises
     ApiClient.put(ApiEndpoints.PADYA.UPDATE, data)
-        .done(function (response) {
+        .then(function (response) {
             console.log('✓ Padya content saved successfully');
             showContentMessage('✓ ಪದ್ಯ ಸೂಚನೆಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಸಂಚಯಿಸಿದ', 'success');
             setTimeout(() => {
@@ -278,9 +278,9 @@ function savePadyaContent() {
                 }
             }, 3000);
         })
-        .fail(function (xhr) {
-            console.error('✗ Error saving padya content:', xhr.status);
-            const errorMsg = xhr.responseJSON?.error || 'ಪದ್ಯ ಸಯಂಚಯನಕ್ಕೆ ದೋಷ ಸಂಭವಿಸಲಾಗಿದೆ';
+        .catch(function (error) {
+            console.error('✗ Error saving padya content:', error);
+            const errorMsg = error.response?.data?.error || 'ಪದ್ಯ ಸಯಂಚಯನಕ್ಕೆ ದೋಷ ಸಂಭವಿಸಲಾಗಿದೆ';
             showContentMessage('✗ ' + errorMsg, 'danger');
         });
 }
@@ -313,9 +313,9 @@ function showContentMessage(message, type) {
 function initializeGamakaDropdowns() {
     console.log('Initializing gamaka dropdowns...');
 
-    // API call using RestClient
+    // API call using RestClient with Axios promises
     ApiClient.get(ApiEndpoints.PARVA.LIST)
-        .done(function (parvas) {
+        .then(function (parvas) {
             console.log('✓ Parvas loaded for gamaka:', parvas.length);
 
             const dropdown = document.getElementById('gamakaParvaDropdown');
@@ -327,8 +327,8 @@ function initializeGamakaDropdowns() {
 
             dropdown.innerHTML = html;
         })
-        .fail(function () {
-            console.error('✗ Error loading parvas for gamaka');
+        .catch(function (error) {
+            console.error('✗ Error loading parvas for gamaka:', error);
         });
 
     // Setup gamaka parva dropdown change event
@@ -345,9 +345,9 @@ function initializeGamakaDropdowns() {
             return;
         }
 
-        // API call using RestClient
+        // API call using RestClient with Axios promises
         ApiClient.get(ApiEndpoints.PARVA.SANDHIS_BY_PARVA(parvaNumber))
-            .done(function (response) {
+            .then(function (response) {
                 let html = '<option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>';
                 const sandhis = response.sandhis || response;
                 if (Array.isArray(sandhis)) {
@@ -360,8 +360,8 @@ function initializeGamakaDropdowns() {
                 padyaDropdown.disabled = true;
                 padyaDropdown.innerHTML = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆ</option>';
             })
-            .fail(function () {
-                console.error('✗ Error loading sandhis');
+            .catch(function (error) {
+                console.error('✗ Error loading sandhis:', error);
             });
     });
 
@@ -375,9 +375,9 @@ function initializeGamakaDropdowns() {
             return;
         }
 
-        // API call using RestClient
+        // API call using RestClient with Axios promises
         ApiClient.get(ApiEndpoints.SANDHI.PADYAS_BY_SANDHI(sandhiId))
-            .done(function (padyas) {
+            .then(function (padyas) {
                 let html = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆ</option>';
                 if (Array.isArray(padyas)) {
                     padyas.forEach(padya => {
@@ -387,8 +387,8 @@ function initializeGamakaDropdowns() {
                 padyaDropdown.innerHTML = html;
                 padyaDropdown.disabled = false;
             })
-            .fail(function () {
-                console.error('✗ Error loading padyas');
+            .catch(function (error) {
+                console.error('✗ Error loading padyas:', error);
             });
     });
 }
@@ -444,9 +444,9 @@ function addGamakaVachana() {
         return;
     }
 
-    // Get parva_id from parva_number using RestClient
+    // Get parva_id from parva_number using RestClient with Axios promises
     ApiClient.get(ApiEndpoints.PARVA.GET_BY_ID(parvaNumber))
-        .done(function (parva) {
+        .then(function (parva) {
             const data = {
                 parva_id: parva.id,
                 sandhi_id: parseInt(sandhiId),
@@ -458,9 +458,9 @@ function addGamakaVachana() {
 
             console.log('Adding gamaka vachana:', data);
 
-            // API call using RestClient
+            // API call using RestClient with Axios promises
             ApiClient.post(ApiEndpoints.GAMAKA.CREATE, data)
-                .done(function (response) {
+                .then(function (response) {
                     console.log('✓ Gamaka vachana added successfully');
                     showGamakaFormMessage('✓ ಗಾಮಕ ವಾಚನ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ', 'success');
 
@@ -478,13 +478,14 @@ function addGamakaVachana() {
                         showGamakaFormMessage('', '');
                     }, 1500);
                 })
-                .fail(function (xhr) {
-                    console.error('✗ Error adding gamaka vachana:', xhr.status);
-                    const errorMsg = xhr.responseJSON?.error || 'ದೋಷ ಸಂಭವಿಸಿದೆ';
+                .catch(function (error) {
+                    console.error('✗ Error adding gamaka vachana:', error);
+                    const errorMsg = error.response?.data?.error || 'ದೋಷ ಸಂಭವಿಸಿದೆ';
                     showGamakaFormMessage('✗ ' + errorMsg, 'danger');
                 });
         })
-        .fail(function () {
+        .catch(function (error) {
+            console.error('✗ Error loading parva:', error);
             showGamakaFormMessage('✗ ಪರ್ವ ಮಾಹಿತಿ ಲೋಡ್ ಸಲ್ಲಿಸಿ', 'danger');
         });
 }
@@ -513,7 +514,7 @@ function loadGamakaList() {
     noGamers.style.display = 'none';
 
     ApiClient.get(ApiEndpoints.GAMAKA.LIST)
-        .done(function (gamakas) {
+        .then(function (gamakas) {
             console.log('✓ Gamaka list loaded:', gamakas.length);
 
             if (!gamakas || gamakas.length === 0) {
@@ -556,7 +557,7 @@ function loadGamakaList() {
             spinner.style.display = 'none';
             list.style.display = 'block';
         })
-        .fail(function (xhr, status, error) {
+        .catch(function (error) {
             console.error('✗ Error loading gamaka list:', error);
             spinner.innerHTML = '<div class="alert alert-danger">ಗಾಮಕ ವಾಚನ ಲೋಡ್ ಸಲ್ಲಿಸಿ</div>';
         });
@@ -587,15 +588,15 @@ function deleteGamakaVachana(gamakaId) {
     console.log('Deleting gamaka vachana:', gamakaId);
 
     ApiClient.delete(ApiEndpoints.GAMAKA.DELETE(gamakaId))
-        .done(function () {
+        .then(function () {
             console.log('✓ Gamaka vachana deleted successfully');
             loadGamakaList();
             if (typeof loadDashboardStats === 'function') {
                 loadDashboardStats();
             }
         })
-        .fail(function (xhr) {
-            console.error('✗ Error deleting gamaka vachana');
+        .catch(function (error) {
+            console.error('✗ Error deleting gamaka vachana:', error);
             alert('ಗಾಮಕ ವಾಚನ ಅಳಿಸುವಿಕೆಯಲ್ಲಿ ದೋಷ');
         });
 }

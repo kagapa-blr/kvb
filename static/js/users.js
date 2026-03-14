@@ -116,9 +116,9 @@ function submitUserForm() {
         phone_number: phone
     };
 
-    // API call using RestClient
+    // API call using RestClient with Axios promises
     ApiClient.post(ApiEndpoints.USERS.CREATE, userData)
-        .done(function (response) {
+        .then(function (response) {
             console.log('✓ User added successfully:', response);
             showMessage('formMessage', '✓ ನಿರ್ವಾಹಕ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ', 'success');
 
@@ -138,22 +138,23 @@ function submitUserForm() {
                 loadUsersList();
             }, 1500);
         })
-        .fail(function (xhr, status, error) {
+        .catch(function (error) {
             console.error('✗ Error adding user:', error);
             let errorMessage = 'ದೋಷ ಸಂಭವಿಸಿದೆ';
 
-            try {
-                const response = JSON.parse(xhr.responseText);
+            // Handle Axios error format
+            if (error.response && error.response.data) {
+                const response = error.response.data;
                 if (response.error) {
                     errorMessage = response.error;
                 }
-            } catch (e) {
-                console.error('Error parsing response:', e);
+            } else if (error.userMessage) {
+                errorMessage = error.userMessage;
             }
 
             showMessage('formMessage', '✗ ' + errorMessage, 'danger');
         })
-        .always(function () {
+        .finally(function () {
             // Re-enable submit button
             if (submitBtn) submitBtn.disabled = false;
         });
@@ -207,9 +208,9 @@ function loadUsersList() {
         noUsers.style.display = 'none';
     }
 
-    // API call using RestClient
+    // API call using RestClient with Axios promises
     ApiClient.get(ApiEndpoints.USERS.LIST)
-        .done(function (users) {
+        .then(function (users) {
             console.log('✓ Users loaded:', users.length);
 
             if (!users || users.length === 0) {
@@ -220,48 +221,40 @@ function loadUsersList() {
                 return;
             }
 
-            // Build table rows
-            const rows = users.map(user => `
-                <tr>
+            // Clear table
+            tableBody.innerHTML = '';
+
+            // Add each user to the table
+            users.forEach((user) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sanitizeHtml(user.username)}</td>
+                    <td>${sanitizeHtml(user.email || 'N/A')}</td>
+                    <td>${sanitizeHtml(user.phone_number || 'N/A')}</td>
                     <td>
-                        <i class="fa-solid fa-circle-user me-2 text-primary"></i>
-                        <strong>${escapeHtml(user.username)}</strong>
-                    </td>
-                    <td>
-                        ${user.email ? `<a href="mailto:${escapeHtml(user.email)}">${escapeHtml(user.email)}</a>` : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        ${user.phone_number ? escapeHtml(user.phone_number) : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-danger" 
-                                onclick="prepareDelete('${escapeHtml(user.username)}')"
-                                title="ಈ ನಿರ್ವಾಹಕನನ್ನು ಅಳಿಸಿ"
-                                data-bs-toggle="tooltip">
-                            <i class="fa-solid fa-trash"></i> ಅಳಿಸಿ
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser('${user.username}')">
+                            <i class="fa-solid fa-trash"></i> ಅಳಿಸು
                         </button>
                     </td>
-                </tr>
-            `).join('');
+                `;
+                tableBody.appendChild(row);
+            });
 
-            tableBody.innerHTML = rows;
-
-            // Hide spinner, show table
-            if (loadingSpinner) loadingSpinner.style.display = 'none';
+            // Show table, hide no users message
             if (usersTable) usersTable.style.display = 'table';
             if (noUsers) noUsers.style.display = 'none';
         })
-        .fail(function (xhr, status, error) {
+        .catch(function (error) {
             console.error('✗ Error loading users:', error);
-            if (loadingSpinner) {
-                loadingSpinner.innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        <i class="fa-solid fa-circle-exclamation me-2"></i>
-                        ನಿರ್ವಾಹಕರನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ
-                        <small class="d-block">${escapeHtml(status)}</small>
-                    </div>
-                `;
+            // Show error message
+            if (noUsers) {
+                noUsers.textContent = '✗ ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲ. ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.';
+                noUsers.style.display = 'block';
             }
+        })
+        .finally(function () {
+            // Hide loading spinner
+            if (loadingSpinner) loadingSpinner.style.display = 'none';
         });
 }
 
@@ -333,9 +326,9 @@ function confirmDelete() {
         return;
     }
 
-    // API call using RestClient
+    // API call using RestClient with Axios promises
     ApiClient.delete(ApiEndpoints.USERS.DELETE(username))
-        .done(function (response) {
+        .then(function (response) {
             console.log('✓ User deleted successfully:', username);
 
             // Close confirmation modal
@@ -351,16 +344,20 @@ function confirmDelete() {
             // Refresh user list
             loadUsersList();
         })
-        .fail(function (xhr, status, error) {
+        .catch(function (error) {
             console.error('✗ Error deleting user:', error);
 
             let errorMessage = 'ನಿರ್ವಾಹಕನನ್ನು ಅಳಿಸಲಲ್ಲಿ ದೋಷ';
-            try {
-                const response = JSON.parse(xhr.responseText);
+
+            // Handle Axios error format
+            if (error.response && error.response.data) {
+                const response = error.response.data;
                 if (response.error) {
                     errorMessage = response.error;
                 }
-            } catch (e) { }
+            } else if (error.userMessage) {
+                errorMessage = error.userMessage;
+            }
 
             alert(errorMessage);
         });

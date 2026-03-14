@@ -1,41 +1,126 @@
-// Update API endpoints
-const apiEndpoints = {
-  parva: "/api/parva",
-  getAllSandhiByParva: "/api/all_sandhi/by_parva",
-  getSandhiByParvaSandhi: "/api/get_sandhi_by_parva_sandhi",
-  getPadyaByParvaSandhiPadya: "/api/padya/by_parva_sandhi_padya",
-  padyaContent: "/api/padya",
-  insertParva: "/api/parva",
-  insertSandhi: "/api/sandhi",
-  insertPadya: "/api/padya",
-  getAllSandhi: "/api/sandhi",
-};
+// API endpoints are now centralized in ApiEndpoints (endpoints.js)
+// All API calls should use ApiClient (restclient.js) singleton with Axios
+// Example: ApiClient.get(ApiEndpoints.PARVA.LIST)
 
 let padyaNumbers = []; // List to store padya numbers
 let currentIndex = 0; // Index to keep track of current padya number
 
-// Function to fetch data from API with error handling
-async function fetchData(url, params = "") {
+/**
+ * CRITICAL: Ensure ApiClient is ready before making any API calls
+ * Waits for ApiClient and ApiEndpoints to be initialized
+ * 
+ * @param {Function} callback - Function to execute after ApiClient is ready
+ * @param {number} timeout - Maximum wait time in milliseconds (default: 5000)
+ */
+function ensureApiClientReady(callback, timeout = 5000) {
+  const startTime = Date.now();
+  const checkInterval = setInterval(() => {
+    // Only require ApiClient.get to be available - ApiEndpoints is optional
+    const isReady = typeof window.ApiClient !== 'undefined' &&
+      typeof window.ApiClient.get === 'function';
+
+    if (isReady) {
+      clearInterval(checkInterval);
+      console.log('[KavyaProcess] ApiClient is ready, executing callback');
+      // Capture a reference to ApiClient to ensure it's available in the callback
+      const apiClientRef = window.ApiClient;
+      // Store it globally so fetchData can access it reliably
+      window.__ApiClientRef = apiClientRef;
+      callback();
+    } else if (Date.now() - startTime > timeout) {
+      clearInterval(checkInterval);
+      console.error('[KavyaProcess] TIMEOUT: ApiClient did not initialize within ' + timeout + 'ms');
+      // Still try to proceed - there might be partial initialization
+      if (typeof window.ApiClient !== 'undefined') {
+        callback();
+      } else {
+        alert('Error: API Client failed to initialize. Please refresh the page.');
+      }
+    }
+  }, 50); // Check every 50ms
+}
+
+/**
+ * Fetch data from API with error handling
+ * Uses ApiClient for proper base URL support and Axios promises
+ * IMPORTANT: Always call ensureApiClientReady() before using fetchData()
+ * 
+ * @param {string} endpoint - API endpoint URL
+ * @param {string} params - Query parameters or path parameters
+ * @returns {Promise} Promise that resolves with response data
+ */
+async function fetchData(endpoint, params = "") {
   try {
-    const response = await $.getJSON(`${url}${params}`);
+    // Use the captured reference to ApiClient for reliability
+    const client = window.__ApiClientRef || window.ApiClient;
+
+    // Defensive check - ensure ApiClient is available
+    if (typeof client === 'undefined' || typeof client.get !== 'function') {
+      throw new Error('ApiClient is not initialized. This should not happen - check script loading order.');
+    }
+
+    // Build the full endpoint URL
+    const fullEndpoint = params ? `${endpoint}${params}` : endpoint;
+
+    // Use ApiClient for base URL support and centralized configuration
+    // ApiClient is Axios-based, returns native Promises
+    const response = await client.get(fullEndpoint);
     return response;
-  } catch (jqXHR) {
-    handleApiError(jqXHR, jqXHR.statusText, jqXHR.statusText, url);
-    throw jqXHR;
+  } catch (error) {
+    // Handle Axios error format (different from jQuery $.ajax)
+    handleApiError(error, endpoint);
+    throw error;
   }
 }
-// Debounce function to limit the rate of API calls
+
+/**
+ * Handle API errors with user-friendly messages
+ * Works with both Axios and jQuery error objects
+ * 
+ * @param {Object} error - Error object from Axios or jQuery
+ * @param {string} context - Context information for error message
+ */
+function handleApiError(error, context = "API") {
+  let errorMessage = `Failed to fetch ${context}. Please try again.`;
+
+  if (error.response) {
+    // Server responded with an error status
+    const status = error.response.status;
+    const statusText = error.response.statusText || "Server Error";
+    errorMessage = `Error ${status}: ${statusText}`;
+    console.error(`API Error (${status}):`, error.response.data);
+  } else if (error.request) {
+    // Request was made but no response received
+    errorMessage = "No response from server. Please check your connection.";
+    console.error("No response from server:", error.request);
+  } else if (error.message) {
+    // Error in request setup or other error
+    errorMessage = error.message;
+    console.error("Request Error:", error);
+  } else {
+    // Fallback for jQuery error format
+    errorMessage = error.userMessage || errorMessage;
+    console.error("Error fetching data:", error);
+  }
+
+  console.error(`Error fetching ${context} data:`, errorMessage);
+  alert(errorMessage);
+}
+
+/**
+ * Debounce function to limit the rate of function calls
+ * Useful for input handlers and resize events
+ * 
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
 function debounce(func, wait) {
   let timeout;
   return function (...args) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
-}
-// Function to handle API errors
-function handleApiError(jqXHR, textStatus, errorThrown, context) {
-  console.error(`Error fetching ${context} data:`, textStatus, errorThrown);
-  alert(`Failed to fetch ${context}. Please try again.`);
 }
 
 $(document).ready(function () {
@@ -60,7 +145,7 @@ $(document).ready(function () {
   async function fetchAndPopulateParva() {
     showLoading(); // Show loading overlay before fetching data
     try {
-      const data = await fetchData(apiEndpoints.parva);
+      const data = await fetchData(ApiEndpoints.PARVA.LIST);
 
       // Populate dropdown with data
       populateDropdown("#parvaDropdown", data, "id", "name", "parva_number");
@@ -89,8 +174,7 @@ $(document).ready(function () {
   async function fetchSandhi(parvaNumber) {
     try {
       const data = await fetchData(
-        apiEndpoints.getAllSandhiByParva,
-        `/${parvaNumber}`
+        ApiEndpoints.PARVA.SANDHIS_BY_PARVA(parvaNumber)
       );
       populateDropdown("#sandhiDropdown", data, "id", "name");
       $("#sandhiDropdown").prop("disabled", false);
@@ -112,7 +196,7 @@ $(document).ready(function () {
         e,
         "Error fetching Sandhi data",
         e.status,
-        apiEndpoints.getAllSandhiByParva
+        "SANDHIS_BY_PARVA"
       );
     }
   }
@@ -226,8 +310,7 @@ $(document).ready(function () {
         try {
           // Fetch the padya content based on the selected Parva, Sandhi, and Padya Number
           const data = await fetchData(
-            apiEndpoints.getPadyaByParvaSandhiPadya,
-            `/${parva.parva_number}/${sandhi.sandhi_number}/${selectedPadyaNumber}`
+            ApiEndpoints.PADYA.GET_BY_PARVA_SANDHI_PADYA(parva.parva_number, sandhi.sandhi_number, selectedPadyaNumber)
           );
           function formatPadyaText(text) {
             if (!text) return "";
@@ -270,7 +353,7 @@ $(document).ready(function () {
             e,
             "Error fetching Padya data",
             e.status,
-            apiEndpoints.getPadyaByParvaSandhiPadya
+            "GET_BY_PARVA_SANDHI_PADYA"
           );
         }
       } else {
@@ -320,9 +403,15 @@ $(document).ready(function () {
     }
   });
 
-  //allSandhiTable();
-  // Initialize dropdowns
-  fetchAndPopulateParva();
+  // CRITICAL: Ensure ApiClient is ready before initializing data
+  // This prevents the "ApiClient.get is not a function" error
+  ensureApiClientReady(function () {
+    console.log('[KavyaProcess] Starting initial data load...');
+    fetchAndPopulateParva();
+    allSandhiTable();
+    updatePadya();
+    fetchAudioforPadya();
+  });
 
   // Handle inserting a new Parva
   $("#insertParvaBtn").click(function () {
@@ -440,26 +529,18 @@ $(document).ready(function () {
           padya: padya,
         };
 
-        // Make the PUT request using fetch API
-        fetch(apiEndpoints.padyaContent, {
-          // Ensure this matches the Flask route
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.error) {
-              alert(`Error: ${data.error}`);
+        // Make the PUT request using ApiClient with base URL support (Axios promises)
+        ApiClient.put(ApiEndpoints.PADYA.UPDATE, data)
+          .then(function (responseData) {
+            if (responseData.error) {
+              alert(`Error: ${responseData.error}`);
             } else {
               alert("Padya updated successfully!");
               // Optionally update the UI with the new data
-              console.log("Updated Padya:", data);
+              console.log("Updated Padya:", responseData);
             }
           })
-          .catch((error) => {
+          .catch(function (error) {
             console.error("Error:", error);
             alert("An error occurred while updating the Padya.");
           });
@@ -482,7 +563,7 @@ $(document).ready(function () {
   // Function to populate modal table with all Sandhi data
   async function allSandhiTable() {
     try {
-      const data = await fetchData(apiEndpoints.getAllSandhi);
+      const data = await fetchData(ApiEndpoints.SANDHI.LIST);
       const tableBody = $("#sandhiTableBodyContent");
       tableBody.empty(); // Clear the table body
       $.each(data, function (index, sandhi) {
@@ -505,17 +586,9 @@ $(document).ready(function () {
 
   async function postParva(newParvaName) {
     try {
-      const response = await fetch(apiEndpoints.insertParva, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: newParvaName }),
-      });
+      const result = await ApiClient.post(ApiEndpoints.PARVA.LIST, { name: newParvaName });
 
-      const result = await response.json();
-
-      if (response.ok && result.id && result.name) {
+      if (result && result.id && result.name) {
         document.getElementById(
           "parvaMessage"
         ).textContent = `ಪರ್ವ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
@@ -531,26 +604,18 @@ $(document).ready(function () {
       const errorMessage = error.message || "ಪರ್ವ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ"; // Fallback to a default message if no error message is provided
       document.getElementById("parvaMessage").textContent = errorMessage;
       document.getElementById("parvaMessage").style.color = "red";
-      handleApiError(error, error.message, apiEndpoints.insertParva);
+      handleApiError(error, error.message, "PARVA.LIST");
     }
   }
 
   async function postSandhi(parvaNumber, newSandhiName) {
     try {
-      const response = await fetch(apiEndpoints.insertSandhi, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          parva_number: parvaNumber,
-          name: newSandhiName,
-        }),
+      const result = await ApiClient.post(ApiEndpoints.SANDHI.LIST, {
+        parva_number: parvaNumber,
+        name: newSandhiName,
       });
 
-      const result = await response.json();
-
-      if (response.ok && result.id && result.name) {
+      if (result && result.id && result.name) {
         document.getElementById(
           "sandhiMessage"
         ).textContent = `ಸಂಧಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.name}`;
@@ -568,7 +633,7 @@ $(document).ready(function () {
       document.getElementById("sandhiMessage").textContent =
         "ಸಂಧಿ ಸೇರಿಸುವಲ್ಲಿ ದೋಷವಿದೆ";
       document.getElementById("sandhiMessage").style.color = "red";
-      handleApiError(error, error.message, apiEndpoints.insertSandhi);
+      handleApiError(error, error.message, "SANDHI.LIST");
     }
   }
 
@@ -584,27 +649,18 @@ $(document).ready(function () {
     artha
   ) {
     try {
-      const response = await fetch(apiEndpoints.insertPadya, {
-        // Adjust endpoint if needed
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          parva_number: parvaNumber,
-          sandhi_number: sandhiNumber,
-          padya_number: padyaNumber,
-          padya: padya,
-          pathantar: pathantar,
-          gadya: gadya,
-          tippani: tippani,
-          artha: artha,
-        }),
+      const result = await ApiClient.post(ApiEndpoints.PADYA.CREATE, {
+        parva_number: parvaNumber,
+        sandhi_number: sandhiNumber,
+        padya_number: padyaNumber,
+        padya: padya,
+        pathantar: pathantar,
+        gadya: gadya,
+        tippani: tippani,
+        artha: artha,
       });
 
-      const result = await response.json();
-
-      if (response.ok && result.id) {
+      if (result && result.id) {
         $("#padyainsertPadyaMessage")
           .text(`ಪದ್ಯ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ: ${result.id}`)
           .css("color", "green");
@@ -722,9 +778,10 @@ $(document).ready(function () {
     }
   }
 
-  //update padya
-  updatePadya();
-
-  allSandhiTable();
-  fetchAudioforPadya();
+  // All initialization is now handled in ensureApiClientReady() above
+  // to ensure ApiClient is loaded before making API calls
+  // DO NOT call these functions here - they are called in the wrapper above
+  // updatePadya();
+  // allSandhiTable();
+  // fetchAudioforPadya();
 });

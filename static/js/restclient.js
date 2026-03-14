@@ -1,18 +1,40 @@
 /**
- * REST CLIENT - Centralized API communication layer
+ * REST CLIENT - Axios-Based API Communication Layer
  * 
- * PURPOSE: Handle all HTTP requests to backend API endpoints
+ * PURPOSE: Handle all HTTP requests to backend API endpoints using Axios
  * FEATURES:
  *   - Configurable base URL for development/production
- *   - Standard request/response handling
- *   - Error handling with Kannada messages
- *   - Request timeout support
+ *   - Promise-based (async/await compatible)
+ *   - Automatic JSON transformation
+ *   - Request/response interceptors
+ *   - Error handling with detailed messages
+ *   - Request timeout support (default 30s)
  *   - Request logging for debugging
+ * 
+ * REQUIREMENTS:
+ *   - Axios library: static/js/axios.min.js (must be loaded first!)
+ *   - Script loading order MUST be:
+ *     1. jQuery
+ *     2. Bootstrap
+ *     3. axios.min.js (THIS IS CRITICAL!)
+ *     4. restclient.js (this file)
+ *     5. endpoints.js
+ *     6. Application scripts
  * 
  * HOW TO USE:
  *   1. Set base URL: ApiClient.setBaseUrl('http://localhost:8443');
- *   2. Make requests: ApiClient.get('/api/users').then(data => {...});
- *   3. POST/PUT/DELETE work similarly
+ *   2. Make requests: 
+ *      - ApiClient.get('/api/users')
+ *      - ApiClient.post('/api/users', {name: 'admin'})
+ *      - ApiClient.put('/api/users/1', {name: 'updated'})
+ *      - ApiClient.delete('/api/users/1')
+ *   3. All return Promises (use .then() or async/await)
+ * 
+ * TROUBLESHOOTING:
+ *   - If you see "ApiClient is not defined", check script loading order
+ *   - If you see "ApiClient.get is not a function", axios is not loaded
+ *   - Check browser console for [ApiClient] diagnostic messages
+ *   - Run apiClient_diagnostic.js to verify all components
  * 
  * ENVIRONMENT CONFIGURATION:
  *   - Development: http://localhost:8443
@@ -22,12 +44,84 @@
 class ApiClient {
     /**
      * Constructor
-     * Initialize with default base URL (can be changed)
+     * Initialize Axios instance with default configuration
      */
     constructor() {
         this.baseUrl = ''; // Default to current origin
         this.timeout = 30000; // 30 seconds
         this.debugMode = false; // Set to true for console logging
+
+        // Check if Axios is available
+        if (typeof axios === 'undefined') {
+            console.error('[ApiClient] FATAL: axios library is not defined. Check script loading order.');
+            throw new Error('Axios library not loaded. Ensure axios.min.js is loaded before restclient.js');
+        }
+
+        // Create Axios instance with default config
+        this.instance = axios.create({
+            timeout: this.timeout,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+
+        // Setup interceptors
+        this.setupInterceptors();
+    }
+
+    /**
+     * Setup Axios request/response interceptors
+     * Private method - handles logging and error formatting
+     */
+    setupInterceptors() {
+        // Request interceptor
+        this.instance.interceptors.request.use(
+            (config) => {
+                // Add base URL if configured
+                if (this.baseUrl) {
+                    config.baseURL = this.baseUrl;
+                }
+
+                this.log(`[${config.method.toUpperCase()}] ${config.url}`);
+                if (config.data) {
+                    this.log(`Request Data:`, config.data);
+                }
+                return config;
+            },
+            (error) => {
+                this.logError('Request Error:', error);
+                return Promise.reject(error);
+            }
+        );
+
+        // Response interceptor
+        this.instance.interceptors.response.use(
+            (response) => {
+                this.log(`Response (${response.status}):`, response.data);
+                return response.data; // Return only data, not full response
+            },
+            (error) => {
+                let errorMessage = 'API Request Failed';
+
+                if (error.response) {
+                    // Server responded with error status
+                    errorMessage = `${error.response.status}: ${error.response.statusText}`;
+                    this.logError(`Response Error (${error.response.status}):`, error.response.data);
+                } else if (error.request) {
+                    // Request made but no response
+                    errorMessage = 'No Response from Server';
+                    this.logError('No Response:', error.request);
+                } else {
+                    // Error in request setup
+                    errorMessage = error.message;
+                    this.logError('Error:', error);
+                }
+
+                error.userMessage = errorMessage;
+                return Promise.reject(error);
+            }
+        );
     }
 
     /**
@@ -41,6 +135,7 @@ class ApiClient {
      */
     setBaseUrl(url) {
         this.baseUrl = url.replace(/\/$/, ''); // Remove trailing slash
+        this.instance.defaults.baseURL = this.baseUrl;
         this.log(`Base URL set to: ${this.baseUrl}`);
     }
 
@@ -51,16 +146,33 @@ class ApiClient {
      */
     setDebugMode(enabled) {
         this.debugMode = enabled;
+        this.log(`Debug mode: ${enabled ? 'ON' : 'OFF'}`);
+    }
+
+    /**
+     * Set timeout for all requests
+     * 
+     * @param {number} ms - Timeout in milliseconds
+     */
+    setTimeout(ms) {
+        this.timeout = ms;
+        this.instance.defaults.timeout = ms;
+        this.log(`Timeout set to: ${ms}ms`);
     }
 
     /**
      * Internal logging function
      * 
      * @param {string} message - Message to log
+     * @param {any} data - Optional data to log
      */
-    log(message) {
+    log(message, data = null) {
         if (this.debugMode) {
-            console.log(`[ApiClient] ${message}`);
+            if (data) {
+                console.log(`[ApiClient] ${message}`, data);
+            } else {
+                console.log(`[ApiClient] ${message}`);
+            }
         }
     }
 
@@ -77,70 +189,22 @@ class ApiClient {
     }
 
     /**
-     * Build full URL from endpoint
-     * 
-     * @param {string} endpoint - API endpoint (e.g., '/api/users')
-     * @returns {string} Full URL
-     */
-    buildUrl(endpoint) {
-        const url = this.baseUrl + endpoint;
-        this.log(`Built URL: ${url}`);
-        return url;
-    }
-
-    /**
-     * Internal method to make AJAX requests
-     * 
-     * @param {string} method - HTTP method (GET, POST, PUT, DELETE)
-     * @param {string} endpoint - API endpoint
-     * @param {Object} data - Request data (for POST/PUT)
-     * @returns {Promise} jQuery promise
-     */
-    request(method, endpoint, data = null) {
-        const url = this.buildUrl(endpoint);
-        const self = this;
-
-        this.log(`${method} Request: ${endpoint}`);
-        if (data) {
-            this.log(`Request Data:`, data);
-        }
-
-        return $.ajax({
-            url: url,
-            type: method,
-            contentType: 'application/json',
-            data: data ? JSON.stringify(data) : undefined,
-            timeout: this.timeout,
-            dataType: 'json'
-        })
-            .done(function (response) {
-                self.log(`${method} Success (${endpoint}):`, response);
-            })
-            .fail(function (xhr, status, error) {
-                self.logError(`${method} Failed (${endpoint}): ${status} - ${error}`, xhr);
-            });
-    }
-
-    /**
      * GET Request - Retrieve data from server
      * 
      * PURPOSE: Fetch data from API endpoint
-     * HOW TO USE: ApiClient.get('/api/users').then(data => console.log(data));
+     * HOW TO USE: ApiClient.get('/api/users')
      * 
      * @param {string} endpoint - API endpoint
-     * @returns {Promise} jQuery promise with response data
+     * @param {Object} config - Optional Axios config (headers, params, etc.)
+     * @returns {Promise} Promise that resolves with response data
      * 
      * EXAMPLE:
      *   ApiClient.get('/api/parva')
-     *     .done(function(parvas) {
-     *         console.log('Parvas:', parvas);
-     *     })
-     *     .fail(function(xhr) {
-     *         console.error('Error:', xhr.responseJSON.error);
-     *     });
+     *     .then(parvas => console.log('Parvas:', parvas))
+     *     .catch(error => console.error('Error:', error.userMessage));
      */
-    get(endpoint) {
-        return this.request('GET', endpoint);
+    get(endpoint, config = {}) {
+        return this.instance.get(endpoint, config);
     }
 
     /**
@@ -151,24 +215,20 @@ class ApiClient {
      * 
      * @param {string} endpoint - API endpoint
      * @param {Object} data - Data to send
-     * @returns {Promise} jQuery promise with response
+     * @param {Object} config - Optional Axios config
+     * @returns {Promise} Promise that resolves with response data
      * 
      * EXAMPLE:
      *   ApiClient.post('/api/users', {
      *       username: 'admin_user',
      *       password: 'password123',
-     *       email: 'admin@example.com',
      *       phone_number: '9876543210'
      *   })
-     *   .done(function(response) {
-     *       console.log('User created:', response);
-     *   })
-     *   .fail(function(xhr) {
-     *       console.error('Error:', xhr.responseJSON.error);
-     *   });
+     *   .then(response => console.log('User created:', response))
+     *   .catch(error => console.error('Error:', error.userMessage));
      */
-    post(endpoint, data) {
-        return this.request('POST', endpoint, data);
+    post(endpoint, data = {}, config = {}) {
+        return this.instance.post(endpoint, data, config);
     }
 
     /**
@@ -179,102 +239,62 @@ class ApiClient {
      * 
      * @param {string} endpoint - API endpoint
      * @param {Object} data - Data to send for update
-     * @returns {Promise} jQuery promise with response
+     * @param {Object} config - Optional Axios config
+     * @returns {Promise} Promise that resolves with response data
      * 
      * EXAMPLE:
      *   ApiClient.put('/api/padya', {
      *       parva_number: 1,
      *       sandhi_number: 1,
      *       padya_number: 1,
-     *       padya: 'Updated verse text',
-     *       pathantar: 'Alternative reading',
-     *       gadya: 'Prose version',
-     *       tippani: 'Commentary',
-     *       artha: 'Meaning'
+     *       padya: 'Updated verse text'
      *   })
+     *   .then(response => console.log('Updated:', response))
+     *   .catch(error => console.error('Error:', error.userMessage));
      */
-    put(endpoint, data) {
-        return this.request('PUT', endpoint, data);
+    put(endpoint, data = {}, config = {}) {
+        return this.instance.put(endpoint, data, config);
     }
 
     /**
      * DELETE Request - Remove data from server
      * 
-     * PURPOSE: Delete resource from API
-     * HOW TO USE: ApiClient.delete('/api/users/admin_user')
+     * PURPOSE: Send request to delete resource
+     * HOW TO USE: ApiClient.delete('/api/users/123')
      * 
-     * @param {string} endpoint - API endpoint with resource identifier
-     * @returns {Promise} jQuery promise with response
+     * @param {string} endpoint - API endpoint
+     * @param {Object} config - Optional Axios config
+     * @returns {Promise} Promise that resolves with response data
      * 
      * EXAMPLE:
      *   ApiClient.delete('/api/users/admin_user')
-     *     .done(function(response) {
-     *         console.log('User deleted');
-     *     })
-     *     .fail(function(xhr) {
-     *         console.error('Delete failed:', xhr.responseJSON.error);
-     *     });
+     *     .then(response => console.log('Deleted:', response))
+     *     .catch(error => console.error('Error:', error.userMessage));
      */
-    delete(endpoint) {
-        return this.request('DELETE', endpoint);
+    delete(endpoint, config = {}) {
+        return this.instance.delete(endpoint, config);
     }
 
     /**
-     * POST with file upload (multipart/form-data)
-     * 
-     * PURPOSE: Upload files to server
-     * HOW TO USE: ApiClient.uploadFile('/api/upload', fileInputElement.files[0])
+     * PATCH Request - Partial update of existing data
      * 
      * @param {string} endpoint - API endpoint
-     * @param {File} file - File to upload
-     * @param {Object} additionalData - Additional form data
-     * @returns {Promise} jQuery promise
+     * @param {Object} data - Data to send
+     * @param {Object} config - Optional Axios config
+     * @returns {Promise} Promise that resolves with response data
      */
-    uploadFile(endpoint, file, additionalData = {}) {
-        const url = this.buildUrl(endpoint);
-        const formData = new FormData();
-
-        formData.append('file', file);
-
-        // Add any additional data to form
-        Object.keys(additionalData).forEach(key => {
-            formData.append(key, additionalData[key]);
-        });
-
-        this.log(`File Upload: ${endpoint}`);
-
-        return $.ajax({
-            url: url,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            timeout: this.timeout
-        })
-            .done(function (response) {
-                this.log(`File Upload Success (${endpoint}):`, response);
-            }.bind(this))
-            .fail(function (xhr, status, error) {
-                this.logError(`File Upload Failed (${endpoint}): ${status} - ${error}`, xhr);
-            }.bind(this));
+    patch(endpoint, data = {}, config = {}) {
+        return this.instance.patch(endpoint, data, config);
     }
 
     /**
-     * Check if API is accessible (health check)
+     * Make a custom request with full control
      * 
-     * PURPOSE: Verify API connectivity
-     * HOW TO USE: ApiClient.healthCheck().done(() => console.log('API is up'));
-     * 
-     * @returns {Promise} jQuery promise
+     * @param {Object} config - Axios config object
+     * @returns {Promise} Promise that resolves with response data
      */
-    healthCheck() {
-        return this.get('/api/parva?limit=1')
-            .done(function () {
-                this.log('API Health Check: OK');
-            }.bind(this))
-            .fail(function () {
-                this.log('API Health Check: FAILED');
-            }.bind(this));
+    request(config) {
+        return this.instance.request(config);
     }
 }
 
@@ -284,21 +304,47 @@ class ApiClient {
  * HOW TO USE:
  *   // In your app initialization:
  *   ApiClient.setBaseUrl('http://localhost:8443');
+ *   ApiClient.setDebugMode(true); // Enable logging
  *   
- *   // In your components:
+ *   // In your components (using async/await):
+ *   try {
+ *       const users = await ApiClient.get('/api/users');
+ *       console.log(users);
+ *   } catch (error) {
+ *       console.error(error.userMessage);
+ *   }
+ *   
+ *   // Or using .then()/.catch():
  *   ApiClient.get('/api/users')
- *       .done(function(users) { ... })
- *       .fail(function(xhr) { ... });
+ *       .then(users => console.log(users))
+ *       .catch(error => console.error(error.userMessage));
  */
 
 // Create a global singleton instance
-window.ApiClient = new ApiClient();
-
-// Auto-detect base URL based on current environment
-// In development: http://localhost:PORT
-// In production: https://yourdomain.com
-// You can override this by calling ApiClient.setBaseUrl() in your initialization
-if (window.ApiClient && typeof window.ApiClient.log === 'function') {
-    window.ApiClient.log(`Initializing with origin: ${window.location.origin}`);
+if (typeof axios !== 'undefined' && axios !== null) {
+    try {
+        window.ApiClient = new ApiClient();
+        console.log('[ApiClient] ✓ Initialized successfully with Axios v' + axios.VERSION);
+    } catch (error) {
+        console.error('[ApiClient] ✗ Failed to initialize:', error.message);
+        // Create a fallback stub to prevent runtime errors
+        window.ApiClient = {
+            get: function () { throw new Error('ApiClient not initialized: ' + error.message); },
+            post: function () { throw new Error('ApiClient not initialized: ' + error.message); },
+            put: function () { throw new Error('ApiClient not initialized: ' + error.message); },
+            delete: function () { throw new Error('ApiClient not initialized: ' + error.message); }
+        };
+    }
+} else {
+    console.error('[ApiClient] ✗ FATAL: Axios library not loaded!');
+    // Create a fallback stub to prevent immediate crashes
+    window.ApiClient = {
+        get: function () { throw new Error('Axios library not loaded'); },
+        post: function () { throw new Error('Axios library not loaded'); },
+        put: function () { throw new Error('Axios library not loaded'); },
+        delete: function () { throw new Error('Axios library not loaded'); }
+    };
 }
+
+
 

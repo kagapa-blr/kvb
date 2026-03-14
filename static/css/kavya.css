@@ -1,3 +1,16 @@
+/* Import NudiParijatha Font */
+@font-face {
+  font-family: 'NudiParijatha';
+  src: url('../fonts/NudiParijatha.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Apply NudiParijatha font to the entire page */
+body {
+  font-family: 'NudiParijatha', Arial, sans-serif;
+}
+
 /* General Container Styles */
 .container {
   width: 100%;
@@ -9,70 +22,95 @@
 /* Flexbox for Dropdowns and Button List */
 .row {
   display: flex;
-  width: 100%; /* Full width of the container */
-  margin: 0 auto; /* Center the row horizontally */
+  width: 100%;
+  /* Full width of the container */
+  margin: 0 auto;
+  /* Center the row horizontally */
 }
 
 /* Left Column Styles */
 .left-column {
-  flex: 1; /* Takes up equal space */
+  flex: 1;
+  /* Takes up equal space */
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Space between dropdowns */
+  gap: 20px;
+  /* Space between dropdowns */
 }
 
 /* Right Column Styles */
 .right-column {
-  flex: 1; /* Takes up equal space */
+  flex: 1;
+  /* Takes up equal space */
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Align buttons to the right */
+  align-items: flex-end;
+  /* Align buttons to the right */
 }
-.form-select{
+
+.form-select {
   display: block;
   width: auto;
 
 }
+
 /* Dropdowns Styles */
 .dropdowns .dropdown {
-  min-width: 200px; /* Adjusted width for dropdowns */
+  min-width: 200px;
+  /* Adjusted width for dropdowns */
 }
 
 .button-list {
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Align buttons to the right */
+  align-items: flex-end;
+  /* Align buttons to the right */
 }
 
 .button-list button {
   margin: 5px 0;
-  padding: 5px; /* Adjust padding as needed */
+  padding: 5px;
+  /* Adjust padding as needed */
   font-size: 16px;
-  text-align: center; /* Center text in buttons */
-  width: 200px; /* Fixed width for all buttons */
-  background-color: #007bff; /* Default background color */
-  color: rgb(20, 4, 4); /* Text color */
-  border: none; /* Remove default border */
-  border-radius: 4px; /* Rounded corners */
-  cursor: pointer; /* Pointer cursor on hover */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  text-align: center;
+  /* Center text in buttons */
+  width: 200px;
+  /* Fixed width for all buttons */
+  background-color: #007bff;
+  /* Default background color */
+  color: rgb(20, 4, 4);
+  /* Text color */
+  border: none;
+  /* Remove default border */
+  border-radius: 4px;
+  /* Rounded corners */
+  cursor: pointer;
+  /* Pointer cursor on hover */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  /* Smooth transition */
 }
 
 .button-list button:hover {
-  background-color: #0056b3; /* Darker background color on hover */
-  transform: scale(1.05); /* Slightly enlarge the button */
+  background-color: #0056b3;
+  /* Darker background color on hover */
+  transform: scale(1.05);
+  /* Slightly enlarge the button */
 }
 
 .button-list button:focus {
-  outline: none; /* Remove default focus outline */
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5); /* Add a subtle shadow on focus */
+  outline: none;
+  /* Remove default focus outline */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+  /* Add a subtle shadow on focus */
 }
 
 
 /* Audio Player Styles */
 .audio-player-container {
-  text-align: center; /* Center the audio player */
-  border-radius:2px solid; /*
+  text-align: center;
+  /* Center the audio player */
+  border-radius: 2px solid;
+  /*
 }
 
 .audio-player {
@@ -87,15 +125,20 @@
   color: white;
   padding: 10px;
   border-radius: 50%;
-  font-size: 24px; /* Adjust size of the icon */
+  font-size: 24px;
+  /* Adjust size of the icon */
   cursor: pointer;
-  margin-bottom: 10px; /* Space between button and audio controls */
+  margin-bottom: 10px;
+  /* Space between button and audio controls */
 }
 
 audio {
-  width: 100%; /* Make audio player full width of its container */
-  max-width: 300px; /* Optional: Limit maximum width of the audio player */
-  margin-top: 10px; /* Space between button and audio player */
+  width: 100%;
+  /* Make audio player full width of its container */
+  max-width: 300px;
+  /* Optional: Limit maximum width of the audio player */
+  margin-top: 10px;
+  /* Space between button and audio player */
 }
 
 
@@ -137,59 +180,91 @@ audio {
 }
 
 .padya-container {
-  grid-column: 1 / -1; /* Span full width */
-  text-align: justify; /* Center the content */
-  margin-bottom: 20px; /* Space below */
-  max-width: 600px; /* Reduced width */
+  grid-column: 1 / -1;
+  /* Span full width */
+  text-align: justify;
+  /* Center the content */
+  margin-bottom: 20px;
+  /* Space below */
+  max-width: 600px;
+  /* Reduced width */
   margin-left: auto;
   margin-right: auto;
 }
 
-.padya, .pathantar, .gadya, .tippani, .artha {
-  width: 100%; /* Ensure full width */
-  height: 100px; /* Fixed height */
-  padding: 10px; /* Add padding for better visibility */
-  padding-top: 0; /* Remove top padding */
-  display: flex; /* Use flexbox */
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
-  overflow-y: auto; /* Make content scrollable if it overflows */
-  box-sizing: border-box; /* Ensure padding is included in height */
+.padya,
+.pathantar,
+.gadya,
+.tippani,
+.artha {
+  width: 100%;
+  /* Ensure full width */
+  height: 100px;
+  /* Fixed height */
+  padding: 10px;
+  /* Add padding for better visibility */
+  padding-top: 0;
+  /* Remove top padding */
+  display: flex;
+  /* Use flexbox */
+  align-items: center;
+  /* Center vertically */
+  justify-content: center;
+  /* Center horizontally */
+  overflow-y: auto;
+  /* Make content scrollable if it overflows */
+  box-sizing: border-box;
+  /* Ensure padding is included in height */
 }
 
 .pathantar {
-  text-align: left; /* Left align */
+  text-align: left;
+  /* Left align */
 }
 
 .gadya {
-  text-align: left; /* Right align */
+  text-align: left;
+  /* Right align */
 }
 
 .tippani {
-  text-align: left; /* Left align */
-  grid-column: 1 / 2; /* First column */
+  text-align: left;
+  /* Left align */
+  grid-column: 1 / 2;
+  /* First column */
 }
 
 .artha {
-  text-align: left; /* Right align */
-  grid-column: 2 / 3; /* Second column */
+  text-align: left;
+  /* Right align */
+  grid-column: 2 / 3;
+  /* Second column */
 }
 
 /* Editable Styles */
 .editable {
-  border: 1px dashed #ccc; /* Dashed border to indicate editability */
+  border: 1px dashed #ccc;
+  /* Dashed border to indicate editability */
   padding: 5px;
   border-radius: 4px;
-  width: 100%; /* Ensure full width */
-  height: 100%; /* Ensure full height */
-  box-sizing: border-box; /* Include padding in width and height */
-  overflow-y: auto; /* Make content scrollable */
-  outline: none; /* Remove default outline when focused */
-  display: flex; /* Use flexbox */
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
+  width: 100%;
+  /* Ensure full width */
+  height: 100%;
+  /* Ensure full height */
+  box-sizing: border-box;
+  /* Include padding in width and height */
+  overflow-y: auto;
+  /* Make content scrollable */
+  outline: none;
+  /* Remove default outline when focused */
+  display: flex;
+  /* Use flexbox */
+  align-items: center;
+  /* Center vertically */
+  justify-content: center;
+  /* Center horizontally */
 }
 
-.list-group-item:hover{
-background-color: rgb(159, 247, 166);
+.list-group-item:hover {
+  background-color: rgb(159, 247, 166);
 }

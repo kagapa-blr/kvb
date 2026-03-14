@@ -11,9 +11,17 @@
     <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
     <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
-    <!-- Custom JS -->
+    <!-- Axios library (MUST be loaded before restclient.js) -->
+    <script src="{{ url_for('static', filename='js/axios.min.js') }}"></script>
+    <!-- API Client (Axios-based REST client) -->
+    <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
+    <!-- API Endpoints configuration -->
+    <script src="{{ url_for('static', filename='js/endpoints.js') }}"></script>
+    <!-- Application scripts -->
     <script src="{{ url_for('static', filename='js/kavya_process.js') }}"></script>
     <script src="{{ url_for('static', filename='js/additional-buttons.js') }}"></script>
+    <!-- API Client diagnostic (verify everything is loaded) -->
+    <script src="{{ url_for('static', filename='js/apiClient_diagnostic.js') }}"></script>
 </head>
 
 <body style="background-color: rgb(240, 221, 188);">
