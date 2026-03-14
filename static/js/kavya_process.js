@@ -129,7 +129,7 @@ $(document).ready(function () {
     const $dropdown = $(selector);
     $dropdown.empty(); // Clear existing options
     $dropdown.append($("<option>", { value: "", text: "Select" }));
-    $.each(data, function (index, item) {
+    data.forEach((item) => {
       $dropdown.append(
         $("<option>", {
           value: item[valueKey],
@@ -552,7 +552,7 @@ $(document).ready(function () {
   function allParvaTable(data) {
     const tableBody = $("#parvaTableBodyContent");
     tableBody.empty(); // Clear the table body
-    $.each(data, function (index, parva) {
+    data.forEach((parva) => {
       const row = $("<tr>");
       row.append($("<td>").text(parva.parva_number));
       row.append($("<td>").text(parva.name));
@@ -566,7 +566,7 @@ $(document).ready(function () {
       const data = await fetchData(ApiEndpoints.SANDHI.LIST);
       const tableBody = $("#sandhiTableBodyContent");
       tableBody.empty(); // Clear the table body
-      $.each(data, function (index, sandhi) {
+      data.forEach((sandhi) => {
         const row = $("<tr>");
         row.append($("<td>").text(sandhi.sandhi_number));
         row.append($("<td>").text(sandhi.name));

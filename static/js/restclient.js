@@ -22,13 +22,14 @@
  *     6. Application scripts
  * 
  * HOW TO USE:
- *   1. Set base URL: ApiClient.setBaseUrl('http://localhost:8443');
+ *   1. Base URL is set to '/kvb/' - all requests will use this prefix
  *   2. Make requests: 
- *      - ApiClient.get('/api/users')
+ *      - ApiClient.get('/api/users')   -> resolves to /kvb/api/users
  *      - ApiClient.post('/api/users', {name: 'admin'})
  *      - ApiClient.put('/api/users/1', {name: 'updated'})
  *      - ApiClient.delete('/api/users/1')
- *   3. All return Promises (use .then() or async/await)
+ *   3. All return Promises (use async/await or .then()/.catch())
+ *   4. To change base URL: ApiClient.setBaseUrl('/new/path')
  * 
  * TROUBLESHOOTING:
  *   - If you see "ApiClient is not defined", check script loading order
@@ -36,8 +37,8 @@
  *   - Check browser console for [ApiClient] diagnostic messages
  * 
  * ENVIRONMENT CONFIGURATION:
- *   - Development: http://localhost:8443
- *   - Production: https://yourdomain.com
+ *   - Base URL: /kvb/ (Flask app sub-path)
+ *   - API endpoints: /kvb/api/parva, /kvb/api/sandhi, etc.
  */
 
 class ApiClient {
@@ -46,7 +47,9 @@ class ApiClient {
      * Initialize Axios instance with default configuration
      */
     constructor() {
-        this.baseUrl = ''; // Default to current origin
+        // Base URL set to /kvb/ (Flask app sub-path)
+        // All API requests will be prefixed with this path
+        this.baseUrl = '';
         this.timeout = 30000; // 30 seconds
         this.debugMode = false; // Set to true for console logging
 
@@ -300,12 +303,11 @@ class ApiClient {
 /**
  * Global instance - Create and use throughout the application
  * 
+ * NOTE: Base URL is initialized to '/kvb/' for Flask app routing
+ * Override with ApiClient.setBaseUrl(newUrl) if needed
+ * 
  * HOW TO USE:
- *   // In your app initialization:
- *   ApiClient.setBaseUrl('http://localhost:8443');
- *   ApiClient.setDebugMode(true); // Enable logging
- *   
- *   // In your components (using async/await):
+ *   // In your components (using async/await - recommended):
  *   try {
  *       const users = await ApiClient.get('/api/users');
  *       console.log(users);
@@ -317,6 +319,9 @@ class ApiClient {
  *   ApiClient.get('/api/users')
  *       .then(users => console.log(users))
  *       .catch(error => console.error(error.userMessage));
+ *   
+ *   // Enable debugging:
+ *   ApiClient.setDebugMode(true);
  */
 
 // Create a global singleton instance
