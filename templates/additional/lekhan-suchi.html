@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="kn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ಲೇಖನ ಸೂಚಿ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel=\"stylesheet\" href=\"{{ url_for('static', filename='css/style.css' ) }}\">
     <style>
         body {
             background-color: #f8dfbe;
             font-family: "Arial", sans-serif;
         }
+
         .header {
             text-align: center;
             font-size: 30px;
@@ -21,6 +24,7 @@
             color: #000;
             text-shadow: 1px 1px 2px #8c5705;
         }
+
         .main-section {
             background-color: #f4c4a5;
             border: 1px solid #e6b89c;
@@ -28,15 +32,18 @@
             margin-top: 20px;
             border-radius: 10px;
         }
+
         .radio-section {
             background-color: #f9b389;
             padding: 10px;
             border-radius: 10px;
             margin-bottom: 20px;
         }
+
         .form-check-inline {
             margin-right: 10px;
         }
+
         .list-section {
             background-color: #fff;
             border: 1px solid #ccc;
@@ -44,14 +51,17 @@
             overflow-y: scroll;
             margin-bottom: 20px;
         }
+
         .input-section .input-group {
             margin-bottom: 15px;
         }
+
         .input-group-text {
             background-color: #ffd966;
             width: 120px;
             font-weight: bold;
         }
+
         .footer-note {
             font-size: 14px;
             margin-top: 20px;
@@ -59,10 +69,11 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Include Navbar -->
     {% include 'navbar.html' %}
-    
+
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -109,16 +120,21 @@
                             </thead>
                             <tbody>
                                 <tr data-author="ಆನಂದ" data-title="Title1" data-publication="Publication details 1">
-                                    <td>1</td><td>ಆನಂದ</td>
+                                    <td>1</td>
+                                    <td>ಆನಂದ</td>
                                 </tr>
-                                <tr data-author="ಆನಂದಮೂರ್ತಿ" data-title="Title2" data-publication="Publication details 2">
-                                    <td>2</td><td>ಆನಂದಮೂರ್ತಿ</td>
+                                <tr data-author="ಆನಂದಮೂರ್ತಿ" data-title="Title2"
+                                    data-publication="Publication details 2">
+                                    <td>2</td>
+                                    <td>ಆನಂದಮೂರ್ತಿ</td>
                                 </tr>
                                 <tr data-author="ಆನಂತ" data-title="Title3" data-publication="Publication details 3">
-                                    <td>3</td><td>ಆನಂತ</td>
+                                    <td>3</td>
+                                    <td>ಆನಂತ</td>
                                 </tr>
                                 <tr data-author="ಅಂಜಲಿ" data-title="Title4" data-publication="Publication details 4">
-                                    <td>4</td><td>ಅಂಜಲಿ</td>
+                                    <td>4</td>
+                                    <td>ಅಂಜಲಿ</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -150,16 +166,16 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // JavaScript to handle row clicks
         document.querySelectorAll('.list-section table tbody tr').forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 // Get data from the row's data attributes
                 const author = this.getAttribute('data-author');
                 const title = this.getAttribute('data-title');
                 const publication = this.getAttribute('data-publication');
-                
+
                 // Set the input fields with the row's data
                 document.getElementById('author').value = author;
                 document.getElementById('title').value = title;
@@ -167,8 +183,9 @@
             });
         });
     </script>
-    
+
     <!-- Include Footer -->
     {% include 'footer.html' %}
 </body>
+
 </html>

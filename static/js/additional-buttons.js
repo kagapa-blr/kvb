@@ -39,6 +39,7 @@ function ensureApiClientReady(callback, timeout = 5000) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('[AdditionalButtons] DOM loaded, waiting for ApiClient...');
     // Initialize when ApiClient is ready
     ensureApiClientReady(initializeAdditionalButtons);
 });
@@ -226,11 +227,20 @@ function initializeAdditionalButtons() {
 
     // Event listener for button clicks to load modal content
     document.querySelectorAll('.button-list button').forEach(function (button) {
-        button.addEventListener('click', function () {
+        // Skip external link buttons - they have their own handler
+        if (button.classList.contains('external-link-button')) {
+            console.log(`[AdditionalButtons] Skipping external link button: ${button.textContent.trim()}`);
+            return;
+        }
+
+        button.addEventListener('click', function (event) {
+            event.stopPropagation();
+            event.preventDefault();
+
             const buttonText = button.textContent.trim();
             let modalId;
             let endpoint;
-            let skipFetch = false; // Flag to skip API calls for certain modals
+            let skipFetch = false;
 
             // Map button text to corresponding modal and endpoint
             switch (buttonText) {
@@ -312,4 +322,6 @@ function initializeAdditionalButtons() {
             }
         });
     });
+
+    console.log('[AdditionalButtons] ✓ Initialized - listening for button clicks');
 }

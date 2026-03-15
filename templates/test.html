@@ -8,6 +8,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/newkavya.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/font-awesome-6.6.0-all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}">
 
@@ -174,302 +175,72 @@
             <div class="col-md-3">
                 <div class="side-menu">
                     <div class="button-list">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">ಹೆಚ್ಚಿನ ಶೋಧನೆ
-                        </button>
-                        <button class="btn btn-primary external-link-button" data-target-url="/akaradi-suchi">ಅಕಾರಾದಿ
-                            ಸೂಚಿ
-                        </button>
-
-                        <button class="btn btn-primary external-link-button" data-target-url="/lekhana-suchi">ಲೇಖನ
-                            ಸೂಚಿ
-                        </button>
-
-                        <button class="btn btn-primary external-link-button" data-target-url="/gadegal-suchi">ಗಾದೆಗಳ
-                            ಸೂಚಿ
-                        </button>
-
-                        <button class="btn btn-primary external-link-button" data-target-url="/artha-kosha">ಅರ್ಥ
-                            ಕೋಶ
-                        </button>
-
-
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal6">ವಿಷಯ ಪರಿವಿಡಿ
-                        </button>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">ಗಮಕ</button>
-
-                        <button class="btn btn-primary external-link-button" data-target-url="/anuband-info">ಅನುಬಂಧ
-                        </button>
-                        <button class="btn btn-primary external-link-button" data-target-url="/tippani-info">ಟಿಪ್ಪಣಿ
-                        </button>
-
-
+                        <button class="btn btn-primary" onclick="openModal('modal1')">ಹೆಚ್ಚಿನ ಶೋಧನೆ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="akaradi-suchi">ಅಕಾರಾದಿ
+                            ಸೂಚಿ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="lekhana-suchi">ಲೇಖನ
+                            ಸೂಚಿ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="gadegal-suchi">ಗಾದೆಗಳ
+                            ಸೂಚಿ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="artha-kosha">ಅರ್ಥ
+                            ಕೋಶ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="vishaya-parividi">ವಿಷಯ
+                            ಪರಿವಿಡಿ</button>
+                        <button class="btn btn-primary external-link-button" data-endpoint="gamaka">ಗಮಕ</button>
+                        <button class="btn btn-primary external-link-button"
+                            data-endpoint="anuband-info">ಅನುಬಂಧ</button>
+                        <button class="btn btn-primary external-link-button"
+                            data-endpoint="tippani-info">ಟಿಪ್ಪಣಿ</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Scrollable Modal Examples -->
-    <div class="Scrollable-Modal">
-
-        <!-- Modal Structure -->
-        <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-top modal-dialog-scrollable modal-xl">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h3 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h3>
-                        <form id="search-form" class="mb-4">
-                            <div class="input-group">
-                                <input id="search-input" type="text" class="form-control"
-                                    placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..." required>
-                                <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
-                            </div>
-                        </form>
-                        <ul id="search-results" class="list-group">
-                            <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="modal2Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal2Label">ಅಕಾರಾದಿ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅಕಾರಾದಿ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಅಕಾರಾದಿ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="modal3Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal3Label">ಗಾದೆಗಳ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಗಾದೆಗಳ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಗಾದೆಗಳ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="modal4Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal4Label">ಲೇಖನ ಸೂಚಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಲೇಖನ ಸೂಚಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಲೇಖನ ಸೂಚಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal5" tabindex="-1" aria-labelledby="modal5Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal5Label">ಅರ್ಥ ಕೋಶ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅರ್ಥ ಕೋಶ" -->
-                        <p>
-                            Here is some detailed content for the "ಅರ್ಥ ಕೋಶ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal6" tabindex="-1" aria-labelledby="modal6Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal6Label">ವಿಷಯ ಪರಿವಿಡಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ವಿಷಯ ಪರಿವಿಡಿ" -->
-                        <p>
-                            Here is some detailed content for the "ವಿಷಯ ಪರಿವಿಡಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal7" tabindex="-1" aria-labelledby="modal7Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal7Label">ಗಮಕ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಗಮಕ" -->
-                        <p>
-                            Here is some detailed content for the "ಗಮಕ" section. Add enough
-                            content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal8" tabindex="-1" aria-labelledby="modal8Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal8Label">ಅನುಬಂಧ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಅನುಬಂಧ" -->
-                        <p>
-                            Here is some detailed content for the "ಅನುಬಂಧ" section. Add enough
-                            content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modal9" tabindex="-1" aria-labelledby="modal9Label" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modal9Label">ಟಿಪ್ಪಣಿ</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content for "ಟಿಪ್ಪಣಿ" -->
-                        <p>
-                            Here is some detailed content for the "ಟಿಪ್ಪಣಿ" section. Add
-                            enough content to test scrolling behavior.
-                        </p>
-                        <!-- Repeat content to ensure scrolling -->
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                        <p>Curabitur ullamcorper arcu at sem vehicula...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     {% include 'footer.html' %}
 
-    <!-- External Link Button Handler - Base URL Support -->
+    <!-- Search Modal -->
+    <div class="modal fade" id="modal1" tabindex="-1" aria-labelledby="modal1Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-top modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal1Label">ಹೆಚ್ಚಿನ ಶೋಧನೆ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h3 class="text-center my-4">ಶಬ್ದದಿಂದ ಹುಡುಕು</h3>
+                    <form id="search-form" class="mb-4">
+                        <div class="input-group">
+                            <input id="search-input" type="text" class="form-control"
+                                placeholder="ಹುಡುಕಲು ಶಬ್ದವನ್ನು ನಮೂದಿಸಿ..." required>
+                            <button class="btn btn-outline-secondary" type="submit">ಹುಡುಕು</button>
+                        </div>
+                    </form>
+                    <ul id="search-results" class="list-group">
+                        <!-- ಶೋಧದ ಫಲಿತಾಂಶಗಳನ್ನು JavaScript ಮೂಲಕ ಅಳವಡಿಸಲಾಗುತ್ತದೆ -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Endpoints Navigation Handler - Production Base Path Support -->
     <script>
-        /**
-         * External Link Button Handler
-         * Dynamically opens links with proper base URL support
-         * Uses ApiClient for base URL detection and path resolution
-         */
-        function initializeExternalLinkButtons() {
-            // Wait for ApiClient to be ready
-            const checkInterval = setInterval(() => {
-                if (typeof window.ApiClient !== 'undefined' &&
-                    typeof window.ApiClient.resolvePath === 'function') {
-                    clearInterval(checkInterval);
-                    setupExternalLinkButtons();
-                    console.log('[Test] External link buttons initialized with base URL support');
-                }
-            }, 50);
-
-            // Timeout after 5 seconds
-            setTimeout(() => {
-                if (checkInterval) clearInterval(checkInterval);
-            }, 5000);
-        }
-
-        /**
-         * Setup click handlers for all external link buttons
-         * Resolves paths with base URL and opens in new window
-         */
-        function setupExternalLinkButtons() {
-            const buttons = document.querySelectorAll('.external-link-button');
-
-            buttons.forEach(button => {
-                const targetUrl = button.getAttribute('data-target-url');
-
-                if (!targetUrl) {
-                    console.warn('[Test] External link button missing data-target-url attribute', button);
-                    return;
-                }
-
-                // Resolve the path with base URL
-                const resolvedUrl = window.ApiClient.resolvePath(targetUrl);
-
-                // Add click handler
-                button.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    console.log(`[Test] Opening external link: ${resolvedUrl}`);
-                    window.open(resolvedUrl, '_blank');
-                });
-
-                console.log(`[Test] Configured button: ${targetUrl} -> ${resolvedUrl}`);
-            });
-        }
-
-        // Initialize when document is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeExternalLinkButtons);
-        } else {
-            initializeExternalLinkButtons();
-        }
+        // Define all endpoints for this page
+        const ENDPOINTS = {
+            'akaradi-suchi': '/akaradi-suchi',
+            'lekhana-suchi': '/lekhana-suchi',
+            'gadegal-suchi': '/gadegal-suchi',
+            'artha-kosha': '/artha-kosha',
+            'vishaya-parividi': '/vishaya-parividi',
+            'gamaka': '/gamaka',
+            'anuband-info': '/anuband-info',
+            'tippani-info': '/tippani-info'
+        };
     </script>
+    <!-- Navigation Handler Script -->
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
 </body>
 
 </html>
