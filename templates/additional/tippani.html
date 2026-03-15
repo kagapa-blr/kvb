@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ಟಿಪ್ಪಣಿ</title>
-    <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/boostrap/css/font-awesome-6.6.0-all.min.css">
-    <script src="/static/jquery/jquery-3.7.1.js"></script>
-    <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
-    <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
-    <script src="/static/DataTables/datatables.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/font-awesome-6.6.0-all.min.css') }}">
+    <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.js') }}"></script>
+    <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
+    <link href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
 
 
 
@@ -370,10 +370,10 @@
                     <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace('nan', '-')}</p>
                     <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
                     `);
-                    $('#padyaModal').modal('show');
-                            } 
-                            
-                            
+                                $('#padyaModal').modal('show');
+                            }
+
+
                             else {
                                 console.error("No data returned from API");
                                 // Show error message in modal

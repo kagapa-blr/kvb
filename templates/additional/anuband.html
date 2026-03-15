@@ -1,59 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document Viewer</title>
 
 
-  <link rel="stylesheet" href="/static/boostrap/css/bootstrap.min.css">
-  <script src="/static/jquery/jquery-3.7.1.min.js"></script>
-  <script src="/static/boostrap/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='boostrap/css/bootstrap.min.css') }}">
+  <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
 
 
   <style>
     body {
       background-color: #FFE4B5;
     }
+
     .btn-warning.active {
       background-color: #FFA500;
       color: black;
     }
+
     .btn-warning {
       background-color: #FFD700;
       color: black;
-      font-size: 1.125rem; /* Larger font size */
-      padding: 0.5rem 1rem; /* Larger padding */
+      font-size: 1.125rem;
+      /* Larger font size */
+      padding: 0.5rem 1rem;
+      /* Larger padding */
     }
+
     .btn-warning:hover {
       background-color: #FFA500;
       color: black;
     }
+
     .btn-container {
-      margin-bottom: 1.5rem; /* Space below the buttons */
+      margin-bottom: 1.5rem;
+      /* Space below the buttons */
     }
+
     .content {
       background-color: white;
       border: 2px solid black;
       border-radius: 0.5rem;
       padding: 1rem;
-      height: 30rem; /* Increased height */
+      height: 30rem;
+      /* Increased height */
       overflow-y: auto;
     }
+
     h1 {
       background-color: #FFA500;
       color: black;
       padding: 0.5rem;
-      margin-bottom: 1.5rem; /* Space below the header */
+      margin-bottom: 1.5rem;
+      /* Space below the header */
       border-radius: 0.5rem;
     }
   </style>
 </head>
+
 <body>
-    {% include 'navbar.html' %}
+  {% include 'navbar.html' %}
   <div class="container my-4">
     <h1 class="text-center">ಅನುಬಂಧ</h1>
-    
+
     <div class="d-flex overflow-auto btn-container">
       <button class="btn btn-warning me-2 active" data-target="tab1">ಕೋಶದ ನಾಂದಿ</button>
       <button class="btn btn-warning me-2" data-target="tab2">ಕುಮಾರ ವ್ಯಾಸ ಕೃತಿ ಕನ್ನಡ ಭಾಷೆ</button>
@@ -69,7 +82,7 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const tabs = {
         tab1: 'ಕೋಶದ ನಾಂದಿ ವಿಷಯ ಇಲ್ಲಿದೆ.',
         tab2: 'ಕುಮಾರ ವ್ಯಾಸ ಕೃತಿ ಕನ್ನಡ ಭಾಷೆ ವಿಷಯ ಇಲ್ಲಿದೆ.',
@@ -88,7 +101,7 @@
 
           buttons.forEach(btn => btn.classList.remove('active'));
           button.classList.add('active');
-          
+
           contentDiv.textContent = tabs[targetId];
         });
       });
@@ -99,6 +112,7 @@
   </script>
 
 
-{% include 'footer.html' %}
+  {% include 'footer.html' %}
 </body>
+
 </html>
