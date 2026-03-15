@@ -14,7 +14,7 @@
  * Changes made here automatically reflect across ALL HTTP requests in the app.
  * ===================================================================
  */
-const BASE_PATH = ""; // PLACEHOLDER: Modify here for different deployments
+const BASE_PATH = ""; // Production: https://kagapa.com/kvb (no trailing slash)
 
 class ApiClient {
     constructor(baseUrl = '') {
