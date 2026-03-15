@@ -247,7 +247,7 @@
             allParva = new Set()
             // Fetch data from Flask API and populate the table
             window.ApiClient.get('/tippani/data')
-                .then(response => response.json())
+
                 .then(data => {
                     if (Array.isArray(data)) {
                         table.clear().rows.add(data).draw();
@@ -349,7 +349,7 @@
 
                     // Fetch details from the API
                     window.ApiClient.get(apiUrl)
-                        .then(response => response.json())
+
                         .then(data => {
                             if (data) {
                                 // Populate modal with data

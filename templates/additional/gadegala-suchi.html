@@ -343,7 +343,6 @@
 
           // Fetch details from the API
           window.ApiClient.get(apiUrl)
-            .then((response) => response.json())
             .then((data) => {
               if (data) {
                 // Populate modal with data
