@@ -176,18 +176,19 @@
                     <div class="button-list">
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal1">ಹೆಚ್ಚಿನ ಶೋಧನೆ
                         </button>
-                        <button class="btn btn-primary" onclick="window.open('/akaradi-suchi', '_blank')">ಅಕಾರಾದಿ ಸೂಚಿ
-                        </button>
-
-                        <button class="btn btn-primary" onclick="window.open('/lekhana-suchi', '_blank')">ಲೇಖನ
+                        <button class="btn btn-primary external-link-button" data-target-url="/akaradi-suchi">ಅಕಾರಾದಿ
                             ಸೂಚಿ
                         </button>
 
-                        <button class="btn btn-primary" onclick="window.open('/gadegal-suchi', '_blank')">ಗಾದೆಗಳ
+                        <button class="btn btn-primary external-link-button" data-target-url="/lekhana-suchi">ಲೇಖನ
                             ಸೂಚಿ
                         </button>
 
-                        <button class="btn btn-primary" onclick="window.open('/artha-kosha', '_blank')">ಅರ್ಥ
+                        <button class="btn btn-primary external-link-button" data-target-url="/gadegal-suchi">ಗಾದೆಗಳ
+                            ಸೂಚಿ
+                        </button>
+
+                        <button class="btn btn-primary external-link-button" data-target-url="/artha-kosha">ಅರ್ಥ
                             ಕೋಶ
                         </button>
 
@@ -196,9 +197,9 @@
                         </button>
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal7">ಗಮಕ</button>
 
-                        <button class="btn btn-primary" onclick="window.open('/anuband-info', '_blank')">ಅನುಬಂಧ
+                        <button class="btn btn-primary external-link-button" data-target-url="/anuband-info">ಅನುಬಂಧ
                         </button>
-                        <button class="btn btn-primary" onclick="window.open('/tippani-info', '_blank')">ಟಿಪ್ಪಣಿ
+                        <button class="btn btn-primary external-link-button" data-target-url="/tippani-info">ಟಿಪ್ಪಣಿ
                         </button>
 
 
@@ -408,8 +409,67 @@
     </div>
 
     {% include 'footer.html' %}
-</body>
 
-</html>
+    <!-- External Link Button Handler - Base URL Support -->
+    <script>
+        /**
+         * External Link Button Handler
+         * Dynamically opens links with proper base URL support
+         * Uses ApiClient for base URL detection and path resolution
+         */
+        function initializeExternalLinkButtons() {
+            // Wait for ApiClient to be ready
+            const checkInterval = setInterval(() => {
+                if (typeof window.ApiClient !== 'undefined' &&
+                    typeof window.ApiClient.resolvePath === 'function') {
+                    clearInterval(checkInterval);
+                    setupExternalLinkButtons();
+                    console.log('[Test] External link buttons initialized with base URL support');
+                }
+            }, 50);
+
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                if (checkInterval) clearInterval(checkInterval);
+            }, 5000);
+        }
+
+        /**
+         * Setup click handlers for all external link buttons
+         * Resolves paths with base URL and opens in new window
+         */
+        function setupExternalLinkButtons() {
+            const buttons = document.querySelectorAll('.external-link-button');
+
+            buttons.forEach(button => {
+                const targetUrl = button.getAttribute('data-target-url');
+
+                if (!targetUrl) {
+                    console.warn('[Test] External link button missing data-target-url attribute', button);
+                    return;
+                }
+
+                // Resolve the path with base URL
+                const resolvedUrl = window.ApiClient.resolvePath(targetUrl);
+
+                // Add click handler
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    console.log(`[Test] Opening external link: ${resolvedUrl}`);
+                    window.open(resolvedUrl, '_blank');
+                });
+
+                console.log(`[Test] Configured button: ${targetUrl} -> ${resolvedUrl}`);
+            });
+        }
+
+        // Initialize when document is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeExternalLinkButtons);
+        } else {
+            initializeExternalLinkButtons();
+        }
+    </script>
+</body>
 
 </html>
