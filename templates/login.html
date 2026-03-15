@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <!-- Bootstrap JS -->
   <script src="{{ url_for('static', filename='boostrap/js/bootstrap.bundle.min.js') }}"></script>
+  <!-- Axios for HTTP requests (Required by restclient.js) -->
+  <script src="{{ url_for('static', filename='js/axios.min.js') }}"></script>
 </head>
 
 <body>
@@ -46,6 +48,61 @@
   </div>
 
   <script>
+    // Load restclient.js for base URL support
+    const script = document.createElement('script');
+    script.src = '{{ url_for("static", filename="js/restclient.js") }}';
+    script.onload = function () {
+      initializeLoginForm();
+    };
+    document.head.appendChild(script);
+
+    /**
+     * Initialize login form with base URL support
+     * Waits for ApiClient to be ready, then updates form action
+     */
+    function initializeLoginForm() {
+      const checkInterval = setInterval(() => {
+        // Check if ApiClient is available with required methods
+        if (typeof window.ApiClient !== 'undefined' &&
+          typeof window.ApiClient.resolvePath === 'function') {
+          clearInterval(checkInterval);
+          applyBaseUrlToLoginForm();
+          console.log('[Login] Form initialized with base URL support');
+        }
+      }, 50); // Check every 50ms
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        if (checkInterval) clearInterval(checkInterval);
+      }, 5000);
+    }
+
+    /**
+     * Apply base URL to login form action
+     * Updates action attribute to include base URL path for subdirectory deployments
+     */
+    function applyBaseUrlToLoginForm() {
+      try {
+        const form = document.getElementById('loginForm');
+        if (form) {
+          // Resolve the /login path with the current base URL
+          const resolvedPath = window.ApiClient.resolvePath('/login');
+          form.action = resolvedPath;
+
+          const baseUrl = window.ApiClient.getBaseUrl();
+          if (baseUrl) {
+            console.log('[Login] Applied base URL to form:', baseUrl);
+            console.log('[Login] Form action updated to:', form.action);
+          }
+        }
+      } catch (error) {
+        console.error('[Login] Error applying base URL to form:', error);
+      }
+    }
+
+    /**
+     * Original loading overlay functionality
+     */
     // Function to show loading overlay
     function showLoading() {
       const loadingElement = document.getElementById("loadingOverlay");
@@ -61,6 +118,7 @@
         loadingElement.style.display = "none";
       }
     }
+
     document
       .getElementById("loginForm")
       .addEventListener("submit", function (event) {

@@ -47,9 +47,9 @@ class ApiClient {
      * Initialize Axios instance with default configuration
      */
     constructor() {
-        // Base URL set to /kvb/ (Flask app sub-path)
-        // All API requests will be prefixed with this path
-        this.baseUrl = '';
+        // Detect and set base URL for API requests
+        // Supports both root deployment (/) and subdirectory deployment (/subpath/)
+        this.baseUrl = this.detectBaseUrl();
         this.timeout = 30000; // 30 seconds
         this.debugMode = false; // Set to true for console logging
 
@@ -70,6 +70,53 @@ class ApiClient {
 
         // Setup interceptors
         this.setupInterceptors();
+    }
+
+    /**
+     * Detect the base URL for API and page navigation
+     * Handles both root deployment (/) and subdirectory deployment (/subpath/)
+     * 
+     * @private
+     * @returns {string} The detected base URL (empty string for root, or /subpath for subdirectory)
+     */
+    detectBaseUrl() {
+        const pathname =""
+
+        // Check if pathname indicates a subdirectory deployment
+        // (e.g., /kvb/, /app/, etc.)
+        if (pathname && pathname !== '/' && !pathname.includes('.')) {
+            // Extract the first path segment as the base
+            const parts = pathname.split('/').filter(p => p);
+            if (parts.length > 0) {
+                // Return the first segment as base path
+                // E.g., if at /kvb/admin or /kvb/stats, return /kvb
+                return '/' + parts[0];
+            }
+        }
+
+        // Default: root deployment, no base URL needed
+        return '';
+    }
+
+    /**
+     * Get the base URL for navigation links and page references
+     * 
+     * @returns {string} Base URL for links (e.g., '/kvb' or '')
+     */
+    getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    /**
+     * Resolve a path with the current base URL
+     * Useful for constructing proper links and navigation URLs
+     * 
+     * @param {string} path - The path to resolve (e.g., '/admin', '/stats')
+     * @returns {string} Full path with base URL (e.g., '/kvb/admin')
+     */
+    resolvePath(path) {
+        const cleanPath = path.startsWith('/') ? path : `/${path}`;
+        return this.baseUrl + cleanPath;
     }
 
     /**

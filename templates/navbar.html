@@ -75,3 +75,82 @@
         /* Optional: Rounded corners */
     }
 </style>
+
+<script>
+    /**
+     * Navbar URL Handler
+     * Dynamically adjusts navigation links to support subdirectory deployments
+     * Waits for ApiClient to initialize, then applies base URL to all links
+     */
+    (function () {
+        // Configuration for navigation links that need base URL support
+        const navLinksConfig = [
+            { selector: 'a[href="/"]', basePath: '/' },
+            { selector: 'a[href="/kavya"]', basePath: '/kavya' },
+            { selector: 'a[href="/chitra-samputa"]', basePath: '/chitra-samputa' },
+            { selector: 'a[href="/stats"]', basePath: '/stats' },
+            { selector: 'a[href="/admin"]', basePath: '/admin' },
+            { selector: 'a[href="/logout"]', basePath: '/logout' }
+        ];
+
+        /**
+         * Initialize navbar navigation with base URL support
+         * Waits for ApiClient to be ready before applying URL transformations
+         */
+        function initializeNavigation() {
+            const checkInterval = setInterval(() => {
+                // Check if ApiClient is available
+                if (typeof window.ApiClient !== 'undefined' &&
+                    typeof window.ApiClient.getBaseUrl === 'function') {
+                    clearInterval(checkInterval);
+                    applyBaseUrlToLinks();
+                    console.log('[Navbar] Navigation initialized with base URL support');
+                }
+            }, 50); // Check every 50ms
+
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                if (checkInterval) clearInterval(checkInterval);
+            }, 5000);
+        }
+
+        /**
+         * Apply base URL to all configured navigation links
+         * Updates href attributes to include the base URL path when deployed in subdirectory
+         */
+        function applyBaseUrlToLinks() {
+            try {
+                const baseUrl = window.ApiClient.getBaseUrl();
+
+                // Log for debugging
+                if (baseUrl) {
+                    console.log('[Navbar] Applying base URL to links:', baseUrl);
+                }
+
+                // Update each configured link
+                navLinksConfig.forEach(config => {
+                    const element = document.querySelector(config.selector);
+                    if (element) {
+                        // Special handling for home link
+                        if (config.basePath === '/') {
+                            element.href = baseUrl || '/';
+                        } else {
+                            element.href = baseUrl + config.basePath;
+                        }
+                        console.log(`[Navbar] Updated: ${config.selector} -> ${element.href}`);
+                    }
+                });
+            } catch (error) {
+                console.error('[Navbar] Error applying base URLs:', error);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeNavigation);
+        } else {
+            // DOM already loaded
+            initializeNavigation();
+        }
+    })();
+</script>
