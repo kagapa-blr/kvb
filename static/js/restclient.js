@@ -1,7 +1,30 @@
+/**
+ * ===================================================================
+ * CONFIGURATION - CENTRAL BASE PATH MANAGEMENT
+ * ===================================================================
+ * 
+ * BASE_PATH: Set the API base path here. All HTTP requests will use this.
+ * 
+ * Options:
+ *   ""          → Auto-detect from URL (e.g., /kvb from http://localhost:5000/kvb/page.html)
+ *   "/kvb"      → Explicit production path
+ *   ""          → Root path (default, no subdirectory)
+ *   "/custom"   → Any custom subdirectory
+ * 
+ * Changes made here automatically reflect across ALL HTTP requests in the app.
+ * ===================================================================
+ */
+const BASE_PATH = ""; // PLACEHOLDER: Modify here for different deployments
+
 class ApiClient {
     constructor(baseUrl = '') {
         if (typeof axios === 'undefined') {
             throw new Error('Axios library not loaded');
+        }
+
+        // Use configured BASE_PATH if provided, otherwise auto-detect
+        if (!baseUrl) {
+            baseUrl = BASE_PATH || this.detectBaseUrl();
         }
 
         this.baseUrl = baseUrl;
@@ -21,10 +44,26 @@ class ApiClient {
         console.log(`[ApiClient] Initialized with base URL: "${this.baseUrl || '(root)'}"`);
     }
 
+    detectBaseUrl() {
+        const pathname = window.location.pathname;
+        if (pathname && pathname !== '/' && !pathname.includes('.')) {
+            const parts = pathname.split('/').filter(p => p);
+            if (parts.length > 0) {
+                return '/' + parts[0];
+            }
+        }
+        return '';
+    }
+
+    getBaseUrl() {
+        return this.baseUrl;
+    }
+
     setBaseUrl(url) {
+        // Dynamic override of base path - affects ALL subsequent HTTP requests
         this.baseUrl = url.replace(/\/$/, '');
         this.instance.defaults.baseURL = this.baseUrl;
-        console.log(`[ApiClient] Base URL: "${this.baseUrl}"`);
+        console.log(`[ApiClient] Base URL changed to: "${this.baseUrl}"`);
     }
 
     setDebugMode(enabled) {
@@ -82,18 +121,20 @@ class ApiClient {
     }
 }
 
-// Initialize global instance
+// ===================================================================
+// GLOBAL INITIALIZATION - Uses centralized BASE_PATH configuration
+// ===================================================================
 if (typeof axios !== 'undefined') {
     try {
         window.ApiClient = new ApiClient();
-        console.log('[ApiClient] ✓ Ready');
+        console.log(`[ApiClient] ✓ All HTTP requests will use base URL: "${window.ApiClient.getBaseUrl() || '(root)'}"`);
     } catch (error) {
         console.error('[ApiClient] ✗ Error:', error.message);
-        window.ApiClient = { get: () => { throw error; }, post: () => { throw error; } };
+        window.ApiClient = { get: () => { throw error; }, post: () => { throw error; }, getBaseUrl: () => '' };
     }
 } else {
     console.error('[ApiClient] ✗ Axios not loaded');
-    window.ApiClient = { get: () => { throw new Error('Axios not loaded'); }, post: () => { throw new Error('Axios not loaded'); } };
+    window.ApiClient = { get: () => { throw new Error('Axios not loaded'); }, post: () => { throw new Error('Axios not loaded'); }, getBaseUrl: () => '' };
 }
 
 

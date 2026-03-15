@@ -64,15 +64,15 @@ function initializeEndpointButtons() {
 
             // Resolve path with ApiClient if available
             let url;
-            if (typeof window.ApiClient !== 'undefined' && window.ApiClient.getBaseUrl) {
+            if (typeof window.ApiClient !== 'undefined' && typeof window.ApiClient.getBaseUrl === 'function') {
                 // Production: use ApiClient for base path resolution
                 const baseUrl = window.ApiClient.getBaseUrl();
                 url = baseUrl + ENDPOINTS[endpoint];
-                console.log(`[Navigation] Using ApiClient base: "${baseUrl}" + endpoint: "${endpoint}"`);
+                console.log(`[Navigation] ✓ Using ApiClient base: "${baseUrl || '(root)'}" + "${ENDPOINTS[endpoint]}" = "${url}"`);
             } else {
                 // Fallback: direct path
                 url = ENDPOINTS[endpoint];
-                console.log('[Navigation] Using direct endpoint:', endpoint);
+                console.log('[Navigation] ⚠ ApiClient not available, using endpoint:', ENDPOINTS[endpoint]);
             }
 
             console.log('[Navigation] Opening URL:', url);
