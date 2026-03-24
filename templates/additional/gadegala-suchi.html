@@ -322,74 +322,75 @@
       // Handle row click event to show modal
       $("#dictionaryTable tbody").on("click", "tr", function () {
         const rowData = table.row(this).data();
-        if (rowData) {
-          const parva = rowData.parva_number; // Adjust this if necessary
-          const sandhi = rowData.sandhi_number; // Adjust this if necessary
-          const padya = rowData.padya_number; // Adjust this if necessary
+        console.log("Row data:", rowData);
 
+        if (rowData) {
+          const parva = rowData.parva_number;
+          const sandhi = rowData.sandhi_number;
+          const padya = rowData.padya_number;
           const gade = rowData.gade_suchi;
           const parva_name = rowData.parva_name;
-          const sandhi_name = rowData.sandhi_name;
-          const sandhi_number = rowData.sandhi_number;
-          const parva_number = rowData.sandhi_number;
 
           // Construct the URL for the API call
           const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
+          console.log("API URL:", apiUrl); // Debug log
 
           // Show loading spinner
           $("#padyaModal .modal-body").html(
-            '<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>'
+            '<div class="text-center p-5"><div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div></div>'
           );
+          $("#padyaModal").modal("show"); // Show modal immediately
 
           // Fetch details from the API
           window.ApiClient.get(apiUrl)
             .then((data) => {
-              if (data) {
-                // Populate modal with data
-                $("#padyafirstline").text(data.padyafirstline || "N/A");
-                $("#pathantar").text(data.pathantar || "N/A");
-                $("#gadya").text(data.gadya || "N/A");
-                $("#tippani").text(data.tippani || "N/A");
-                $("#artha").text(data.artha || "N/A");
-                $("#suchane").text(data.suchane || "N/A");
-                $("#padya").text(data.padya || "N/A");
+              console.log("API Response:", data); // Debug log
+
+              if (data && !data.error) {
+                // Generate highlighted padya content
                 let highlightContent = data.padya || "N/A";
                 try {
                   highlightContent = highlightWords(data.padya, gade);
                 } catch (err) {
                   console.error("Error highlighting words:", err);
-                  highlightContent = data.padya || "N/A";
                 }
 
-                // Hide loading spinner and show modal
-                $("#padyaModal .modal-body").html(`
+                // ✅ Fixed: Build complete modal content directly (no jQuery ID selectors needed)
+                const modalContent = `
+            <div class="padya-details">
+              <h5 class="mb-3"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${escapeHtml(parva_name)}</h5>
+              <p class="mb-2"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
+              <p class="mb-3"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
+              <div class="mb-3">
+                <strong>ಪದ್ಯ:</strong>
+                <pre class="p-2 rounded bg-light border">${highlightContent}</pre>
+              </div>
+              <p class="mb-2"><strong>ಅರ್ಥ:</strong> ${escapeHtml(data.artha || "N/A")}</p>
+              <p class="mb-2"><strong>ಟಿಪ್ಪಣಿ:</strong> ${escapeHtml((data.tippani || "").replace("nan", "-") || "N/A")}</p>
+              <p class="mb-2"><strong>ಪಾಠಾಂತರ:</strong> ${escapeHtml(data.pathantar || "N/A")}</p>
+              ${data.gadya ? `<p class="mb-2"><strong>ಗದ್ಯ:</strong> ${escapeHtml(data.gadya)}</p>` : ''}
+              ${data.suchane ? `<p><strong>ಸೂಚನೆ:</strong> ${escapeHtml(data.suchane)}</p>` : ''}
+            </div>
+          `;
 
+                $("#padyaModal .modal-body").html(modalContent);
 
-                <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
-                <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
-                <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
-                <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightContent}</pre></p>
-                <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha || "N/A"}</p>
-                <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${(data.tippani || "").replace("nan", "-") || "N/A"}</p>
-                <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar || "N/A"}</p>
-                `);
-                $("#padyaModal").modal("show");
               } else {
-                console.error("No data returned from API");
-                // Show error message in modal
                 $("#padyaModal .modal-body").html(
-                  "<p>Error: No data returned from the API.</p>"
+                  `<div class="alert alert-warning">
+              <strong>ಎಚ್ಚರಿಕೆ:</strong> ${data?.error || 'ಪದ್ಯ ವಿವರಗಳು ಲಭ್ಯವಿಲ್ಲ'}
+            </div>`
                 );
-                $("#padyaModal").modal("show");
               }
             })
             .catch((error) => {
               console.error("Error fetching padya details:", error);
-              // Show error message in modal
               $("#padyaModal .modal-body").html(
-                "<p>ಪದ್ಯ ವಿವರಗಳು ಪ್ರಸ್ತುತ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ನಂತರ ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.</p>"
+                `<div class="alert alert-danger">
+            <strong>ದೋಷ:</strong> ಸರ್ವರ್ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.<br>
+            <small>URL: ${apiUrl}</small>
+          </div>`
               );
-              $("#padyaModal").modal("show");
             });
         }
       });

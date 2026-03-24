@@ -331,15 +331,11 @@
             $('#dictionaryTable tbody').on('click', 'tr', function () {
                 const rowData = table.row(this).data();
                 if (rowData) {
-                    const parva = rowData.parva_number; // Adjust this if necessary
-                    const sandhi = rowData.sandhi_number; // Adjust this if necessary
-                    const padya = rowData.padya_number; // Adjust this if necessary
+                    const parva = rowData.parva_number;
+                    const sandhi = rowData.sandhi_number;
+                    const padya = rowData.padya_number;
 
-                    //const firstline = rowData.tippani;
                     const parva_name = rowData.parva_name;
-                    const sandhi_name = rowData.sandhi_name;
-                    const sandhi_number = rowData.sandhi_number;
-                    const parva_number = rowData.sandhi_number;
 
                     // Construct the URL for the API call
                     const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;

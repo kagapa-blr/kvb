@@ -838,6 +838,30 @@
     <!-- REST Client & Endpoints -->
     <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
     <script src="{{ url_for('static', filename='js/endpoints.js') }}"></script>
+    <!-- Initialization Helper -->
+    <script>
+        // Wait for critical dependencies before loading application scripts
+        function waitForDependencies() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (typeof window.ApiClient !== 'undefined' && typeof window.ApiEndpoints !== 'undefined' && typeof axios !== 'undefined') {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50);
+                // Timeout after 5 seconds
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    console.warn('[Init] Dependencies check timeout - proceeding anyway');
+                    resolve();
+                }, 5000);
+            });
+        }
+
+        waitForDependencies().then(() => {
+            console.log('[Init] Dependencies ready, loading application scripts');
+        });
+    </script>
     <!-- Application Scripts -->
     <script src="{{ url_for('static', filename='js/users.js') }}"></script>
     <script src="{{ url_for('static', filename='js/padya_gamaka.js') }}"></script>

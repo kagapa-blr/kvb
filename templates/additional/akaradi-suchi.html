@@ -351,15 +351,11 @@
         showLoading();
         const rowData = table.row(this).data();
         if (rowData) {
-          const parva = rowData.parva_number; // Adjust this if necessary
-          const sandhi = rowData.sandhi_number; // Adjust this if necessary
-          const padya = rowData.padya_number; // Adjust this if necessary
+          const parva = rowData.parva_number;
+          const sandhi = rowData.sandhi_number;
+          const padya = rowData.padya_number;
 
-          const firstline = rowData.padyafirstline;
           const parva_name = rowData.parva_name;
-          const sandhi_name = rowData.sandhi_name;
-          const sandhi_number = rowData.sandhi_number;
-          const parva_number = rowData.sandhi_number;
 
           // Construct the URL for the API call
           const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
@@ -392,7 +388,7 @@
               <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
               <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(
                   data.padya,
-                  firstline
+                  rowData.padyafirstline
                 )}</pre></p>
               <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
               <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace(

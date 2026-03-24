@@ -17,6 +17,23 @@
  * DEPENDENCIES: jQuery, Bootstrap 5, restclient.js, endpoints.js
  */
 
+// ===================================================================
+// DEPENDENCY CHECK & INITIALIZATION
+// ===================================================================
+function getApiClient() {
+    if (typeof ApiClient === 'undefined' && typeof window.ApiClient === 'undefined') {
+        throw new Error('ApiClient not initialized. Ensure restclient.js is loaded before this script.');
+    }
+    return ApiClient || window.ApiClient;
+}
+
+function getApiEndpoints() {
+    if (typeof ApiEndpoints === 'undefined' && typeof window.ApiEndpoints === 'undefined') {
+        throw new Error('ApiEndpoints not initialized. Ensure endpoints.js is loaded before this script.');
+    }
+    return ApiEndpoints || window.ApiEndpoints;
+}
+
 /**
  * ========================================
  * CONTENT UPDATE FUNCTIONALITY
@@ -39,27 +56,35 @@
 function initializeContentUpdateDropdowns() {
     console.log('Initializing content update dropdowns...');
 
-    // API call using RestClient
-    ApiClient.get(ApiEndpoints.PARVA.LIST)
-        .done(function (parvas) {
-            console.log('✓ Parvas loaded:', parvas.length);
+    try {
+        const ApiClientInstance = getApiClient();
+        const ApiEndpointsObj = getApiEndpoints();
 
-            const dropdown = document.getElementById('contentParvaDropdown');
-            const selectedParva = dropdown.value;
+        // API call using RestClient
+        ApiClientInstance.get(ApiEndpointsObj.PARVA.LIST)
+            .done(function (parvas) {
+                console.log('✓ Parvas loaded:', parvas.length);
 
-            // Keep existing first option
-            const firstOption = dropdown.innerHTML.split('\n')[1];
-            let html = `<option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
+                const dropdown = document.getElementById('contentParvaDropdown');
+                const selectedParva = dropdown.value;
 
-            parvas.forEach(parva => {
-                html += `<option value="${parva.parva_number}">${parva.name} (${parva.parva_number})</option>`;
+                // Keep existing first option
+                const firstOption = dropdown.innerHTML.split('\n')[1];
+                let html = `<option selected>ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
+
+                parvas.forEach(parva => {
+                    html += `<option value="${parva.parva_number}">${parva.name} (${parva.parva_number})</option>`;
+                });
+
+            })
+            .fail(function () {
+                console.error('✗ Error loading parvas');
+                alert('ಪರ್ವಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
             });
-
-        })
-        .fail(function () {
-            console.error('✗ Error loading parvas');
-            alert('ಪರ್ವಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
-        });
+    } catch (error) {
+        console.error('Error initializing dropdowns:', error.message);
+        alert('ಸಿಸ್ಟಮ್ ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ. ಸಕರ್ಚನೆಯನ್ನು ಪುನರಾರಂಭಿಸಿ.');
+    }
 }
 
 /**
@@ -85,27 +110,35 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Load Sandhis for selected Parva using RestClient
-            ApiClient.get(ApiEndpoints.PARVA.SANDHIS_BY_PARVA(parvaNumber))
-                .done(function (response) {
-                    const sandhis = response.sandhis || response;
-                    console.log('✓ Sandhis loaded:', sandhis.length);
-                    let html = '<option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>';
+            try {
+                const ApiClientInstance = getApiClient();
+                const ApiEndpointsObj = getApiEndpoints();
 
-                    if (Array.isArray(sandhis)) {
-                        sandhis.forEach(sandhi => {
-                            html += `<option value="${sandhi.id}">${sandhi.name} (${sandhi.sandhi_number})</option>`;
-                        });
-                    }
+                ApiClientInstance.get(ApiEndpointsObj.PARVA.SANDHIS_BY_PARVA(parvaNumber))
+                    .done(function (response) {
+                        const sandhis = response.sandhis || response;
+                        console.log('✓ Sandhis loaded:', sandhis.length);
+                        let html = '<option selected>ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>';
 
-                    sandhiDropdown.innerHTML = html;
-                    sandhiDropdown.disabled = false;
-                    padyaDropdown.disabled = true;
-                    padyaDropdown.innerHTML = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>';
-                })
-                .fail(function () {
-                    console.error('✗ Error loading sandhis');
-                    alert('ಸಂಧಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
-                });
+                        if (Array.isArray(sandhis)) {
+                            sandhis.forEach(sandhi => {
+                                html += `<option value="${sandhi.id}">${sandhi.name} (${sandhi.sandhi_number})</option>`;
+                            });
+                        }
+
+                        sandhiDropdown.innerHTML = html;
+                        sandhiDropdown.disabled = false;
+                        padyaDropdown.disabled = true;
+                        padyaDropdown.innerHTML = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>';
+                    })
+                    .fail(function () {
+                        console.error('✗ Error loading sandhis');
+                        alert('ಸಂಧಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
+                    });
+            } catch (error) {
+                console.error('Error in parva dropdown handler:', error.message);
+                alert('ಸಿಸ್ಟಮ್ ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
+            }
         });
     }
 
@@ -120,22 +153,30 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Load Padyas for selected Sandhi using RestClient
-            ApiClient.get(ApiEndpoints.SANDHI.PADYAS_BY_SANDHI(sandhiId))
-                .done(function (padyas) {
-                    console.log('✓ Padyas loaded:', padyas.length);
-                    let html = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>';
+            try {
+                const ApiClientInstance = getApiClient();
+                const ApiEndpointsObj = getApiEndpoints();
 
-                    padyas.forEach(padya => {
-                        html += `<option value="${padya.padya_number}">${padya.padya_number}</option>`;
+                ApiClientInstance.get(ApiEndpointsObj.SANDHI.PADYAS_BY_SANDHI(sandhiId))
+                    .done(function (padyas) {
+                        console.log('✓ Padyas loaded:', padyas.length);
+                        let html = '<option selected>ಪದ್ಯ ಸಂಖ್ಯೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</option>';
+
+                        padyas.forEach(padya => {
+                            html += `<option value="${padya.padya_number}">${padya.padya_number}</option>`;
+                        });
+
+                        padyaDropdown.innerHTML = html;
+                        padyaDropdown.disabled = false;
+                    })
+                    .fail(function () {
+                        console.error('✗ Error loading padyas');
+                        alert('ಪದ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
                     });
-
-                    padyaDropdown.innerHTML = html;
-                    padyaDropdown.disabled = false;
-                })
-                .fail(function () {
-                    console.error('✗ Error loading padyas');
-                    alert('ಪದ್ಯಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
-                });
+            } catch (error) {
+                console.error('Error in sandhi dropdown handler:', error.message);
+                alert('ಸಿಸ್ಟಮ್ ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
+            }
         });
     }
 
@@ -172,23 +213,32 @@ document.addEventListener('DOMContentLoaded', function () {
 function loadPadyaContent(sandhiId, padyaNumber) {
     console.log(`Loading padya content: Sandhi ${sandhiId}, Padya ${padyaNumber}`);
 
-    // API call using RestClient
-    ApiClient.get(ApiEndpoints.PADYA.GET_CONTENT(sandhiId, padyaNumber))
-        .done(function (padya) {
-            console.log('✓ Padya content loaded');
+    try {
+        const ApiClientInstance = getApiClient();
+        const ApiEndpointsObj = getApiEndpoints();
 
-            // Populate text fields
-            document.getElementById('contentPadya').value = padya.padya || '';
-            document.getElementById('contentPathantar').value = padya.pathantar || '';
-            document.getElementById('contentGadya').value = padya.gadya || '';
-            document.getElementById('contentTippani').value = padya.tippani || '';
-            document.getElementById('contentArtha').value = padya.artha || '';
-        })
-        .fail(function (xhr) {
-            console.error('✗ Error loading padya content:', xhr.status);
-            alert('ಪದ್ಯ ಸಂಪಾದನೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
-            clearContentFields();
-        });
+        // API call using RestClient
+        ApiClientInstance.get(ApiEndpointsObj.PADYA.GET_CONTENT(sandhiId, padyaNumber))
+            .done(function (padya) {
+                console.log('✓ Padya content loaded');
+
+                // Populate text fields
+                document.getElementById('contentPadya').value = padya.padya || '';
+                document.getElementById('contentPathantar').value = padya.pathantar || '';
+                document.getElementById('contentGadya').value = padya.gadya || '';
+                document.getElementById('contentTippani').value = padya.tippani || '';
+                document.getElementById('contentArtha').value = padya.artha || '';
+            })
+            .fail(function (xhr) {
+                console.error('✗ Error loading padya content:', xhr.status);
+                alert('ಪದ್ಯ ಸಂಪಾದನೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
+            });
+    } catch (error) {
+        console.error('Error loading padya content:', error.message);
+        alert('ಸಿಸ್ಟಮ್ ಲೋಡ್ ಮಾಡಲಲ್ಲಿ ದೋಷ');
+    }
+    clearContentFields();
+});
 }
 
 /**

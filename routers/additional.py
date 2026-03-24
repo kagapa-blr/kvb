@@ -271,27 +271,82 @@ def gade_suchi_upload():
 
 @additonal_bp.route('/gade-suchi/data', methods=['GET'])
 def get_gade_suchi_data():
-    """
-    Fetch all records from the GadeSuchigalu table and return as JSON.
-    """
-    # Query all records from the GadeSuchigalu table
-    records = GadeSuchigalu.query.all()
+    """Fetch gade suchi with correct parva names from Parva table"""
+    records = db.session.query(
+        GadeSuchigalu.id,
+        GadeSuchigalu.gade_suchi,
+        GadeSuchigalu.sandhi_number,
+        GadeSuchigalu.parva_number,
+        GadeSuchigalu.padya_number,
+        # ✅ Always get correct parva_name from Parva table
+        Parva.name.label('parva_name')
+    ).outerjoin(
+        Parva, Parva.parva_number == GadeSuchigalu.parva_number
+    ).order_by(GadeSuchigalu.gade_suchi).all()
 
-    # Convert records to a list of dictionaries
     result = [
         {
-            'id': record.id,
-            'gade_suchi': record.gade_suchi,
-            'parva_name': record.parva_name,
-            'sandhi_number': record.sandhi_number,
-            'parva_number': record.parva_number,
-            'padya_number': record.padya_number
+            'id': r.id,
+            'gade_suchi': r.gade_suchi,
+            'parva_name': r.parva_name or "ಅಪರಿಚಿತ ಪರ್ವ",  # Fallback
+            'sandhi_number': r.sandhi_number,
+            'parva_number': r.parva_number,
+            'padya_number': r.padya_number
         }
-        for record in records
+        for r in records
     ]
-
-    # Return JSON response
     return jsonify(result)
+
+
+@additonal_bp.route('/api/padya/by_parva_sandhi_padya/<int:parva>/<int:sandhi>/<int:padya>', methods=['GET'])
+def get_padya_by_parva_sandhi_padya(parva, sandhi, padya):
+    """Get padya details by numbers (matches frontend)"""
+    try:
+        # Find exact sandhi first
+        sandhi_record = Sandhi.query.join(Parva).filter(
+            Parva.parva_number == parva,
+            Sandhi.sandhi_number == sandhi
+        ).first()
+
+        if not sandhi_record:
+            return jsonify({'error': 'ಸಂಧಿ ಸಿಫಾರ್ಸು ಲಭ್ಯವಿಲ್ಲ'}), 404
+
+        # Get Padya
+        padya_record = Padya.query.filter_by(
+            sandhi_id=sandhi_record.id,
+            padya_number=padya
+        ).first()
+
+        if not padya_record:
+            return jsonify({'error': 'ಪದ್ಯ ಸಿಫಾರ್ಸು ಲಭ್ಯವಿಲ್ಲ'}), 404
+
+        # Get related data
+        akaradi = AkaradiSuchi.query.filter_by(
+            parva_id=sandhi_record.parva_id,
+            sandhi_id=sandhi_record.id,
+            padya_number=padya
+        ).first()
+
+        tippani = Tippani.query.filter_by(
+            parva_id=sandhi_record.parva_id,
+            sandhi_id=sandhi_record.id,
+            padya_number=padya
+        ).first()
+
+        return jsonify({
+            'padya': padya_record.padya or "N/A",
+            'pathantar': padya_record.pathantar or "N/A",
+            'gadya': padya_record.gadya or "N/A",
+            'artha': padya_record.artha or "N/A",
+            'suchane': padya_record.suchane or "N/A",
+            'padyafirstline': akaradi.padyafirstline if akaradi else "N/A",
+            'tippani': tippani.tippani if tippani else "N/A",
+            'parva_name': sandhi_record.parva.name  # For display
+        })
+
+    except Exception as e:
+        print(f"API Error: {str(e)}")
+        return jsonify({'error': 'ಆಂತರಿಕ ದೋಷ'}), 500
 
 
 @additonal_bp.get('/tippani/update')

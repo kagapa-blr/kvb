@@ -18,14 +18,7 @@ const BASE_PATH = ""; // Production: https://kagapa.com/kvb (no trailing slash)
 
 class ApiClient {
     constructor(baseUrl = '') {
-        if (typeof axios === 'undefined') {
-            throw new Error('Axios library not loaded');
-        }
-
         // Use configured BASE_PATH if provided, otherwise auto-detect
-        if (!baseUrl) {
-            baseUrl = BASE_PATH || this.detectBaseUrl();
-        }
 
         this.baseUrl = baseUrl;
         this.timeout = 30000;
@@ -122,19 +115,41 @@ class ApiClient {
 }
 
 // ===================================================================
-// GLOBAL INITIALIZATION - Uses centralized BASE_PATH configuration
+// INITIALIZATION - Create and export the ApiClient instance
 // ===================================================================
+let apiClientInstance = null;
+
+function initApiClient() {
+    if (!apiClientInstance) {
+        if (typeof axios === 'undefined') {
+            console.error('[ApiClient] ✗ Axios not loaded');
+            throw new Error('Axios library must be loaded before ApiClient');
+        }
+
+        try {
+            apiClientInstance = new ApiClient();
+            console.log(`[ApiClient] ✓ All HTTP requests will use base URL: "${apiClientInstance.getBaseUrl() || '(root)'}"`);
+        } catch (error) {
+            console.error('[ApiClient] ✗ Error:', error.message);
+            throw error;
+        }
+    }
+    return apiClientInstance;
+}
+
+// Auto-initialize when script loads (for backward compatibility with non-module scripts)
 if (typeof axios !== 'undefined') {
     try {
-        window.ApiClient = new ApiClient();
-        console.log(`[ApiClient] ✓ All HTTP requests will use base URL: "${window.ApiClient.getBaseUrl() || '(root)'}"`);
+        const client = initApiClient();
+        window.ApiClient = client;
     } catch (error) {
-        console.error('[ApiClient] ✗ Error:', error.message);
-        window.ApiClient = { get: () => { throw error; }, post: () => { throw error; }, getBaseUrl: () => '' };
+        console.error('[ApiClient] Failed to initialize:', error.message);
     }
-} else {
-    console.error('[ApiClient] ✗ Axios not loaded');
-    window.ApiClient = { get: () => { throw new Error('Axios not loaded'); }, post: () => { throw new Error('Axios not loaded'); }, getBaseUrl: () => '' };
+}
+
+// ES6 Module Export
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { ApiClient, initApiClient };
 }
 
 

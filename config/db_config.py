@@ -3,16 +3,18 @@ import logging
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class DatabaseConfig:
+
     def __init__(self):
+
         self.db_user = os.getenv("DB_USER", "root")
         self.db_password = os.getenv("DB_PASSWORD", "")
         self.db_host = os.getenv("DB_HOST", "127.0.0.1")
@@ -23,15 +25,27 @@ class DatabaseConfig:
 
         self._validate()
 
+    # -----------------------------------------------------
+    # Validation
+    # -----------------------------------------------------
+
     def _validate(self):
+
         if not self.db_user:
             raise ValueError("DB_USER is required")
+
         if not self.db_host:
             raise ValueError("DB_HOST is required")
+
         if not self.db_name:
             raise ValueError("DB_NAME is required")
 
+    # -----------------------------------------------------
+    # Credentials
+    # -----------------------------------------------------
+
     def get_credentials(self):
+
         return {
             "user": self.db_user,
             "password": self.db_password,
@@ -39,6 +53,10 @@ class DatabaseConfig:
             "port": self.db_port,
             "database": self.db_name,
         }
+
+    # -----------------------------------------------------
+    # Database URL
+    # -----------------------------------------------------
 
     def get_database_url(self, driver="pymysql"):
 
@@ -59,13 +77,82 @@ class DatabaseConfig:
             "?charset=utf8mb4"
         )
 
+    # -----------------------------------------------------
+    # NEW: Server URL (no database)
+    # -----------------------------------------------------
+
+    def get_server_url(self, driver="pymysql"):
+
+        driver_map = {
+            "pymysql": "mysql+pymysql",
+            "mysqldb": "mysql+mysqldb",
+            "mysql-connector": "mysql+mysqlconnector",
+        }
+
+        return (
+            f"{driver_map[driver]}://{self.db_user}:{self.db_password_encoded}"
+            f"@{self.db_host}:{self.db_port}"
+        )
+
+    # -----------------------------------------------------
+    # NEW: Create database if not exists
+    # -----------------------------------------------------
+
+    def ensure_database_exists(self, driver="pymysql"):
+
+        try:
+
+            logger.info(
+                "Checking database existence: %s",
+                self.db_name
+            )
+
+            engine = create_engine(
+                self.get_server_url(driver),
+                isolation_level="AUTOCOMMIT",
+            )
+
+            with engine.connect() as conn:
+
+                conn.execute(
+                    text(
+                        f"""
+                        CREATE DATABASE IF NOT EXISTS `{self.db_name}`
+                        CHARACTER SET utf8mb4
+                        COLLATE utf8mb4_unicode_ci
+                        """
+                    )
+                )
+
+            logger.info(
+                "Database ready: %s",
+                self.db_name
+            )
+
+        except OperationalError as e:
+
+            logger.error(
+                "Failed to create database: %s",
+                e
+            )
+
+            raise
+
+    # -----------------------------------------------------
+    # Engine
+    # -----------------------------------------------------
+
     def get_engine(self, driver="pymysql", **kwargs):
+
+        # Ensure DB exists first
+        self.ensure_database_exists(driver)
 
         pool_defaults = {
             "pool_size": 10,
             "max_overflow": 20,
             "pool_recycle": 3600,
             "echo": False,
+            "future": True,
         }
 
         pool_defaults.update(kwargs)
@@ -74,18 +161,25 @@ class DatabaseConfig:
             self.get_database_url(driver),
             connect_args={
                 "charset": "utf8mb4",
-                "init_command": "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+                "init_command":
+                "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
             },
             **pool_defaults,
         )
 
         logger.info(
-            f"Database engine created ({driver}) -> {self.db_host}:{self.db_port}/{self.db_name}"
+            "Database engine created -> %s:%s/%s",
+            self.db_host,
+            self.db_port,
+            self.db_name,
         )
 
         return engine
 
+    # -----------------------------------------------------
+
     def to_dict(self):
+
         return {
             "user": self.db_user,
             "host": self.db_host,
@@ -98,10 +192,13 @@ class DatabaseConfig:
         }
 
 
+# Singleton
+
 _config_instance = None
 
 
 def get_config():
+
     global _config_instance
 
     if _config_instance is None:
@@ -111,35 +208,3 @@ def get_config():
 
 
 config = get_config()
-
-
-if __name__ == "__main__":
-
-    print("\nDATABASE CONFIG TEST\n")
-
-    try:
-        db = DatabaseConfig()
-
-        print("Configuration:")
-        for k, v in db.to_dict().items():
-            print(f"{k:15} : {v}")
-
-        print("\nDatabase URLs:")
-
-        for driver in ["pymysql", "mysqldb", "mysql-connector"]:
-            try:
-                url = db.get_database_url(driver)
-                masked = url.replace(db.db_password, "***")
-                print(f"{driver:15} : {masked}")
-            except Exception as e:
-                print(f"{driver:15} : ERROR {e}")
-
-        print("\nCreating test engine...")
-
-        engine = db.get_engine("pymysql")
-
-        print("Engine created successfully")
-        print(engine)
-
-    except Exception as e:
-        print("Configuration error:", e)

@@ -16,11 +16,21 @@ MYSQL_TABLE_ARGS = {
 
 class Parva(db.Model):
     __tablename__ = "parva"
-    __table_args__ = MYSQL_TABLE_ARGS
+    __table_args__ = (
+        db.UniqueConstraint("name", name="unique_parva_name"),
+        db.UniqueConstraint("parva_number", name="unique_parva_number"),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    parva_number = db.Column(db.Integer, nullable=False, unique=True, index=True)
+
+    parva_number = db.Column(
+        db.Integer,
+        nullable=False,
+        index=True
+    )
+
     parvantya = db.Column(db.Text)
 
     sandhis = db.relationship(
@@ -40,19 +50,35 @@ class Parva(db.Model):
 
 class Sandhi(db.Model):
     __tablename__ = "sandhi"
-    __table_args__ = MYSQL_TABLE_ARGS
+    __table_args__ = (
+        db.UniqueConstraint(
+            "parva_id",
+            "sandhi_number",
+            name="unique_parva_sandhi_number"
+        ),
+        db.UniqueConstraint(
+            "parva_id",
+            "name",
+            name="unique_parva_sandhi_name"
+        ),
+        db.Index("idx_parva_sandhi", "parva_id", "sandhi_number"),
+        MYSQL_TABLE_ARGS
+    )
 
     id = db.Column(db.Integer, primary_key=True)
 
     parva_id = db.Column(
         db.Integer,
         db.ForeignKey("parva.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        nullable=False
     )
 
     name = db.Column(db.String(255), nullable=False)
-    sandhi_number = db.Column(db.Integer, nullable=False)
+
+    sandhi_number = db.Column(
+        db.Integer,
+        nullable=False
+    )
 
     padyas = db.relationship(
         "Padya",
@@ -68,10 +94,14 @@ class Sandhi(db.Model):
 # -------------------------------------------------------
 # PADYA
 # -------------------------------------------------------
-
 class Padya(db.Model):
     __tablename__ = "padya"
     __table_args__ = (
+        db.UniqueConstraint(
+            "sandhi_id",
+            "padya_number",
+            name="unique_sandhi_padya_number"
+        ),
         db.Index("idx_padya_lookup", "sandhi_id", "padya_number"),
         MYSQL_TABLE_ARGS
     )
@@ -81,11 +111,13 @@ class Padya(db.Model):
     sandhi_id = db.Column(
         db.Integer,
         db.ForeignKey("sandhi.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
+        nullable=False
     )
 
-    padya_number = db.Column(db.Integer, nullable=False)
+    padya_number = db.Column(
+        db.Integer,
+        nullable=False
+    )
 
     pathantar = db.Column(db.Text)
     gadya = db.Column(db.Text)
@@ -95,7 +127,7 @@ class Padya(db.Model):
     padya = db.Column(db.Text)
 
     def __repr__(self):
-        return f"<Padya {self.padya_number}>"
+        return f"<Padya {self.padya_number} (Sandhi {self.sandhi_id})>"
 
 
 # -------------------------------------------------------
@@ -218,24 +250,18 @@ class AkaradiSuchi(db.Model):
 class GadeSuchigalu(db.Model):
     __tablename__ = "gade_suchigalu"
     __table_args__ = (
-        db.UniqueConstraint(
-            "gade_suchi",
-            "parva_name",
-            "sandhi_number",
-            "padya_number",
-            name="unique_gade_suchi_parva_sandhi_padya"
-        ),
+        db.Index("idx_gade_lookup", "parva_number", "sandhi_number", "padya_number"),
+        db.UniqueConstraint("gade_suchi", "parva_number", "sandhi_number", "padya_number"),
         MYSQL_TABLE_ARGS
     )
 
     id = db.Column(db.Integer, primary_key=True)
-
     gade_suchi = db.Column(db.String(500), nullable=False)
 
-    parva_name = db.Column(db.String(255))
-    sandhi_number = db.Column(db.Integer, nullable=False)
-    parva_number = db.Column(db.Integer, nullable=False)
-    padya_number = db.Column(db.Integer, nullable=False)
+    parva_name = db.Column(db.String(255), nullable=True)  # Can be NULL
+    sandhi_number = db.Column(db.Integer, nullable=False, index=True)
+    parva_number = db.Column(db.Integer, nullable=False, index=True)
+    padya_number = db.Column(db.Integer, nullable=False, index=True)
 
     def __repr__(self):
         return f"<GadeSuchigalu {self.gade_suchi[:30]}>"

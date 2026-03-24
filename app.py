@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session
 from werkzeug.security import check_password_hash
 
+from config import db_config
 from config.db_config import get_config
 from model.models import db, User, Parva, Sandhi, Padya
 from routers.additional import additonal_bp
@@ -23,10 +24,12 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 # Database configuration using centralized config
-db_config = get_config()
-DATABASE_URL = db_config.get_database_url('pymysql')
+config = get_config()
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+engine = config.get_engine()
+
+app.config["SQLALCHEMY_DATABASE_URI"] = (config.get_database_url())
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Session timeout
