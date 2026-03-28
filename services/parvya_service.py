@@ -162,6 +162,58 @@ class ParvaService:
             logger.error("Delete parva failed: %s", e)
             return {"error": "Delete failed"}, 500
 
+    def search(self, query="", offset=0, limit=20, **kwargs):
+        """
+        Search parva by name or number.
+        Handles both numeric (number) and text (name) queries.
+        """
+        try:
+            offset, limit = get_pagination(offset, limit)
+            
+            # Check if query is numeric
+            is_numeric = False
+            search_number = None
+            try:
+                search_number = int(query)
+                is_numeric = True
+            except (ValueError, TypeError):
+                pass
+            
+            # Build query
+            base_query = Parva.query.order_by(Parva.parva_number)
+            
+            if is_numeric and search_number is not None:
+                # Search by parva number (exact match)
+                base_query = base_query.filter(Parva.parva_number == search_number)
+            elif query:
+                # Search by name (case-insensitive partial match)
+                base_query = base_query.filter(
+                    Parva.name.ilike(f"%{query}%")
+                )
+            
+            total = base_query.count()
+            records = base_query.offset(offset).limit(limit).all()
+            
+            return {
+                "offset": offset,
+                "limit": limit,
+                "total": total,
+                "data": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "parva_number": p.parva_number,
+                        "sandhi_count": len(p.sandhis),
+                        "parvantya": p.parvantya,
+                    }
+                    for p in records
+                ],
+            }, 200
+            
+        except Exception as e:
+            logger.error("Parva search failed: %s", e)
+            return {"error": "Search failed"}, 500
+
 
 # -------------------------------------------------------
 # SANDHI SERVICE
@@ -342,6 +394,64 @@ class SandhiService:
         except Exception as e:
             logger.error("Delete sandhi failed: %s", e)
             return {"error": "Delete failed"}, 500
+
+    def search(self, parva_number, query="", offset=0, limit=20, **kwargs):
+        """
+        Search sandhi by name or number within a specific parva.
+        Handles both numeric (number) and text (name) queries.
+        """
+        try:
+            offset, limit = get_pagination(offset, limit)
+            
+            # Check if parva exists
+            parva = Parva.query.filter_by(parva_number=parva_number).first()
+            if not parva:
+                return {"error": "Parva not found"}, 404
+            
+            # Check if query is numeric
+            is_numeric = False
+            search_number = None
+            try:
+                search_number = int(query)
+                is_numeric = True
+            except (ValueError, TypeError):
+                pass
+            
+            # Build query
+            base_query = (
+                Sandhi.query.options(joinedload(Sandhi.parva))
+                .filter_by(parva_id=parva.id)
+                .order_by(Sandhi.sandhi_number)
+            )
+            
+            if is_numeric and search_number is not None:
+                # Search by sandhi number (exact match)
+                base_query = base_query.filter(Sandhi.sandhi_number == search_number)
+            elif query:
+                # Search by name (case-insensitive partial match)
+                base_query = base_query.filter(Sandhi.name.ilike(f"%{query}%"))
+            
+            total = base_query.count()
+            records = base_query.offset(offset).limit(limit).all()
+            
+            return {
+                "offset": offset,
+                "limit": limit,
+                "total": total,
+                "data": [
+                    {
+                        "parva_number": s.parva.parva_number,
+                        "sandhi_number": s.sandhi_number,
+                        "name": s.name,
+                        "padya_count": len(s.padyas),
+                    }
+                    for s in records
+                ],
+            }, 200
+            
+        except Exception as e:
+            logger.error("Sandhi search failed: %s", e)
+            return {"error": "Search failed"}, 500
 
 
 # -------------------------------------------------------

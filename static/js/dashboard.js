@@ -52,6 +52,17 @@ function initializeEventListeners() {
   document.getElementById('sandhi-search-btn')?.addEventListener('click', searchSandhi);
   document.getElementById('padya-search-btn')?.addEventListener('click', loadPadyaList);
   
+  // Enter key for search inputs
+  document.getElementById('parva_search')?.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') searchParva();
+  });
+  document.getElementById('sandhi_search')?.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') searchSandhi();
+  });
+  document.getElementById('padya_search')?.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') loadPadyaList();
+  });
+  
   // Save buttons
   document.getElementById('save-parva-btn')?.addEventListener('click', createParva);
   document.getElementById('save-sandhi-btn')?.addEventListener('click', createSandhi);
@@ -457,12 +468,21 @@ async function searchParva() {
       params: { offset: 0, limit: 100 },
     });
 
-    // Filter on client-side
+    // Filter on client-side - support both name and number search
     let filtered = result.data;
     if (searchTerm) {
-      filtered = result.data.filter(p => 
-        (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const isNumeric = /^\d+$/.test(searchTerm);
+      const searchNumber = isNumeric ? parseInt(searchTerm) : null;
+      
+      filtered = result.data.filter(p => {
+        if (isNumeric && searchNumber !== null) {
+          // Search by parva number (exact match)
+          return p.parva_number === searchNumber;
+        } else {
+          // Search by name (partial match, case-insensitive)
+          return (p.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        }
+      });
     }
 
     if (!filtered.length) {
@@ -703,15 +723,24 @@ async function searchSandhi() {
     showLoading("sandhi_table");
     const params = { offset: 0, limit: 100 };
     
-    // If search term provided, need to filter manually or use API search if available
+    // Load sandhi by parva
     const result = await apiRequest(`/sandhi/by_parva/${parvaNumber}`, { params });
 
-    // Filter on client-side if needed
+    // Filter on client-side - support both name and number search
     let filtered = result.data;
     if (searchTerm) {
-      filtered = result.data.filter(s => 
-        (s.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const isNumeric = /^\d+$/.test(searchTerm);
+      const searchNumber = isNumeric ? parseInt(searchTerm) : null;
+      
+      filtered = result.data.filter(s => {
+        if (isNumeric && searchNumber !== null) {
+          // Search by sandhi number (exact match)
+          return s.sandhi_number === searchNumber;
+        } else {
+          // Search by name (partial match, case-insensitive)
+          return (s.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+        }
+      });
     }
 
     if (!filtered.length) {
@@ -798,6 +827,7 @@ async function loadPadyaList() {
 
 function renderPadyaTable(padyas) {
   const tbody = document.getElementById("padya_table");
+
   tbody.innerHTML = padyas.map(p => {
     const padyaNumber = p.padya_number || p.id || '';
     const parvaNumber = p.parva_number || '';
@@ -807,14 +837,22 @@ function renderPadyaTable(padyas) {
     const fullText = p.preview || p.padya || '';
     const firstLine = fullText.split('\n')[0].substring(0, 150);
     const preview = firstLine + (fullText.length > 150 ? '...' : '');
-    
+
     return `
     <tr>
-      <td>${padyaNumber}</td>
-      <td class="text-truncate" style="max-width: 300px;" title="${escapeHtml(fullText)}">
-        <small class="text-muted">${escapeHtml(preview)}</small>
+      <td class="text-center align-middle">
+        ${padyaNumber}
       </td>
-      <td>
+
+      <td class="text-center align-middle text-truncate"
+          style="max-width: 300px;"
+          title="${escapeHtml(fullText)}">
+        <small class="text-muted">
+          ${escapeHtml(preview)}
+        </small>
+      </td>
+
+      <td class="text-center align-middle">
         <button class="btn btn-outline-info btn-sm edit-padya-btn" 
                 data-parva-number="${parvaNumber}"
                 data-sandhi-number="${sandhiNumber}"
@@ -822,6 +860,7 @@ function renderPadyaTable(padyas) {
                 title="Edit Padya">
           <i class="bi bi-pencil-square"></i>
         </button>
+
         <button class="btn btn-outline-danger btn-sm delete-padya-btn" 
                 data-parva-number="${parvaNumber}"
                 data-sandhi-number="${sandhiNumber}"
@@ -856,7 +895,6 @@ function renderPadyaTable(padyas) {
     btn.addEventListener('click', btn._deleteHandler);
   });
 }
-
 // ================= PADYA MODAL =================
 async function populateSandhiModalDropdowns() {
   try {

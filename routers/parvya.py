@@ -60,6 +60,28 @@ def get_parva(parva_number):
     )
 
 
+@parvya_bp.route("/parva/search", methods=["GET"])
+def search_parva():
+    """
+    Search parva by name or number.
+    
+    Examples:
+    /parva/search?query=ಆದಿಪರ್ವ     (search by name)
+    /parva/search?query=1             (search by number)
+    /parva/search?query=ಆದಿ           (partial name search)
+    """
+    query = request.args.get("query", "").strip()
+    offset, limit = get_offset_limit()
+    
+    return handle_response(
+        parva_service.search(
+            query=query,
+            offset=offset,
+            limit=limit,
+        )
+    )
+
+
 @parvya_bp.route("/parva", methods=["POST"])
 def create_parva():
     try:
@@ -126,6 +148,29 @@ def get_sandhi(parva_number, sandhi_number):
         sandhi_service.get_unique(
             parva_number,
             sandhi_number,
+        )
+    )
+
+
+@parvya_bp.route("/sandhi/search/<int:parva_number>", methods=["GET"])
+def search_sandhi_by_parva(parva_number):
+    """
+    Search sandhi by name or number within a specific parva.
+    
+    Examples:
+    /sandhi/search/1?query=ಸಂಭವ        (search by name in parva 1)
+    /sandhi/search/1?query=1            (search by number in parva 1)
+    /sandhi/search/1?query=ಸಂ            (partial name search in parva 1)
+    """
+    query = request.args.get("query", "").strip()
+    offset, limit = get_offset_limit()
+    
+    return handle_response(
+        sandhi_service.search(
+            parva_number=parva_number,
+            query=query,
+            offset=offset,
+            limit=limit,
         )
     )
 
