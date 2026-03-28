@@ -1,237 +1,295 @@
 import logging
 from flask import Blueprint, request, jsonify
-from services.parvya_service import ParvyaService
+
+from services.parvya_service import (
+    parva_service,
+    sandhi_service,
+    padya_service,
+)
 
 logger = logging.getLogger(__name__)
-parvya_bp = Blueprint('parvya', __name__)
-service = ParvyaService()
+parvya_bp = Blueprint("parvya", __name__)
 
 
-# Parva Routes
-@parvya_bp.route('/parva', methods=['GET'])
-def get_parva():
+# -------------------------------------------------------
+# COMMON RESPONSE HANDLER
+# -------------------------------------------------------
+
+def handle_response(result):
+    if isinstance(result, tuple):
+        return jsonify(result[0]), result[1]
+    return jsonify(result), 200
+
+
+def get_offset_limit():
+    """
+    Standard helper for pagination using offset and limit.
+    Example:
+    /parva?offset=0&limit=20
+    """
     try:
-        result = service.get_all_parvas()
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in get_parva: {str(e)}")
-        return jsonify({'error': str(e)}), 503
+        offset = int(request.args.get("offset", 0))
+        limit = int(request.args.get("limit", 20))
+    except ValueError:
+        offset = 0
+        limit = 20
+
+    return offset, limit
 
 
-@parvya_bp.route('/parva/<int:id>', methods=['GET'])
-def get_parva_by_id(id):
-    result = service.get_parva_by_id(id)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+# =======================================================
+# PARVA ROUTES
+# =======================================================
 
 
-@parvya_bp.route('/get_parva_name/<int:sandhi_id>', methods=['GET'])
-def get_parva_name_by_sandhi(sandhi_id):
-    result = service.get_parva_name_by_sandhi(sandhi_id)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+@parvya_bp.route("/parva", methods=["GET"])
+def get_all_parvas():
+    offset, limit = get_offset_limit()
+    return handle_response(
+        parva_service.get_all(
+            offset=offset,
+            limit=limit,
+        )
+    )
 
 
-@parvya_bp.route('/parva', methods=['POST'])
+@parvya_bp.route("/parva/<int:parva_number>", methods=["GET"])
+def get_parva(parva_number):
+    return handle_response(
+        parva_service.get_by_number(parva_number)
+    )
+
+
+@parvya_bp.route("/parva", methods=["POST"])
 def create_parva():
     try:
-        data = request.json
-        result = service.create_parva(data)
-        return jsonify(result[0]), result[1]
+        data = request.get_json(silent=True) or {}
+        return handle_response(
+            parva_service.create(**data)
+        )
+
     except Exception as e:
-        logger.error(f"Error in create_parva: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in create_parva")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/parva/<int:id>', methods=['PUT'])
-def update_parva(id):
+@parvya_bp.route("/parva/<int:parva_number>", methods=["PUT"])
+def update_parva(parva_number):
     try:
-        data = request.json
-        result = service.update_parva(id, data)
-        if isinstance(result, tuple):
-            return jsonify(result[0]), result[1]
-        return jsonify(result)
+        data = request.get_json(silent=True) or {}
+        return handle_response(
+            parva_service.update(
+                parva_number,
+                **data,
+            )
+        )
+
     except Exception as e:
-        logger.error(f"Error in update_parva: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in update_parva")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/delete/parva_number/<int:parva_number>', methods=['DELETE'])
-def delete_parva_by_number(parva_number):
-    result = service.delete_parva_by_number(parva_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+@parvya_bp.route("/parva/<int:parva_number>", methods=["DELETE"])
+def delete_parva(parva_number):
+    return handle_response(
+        parva_service.delete(parva_number)
+    )
 
 
-# Sandhi Routes
-@parvya_bp.route('/sandhi', methods=['GET'])
-def get_sandhi():
-    try:
-        result = service.get_all_sandhis()
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in get_sandhi: {str(e)}")
-        return jsonify({'error': str(e)}), 503
+# =======================================================
+# SANDHI ROUTES
+# =======================================================
 
 
-@parvya_bp.route('/sandhi/<int:id>', methods=['GET'])
-def get_sandhi_by_id(id):
-    result = service.get_sandhi_by_id(id)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+@parvya_bp.route(
+    "/sandhi/by_parva/<int:parva_number>",
+    methods=["GET"],
+)
+def get_sandhis_by_parva(parva_number):
+    offset, limit = get_offset_limit()
+
+    return handle_response(
+        sandhi_service.get_by_parva(
+            parva_number,
+            offset=offset,
+            limit=limit,
+        )
+    )
 
 
-@parvya_bp.route('/sandhi', methods=['POST'])
+@parvya_bp.route(
+    "/sandhi/<int:parva_number>/<int:sandhi_number>",
+    methods=["GET"],
+)
+def get_sandhi(parva_number, sandhi_number):
+    return handle_response(
+        sandhi_service.get_unique(
+            parva_number,
+            sandhi_number,
+        )
+    )
+
+
+@parvya_bp.route("/sandhi", methods=["POST"])
 def create_sandhi():
     try:
-        data = request.json
-        result = service.create_sandhi(data)
-        return jsonify(result[0]), result[1]
+        data = request.get_json(silent=True) or {}
+        return handle_response(
+            sandhi_service.create(**data)
+        )
+
     except Exception as e:
-        logger.error(f"Error in create_sandhi: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in create_sandhi")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/sandhi/<int:id>', methods=['PUT'])
-def update_sandhi(id):
+@parvya_bp.route(
+    "/sandhi/<int:parva_number>/<int:sandhi_number>",
+    methods=["PUT"],
+)
+def update_sandhi(parva_number, sandhi_number):
     try:
-        data = request.json
-        result = service.update_sandhi(id, data)
-        if isinstance(result, tuple):
-            return jsonify(result[0]), result[1]
-        return jsonify(result)
+        data = request.get_json(silent=True) or {}
+        return handle_response(
+            sandhi_service.update(
+                parva_number,
+                sandhi_number,
+                **data,
+            )
+        )
+
     except Exception as e:
-        logger.error(f"Error in update_sandhi: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in update_sandhi")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/sandhi/<int:parva_number>/<int:sandhi_number>', methods=['DELETE'])
+@parvya_bp.route(
+    "/sandhi/<int:parva_number>/<int:sandhi_number>",
+    methods=["DELETE"],
+)
 def delete_sandhi(parva_number, sandhi_number):
-    result = service.delete_sandhi(parva_number, sandhi_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+    return handle_response(
+        sandhi_service.delete(
+            parva_number,
+            sandhi_number,
+        )
+    )
 
 
-# Padya Routes
-@parvya_bp.route('/padya', methods=['GET'])
-def get_padya():
-    result = service.get_all_padyas()
-    return jsonify(result)
+# =======================================================
+# PADYA ROUTES
+# =======================================================
 
 
-@parvya_bp.route('/padya/<int:sandhi_id>/<int:padya_number>', methods=['GET'])
-def get_padya_by_sandhi_and_number(sandhi_id, padya_number):
-    result = service.get_padya_by_sandhi_and_number(sandhi_id, padya_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
+@parvya_bp.route("/padya/search", methods=["GET"])
+def search_padya():
+    """
+    Examples:
+
+    /padya/search?keyword=ಧರ್ಮ
+    /padya/search?parva_number=1
+    /padya/search?parva_number=1&sandhi_number=2
+    /padya/search?offset=0&limit=25
+    """
+
+    offset, limit = get_offset_limit()
+
+    parva_number = request.args.get(
+        "parva_number",
+        type=int,
+    )
+
+    sandhi_number = request.args.get(
+        "sandhi_number",
+        type=int,
+    )
+
+    keyword = request.args.get("keyword")
+
+    return handle_response(
+        padya_service.search(
+            parva_number=parva_number,
+            sandhi_number=sandhi_number,
+            keyword=keyword,
+            offset=offset,
+            limit=limit,
+        )
+    )
 
 
-@parvya_bp.route('/padya', methods=['POST'])
+@parvya_bp.route(
+    "/padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>",
+    methods=["GET"],
+)
+def get_padya(parva_number, sandhi_number, padya_number):
+    return handle_response(
+        padya_service.get_unique(
+            parva_number,
+            sandhi_number,
+            padya_number,
+        )
+    )
+
+
+@parvya_bp.route("/padya", methods=["POST"])
 def create_padya():
     try:
-        data = request.json
-        result = service.create_padya(data)
-        return jsonify(result[0]), result[1]
+        data = request.get_json(silent=True) or {}
+
+        return handle_response(
+            padya_service.create(**data)
+        )
+
     except Exception as e:
-        logger.error(f"Error in create_padya: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in create_padya")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/padya', methods=['PUT'])
-def update_padya():
+@parvya_bp.route(
+    "/padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>",
+    methods=["PUT"],
+)
+def update_padya(
+        parva_number,
+        sandhi_number,
+        padya_number,
+):
     try:
-        data = request.json
-        result = service.update_padya(data)
-        if isinstance(result, tuple):
-            return jsonify(result[0]), result[1]
-        return jsonify(result)
+        data = request.get_json(silent=True) or {}
+
+        return handle_response(
+            # Avoid passing parva/sandhi/padya identifiers twice: they are
+            # provided positionally from the URL and may also be present
+            # in the request body. Remove them from the kwargs to prevent
+            # Python's "multiple values for argument" TypeError.
+            padya_service.update(
+                parva_number,
+                sandhi_number,
+                padya_number,
+                **{k: v for k, v in data.items() if k not in (
+                    'parva_number', 'sandhi_number', 'padya_number'
+                )},
+            )
+        )
+
     except Exception as e:
-        logger.error(f"Error in update_padya: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception("Error in update_padya")
+        return jsonify({"error": str(e)}), 500
 
 
-@parvya_bp.route('/padya', methods=['PATCH'])
-def update_padya_field():
-    try:
-        data = request.json
-        result = service.update_padya_field(data)
-        if isinstance(result, tuple):
-            return jsonify(result[0]), result[1]
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in update_padya_field: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
-
-@parvya_bp.route('/padya/delete/<int:padya_number>/<int:sandhi_number>/<int:parva_number>', methods=['DELETE'])
-def delete_padya(padya_number, sandhi_number, parva_number):
-    result = service.delete_padya(padya_number, sandhi_number, parva_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
-
-
-# Helper Routes
-@parvya_bp.route('/sandhi/by_parva/<int:parva_id>', methods=['GET'])
-def get_sandhi_by_parva(parva_id):
-    result = service.get_sandhi_by_parva(parva_id)
-    return jsonify(result)
-
-
-@parvya_bp.route('/padya/by_sandhi/<int:sandhi_id>', methods=['GET'])
-def get_padya_by_sandhi(sandhi_id):
-    result = service.get_padya_by_sandhi(sandhi_id)
-    return jsonify(result)
-
-
-@parvya_bp.route('/sandhi/by_parva_sandhi/<int:parva_number>/<int:sandhi_number>', methods=['GET'])
-def get_sandhi_by_parva_sandhi(parva_number, sandhi_number):
-    result = service.get_sandhi_by_parva_sandhi(parva_number, sandhi_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
-
-
-@parvya_bp.route('/padya/by_parva_sandhi_padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>',
-                 methods=['GET'])
-def get_padya_by_parva_sandhi_padya(parva_number, sandhi_number, padya_number):
-    result = service.get_padya_by_parva_sandhi_padya(parva_number, sandhi_number, padya_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
-
-
-@parvya_bp.route('/all_sandhi/by_parva/<int:parva_number>', methods=['GET'])
-def get_all_sandhi_by_parva(parva_number):
-    result = service.get_all_sandhi_by_parva(parva_number)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
-
-
-# Stats Routes
-@parvya_bp.route('/stats', methods=['GET'])
-def statistics():
-    result = service.get_statistics()
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    return jsonify(result)
-
-
-@parvya_bp.route('/stats/search_word', methods=['POST'])
-def search_padya_by_word():
-    try:
-        data = request.get_json()
-        result = service.search_padya_by_word(data)
-        if isinstance(result, tuple):
-            return jsonify(result[0]), result[1]
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in search_padya_by_word: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+@parvya_bp.route(
+    "/padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>",
+    methods=["DELETE"],
+)
+def delete_padya(
+        parva_number,
+        sandhi_number,
+        padya_number,
+):
+    return handle_response(
+        padya_service.delete(
+            parva_number,
+            sandhi_number,
+            padya_number,
+        )
+    )

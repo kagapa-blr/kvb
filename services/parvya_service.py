@@ -1,16 +1,22 @@
 import logging
 
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
-from model.models import db, Parva, Sandhi, Padya
+from model.models import (
+    db,
+    Parva,
+    Sandhi,
+    Padya,
+)
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------
-# Safe commit helper
-# ---------------------------------------------------------
+# -------------------------------------------------------
+# COMMON UTILITIES
+# -------------------------------------------------------
 
 def commit_session():
     try:
@@ -21,136 +27,124 @@ def commit_session():
         raise
 
 
-# Lazy-load Statistics instance
-_stats_instance = None
+def get_pagination(offset: int = 0, limit: int = 20):
+    offset = max(offset, 0)
+    limit = max(min(limit, 100), 1)
+    # offset already provided directly
+    return offset, limit
 
 
-def get_stats():
-    global _stats_instance
+# -------------------------------------------------------
+# PARVA SERVICE
+# -------------------------------------------------------
 
-    if _stats_instance is None:
+class ParvaService:
+
+    def get_all(self, offset=0, limit=20, **kwargs):
         try:
-            logger.info("Initializing Statistics module (lazy-load)...")
-            from utils.statistics import Statistics
+            offset, limit = get_pagination(offset, limit)
 
-            _stats_instance = Statistics()
-            logger.info("Statistics module initialized successfully")
+            query = Parva.query.order_by(Parva.parva_number)
+            total = query.count()
+
+            records = (
+                query.offset(offset)
+                .limit(limit)
+                .all()
+            )
+
+            return {
+                "offset": offset,
+                "limit": limit,
+                "total": total,
+                "data": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "parva_number": p.parva_number,
+                        "sandhi_count": len(p.sandhis),
+                        "parvantya": p.parvantya,
+                    }
+                    for p in records
+                ],
+            }, 200
 
         except Exception as e:
-            logger.error("Failed to initialize Statistics module: %s", e)
-            _stats_instance = None
+            logger.error("Error fetching parvas: %s", e)
+            return {"error": "Database error"}, 500
 
-    return _stats_instance
-
-
-class ParvyaService:
-
-    # ==================== PARVA METHODS ====================
-
-    def get_all_parvas(self):
-        try:
-            parvas = Parva.query.all()
-
-            return [
-                {
-                    "id": p.id,
-                    "name": p.name,
-                    "parva_number": p.parva_number,
-                }
-                for p in parvas
-            ]
-
-        except Exception as e:
-            logger.error("Database error in get_all_parvas: %s", e)
-            return {"error": "Unable to connect to database"}, 503
-
-    def get_parva_by_id(self, id):
-
-        parva = db.session.get(Parva, id)
+    def get_by_number(self, parva_number, **kwargs):
+        parva = Parva.query.filter_by(parva_number=parva_number).first()
 
         if not parva:
             return {"error": "Parva not found"}, 404
 
-        return (
-            {
-                "id": parva.id,
-                "name": parva.name,
-                "parva_number": parva.parva_number,
-            },
-            200,
-        )
+        return {
+            "id": parva.id,
+            "name": parva.name,
+            "parva_number": parva.parva_number,
+            "parvantya": parva.parvantya,
+            "sandhi_count": len(parva.sandhis),
+        }, 200
 
-    def create_parva(self, data):
-
-        name = data.get("name")
+    def create(self, **kwargs):
+        name = kwargs.get("name")
 
         if not name:
-            return {"error": "Name is required"}, 400
-
-        if Parva.query.filter_by(name=name).first():
-            return {"error": "Parva with this name already exists"}, 409
+            return {"error": "Name required"}, 400
 
         try:
             max_number = db.session.query(
-                db.func.max(Parva.parva_number)
+                func.max(Parva.parva_number)
             ).scalar()
 
             next_number = (max_number or 0) + 1
 
-            new_parva = Parva(
+            record = Parva(
                 name=name,
                 parva_number=next_number,
+                parvantya=kwargs.get("parvantya"),
             )
 
-            db.session.add(new_parva)
+            db.session.add(record)
             commit_session()
 
-            return (
-                {
-                    "id": new_parva.id,
-                    "name": new_parva.name,
-                    "parva_number": new_parva.parva_number,
-                },
-                201,
-            )
+            return {
+                "id": record.id,
+                "parva_number": record.parva_number,
+                "name": record.name,
+            }, 201
+
+        except IntegrityError:
+            return {"error": "Duplicate parva"}, 409
 
         except Exception as e:
-            logger.error("Error creating parva: %s", e)
-            return {"error": str(e)}, 500
+            logger.error("Create parva failed: %s", e)
+            return {"error": "Create failed"}, 500
 
-    def update_parva(self, id, data):
-
-        parva = db.session.get(Parva, id)
+    def update(self, parva_number, **kwargs):
+        parva = Parva.query.filter_by(
+            parva_number=parva_number
+        ).first()
 
         if not parva:
             return {"error": "Parva not found"}, 404
 
         try:
-            parva.name = data.get("name", parva.name)
-            parva.parva_number = data.get(
-                "parva_number", parva.parva_number
+            parva.name = kwargs.get("name", parva.name)
+            parva.parvantya = kwargs.get(
+                "parvantya", parva.parvantya
             )
 
             commit_session()
 
-            return (
-                {
-                    "id": parva.id,
-                    "name": parva.name,
-                    "parva_number": parva.parva_number,
-                },
-                200,
-            )
+            return {"message": "Updated"}, 200
 
         except Exception as e:
             logger.error("Update parva failed: %s", e)
             return {"error": "Update failed"}, 500
 
-    def delete_parva_by_number(self, parva_number):
-
-        if parva_number is None:
-            return {"error": "Parva number is required"}, 400
-
+    def delete(self, parva_number, **kwargs):
         parva = Parva.query.filter_by(
             parva_number=parva_number
         ).first()
@@ -162,202 +156,346 @@ class ParvyaService:
             db.session.delete(parva)
             commit_session()
 
-            return (
-                {
-                    "message": "Parva and related records deleted successfully"
-                },
-                200,
-            )
+            return {"message": "Deleted"}, 200
 
         except Exception as e:
             logger.error("Delete parva failed: %s", e)
-            return {"error": str(e)}, 500
+            return {"error": "Delete failed"}, 500
 
-    # ==================== SANDHI METHODS ====================
 
-    def get_all_sandhis(self):
+# -------------------------------------------------------
+# SANDHI SERVICE
+# -------------------------------------------------------
 
-        sandhis = (
-            Sandhi.query.options(
-                joinedload(Sandhi.parva)
-            ).all()
-        )
+class SandhiService:
 
-        return [
-            {
-                "id": s.id,
-                "parva_number": s.parva.parva_number,
-                "name": s.name,
-                "sandhi_number": s.sandhi_number,
-            }
-            for s in sandhis
-        ]
-
-    def create_sandhi(self, data):
-
-        name = data.get("name")
-        parva_number = data.get("parva_number")
-
-        if not name:
-            return {"error": "Name is required"}, 400
-
-        if not parva_number:
-            return {"error": "Parva Number is required"}, 400
+    def get_by_parva(
+        self,
+        parva_number,
+        offset=0,
+        limit=20,
+        **kwargs,
+    ):
+        offset, limit = get_pagination(offset, limit)
 
         parva = Parva.query.filter_by(
             parva_number=parva_number
         ).first()
 
         if not parva:
-            return {
-                "error": "Parva with the given number does not exist"
-            }, 404
+            return {"error": "Parva not found"}, 404
+
+        query = (
+            Sandhi.query.options(joinedload(Sandhi.parva))
+            .filter_by(parva_id=parva.id)
+            .order_by(Sandhi.sandhi_number)
+        )
+
+        total = query.count()
+
+        records = (
+            query.offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        return {
+            "offset": offset,
+            "limit": limit,
+            "total": total,
+            "data": [
+                {
+                    "parva_number": s.parva.parva_number,
+                    "sandhi_number": s.sandhi_number,
+                    "name": s.name,
+                    "padya_count": len(s.padyas),
+                }
+                for s in records
+            ],
+        }, 200
+
+    def get_unique(
+        self,
+        parva_number,
+        sandhi_number,
+        **kwargs,
+    ):
+        sandhi = (
+            Sandhi.query.join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+            )
+            .first()
+        )
+
+        if not sandhi:
+            return {"error": "Sandhi not found"}, 404
+
+        return {
+            "parva_number": parva_number,
+            "sandhi_number": sandhi.sandhi_number,
+            "name": sandhi.name,
+            "padya_count": len(sandhi.padyas),
+        }, 200
+
+    def create(self, **kwargs):
+        parva_number = kwargs.get("parva_number")
+        name = kwargs.get("name")
+
+        if not parva_number:
+            return {"error": "Parva number required"}, 400
+
+        if not name:
+            return {"error": "Name required"}, 400
+
+        parva = Parva.query.filter_by(
+            parva_number=parva_number
+        ).first()
+
+        if not parva:
+            return {"error": "Parva not found"}, 404
 
         try:
-            sandhi_number_str = name.replace(
-                "ಸಂಧಿ", ""
-            ).strip()
+            max_number = db.session.query(
+                func.max(Sandhi.sandhi_number)
+            ).filter_by(parva_id=parva.id).scalar()
 
-            sandhi_number = int(sandhi_number_str)
+            next_number = (max_number or 0) + 1
 
-        except ValueError:
-            return {"error": "Invalid sandhi number"}, 400
-
-        if Sandhi.query.filter_by(
-                parva_id=parva.id,
-                sandhi_number=sandhi_number,
-        ).first():
-            return {
-                "error": "Sandhi already exists in this Parva"
-            }, 409
-
-        try:
-            new_sandhi = Sandhi(
+            record = Sandhi(
                 parva_id=parva.id,
                 name=name,
-                sandhi_number=sandhi_number,
+                sandhi_number=next_number,
             )
 
-            db.session.add(new_sandhi)
+            db.session.add(record)
             commit_session()
 
-            return (
-                {
-                    "id": new_sandhi.id,
-                    "parva_number": parva_number,
-                    "name": new_sandhi.name,
-                    "sandhi_number": new_sandhi.sandhi_number,
-                },
-                201,
-            )
+            return {
+                "parva_number": parva_number,
+                "sandhi_number": record.sandhi_number,
+            }, 201
+
+        except IntegrityError:
+            return {"error": "Duplicate sandhi"}, 409
 
         except Exception as e:
             logger.error("Create sandhi failed: %s", e)
-            return {"error": str(e)}, 500
+            return {"error": "Create failed"}, 500
 
-    def delete_sandhi(self, parva_number, sandhi_number):
+    def update(
+        self,
+        parva_number,
+        sandhi_number,
+        **kwargs,
+    ):
+        sandhi = (
+            Sandhi.query.join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+            )
+            .first()
+        )
+
+        if not sandhi:
+            return {"error": "Sandhi not found"}, 404
 
         try:
-            parva = Parva.query.filter_by(
-                parva_number=parva_number
-            ).first()
+            sandhi.name = kwargs.get(
+                "name", sandhi.name
+            )
 
-            if not parva:
-                return {
-                    "error": "Parva does not exist"
-                }, 404
+            commit_session()
 
-            sandhi = Sandhi.query.filter_by(
-                parva_id=parva.id,
-                sandhi_number=sandhi_number,
-            ).first()
+            return {"message": "Updated"}, 200
 
-            if not sandhi:
-                return {
-                    "error": "Sandhi does not exist"
-                }, 404
+        except Exception as e:
+            logger.error("Update sandhi failed: %s", e)
+            return {"error": "Update failed"}, 500
 
-            Padya.query.filter_by(
-                sandhi_id=sandhi.id
-            ).update({"sandhi_id": None})
+    def delete(
+        self,
+        parva_number,
+        sandhi_number,
+        **kwargs,
+    ):
+        sandhi = (
+            Sandhi.query.join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+            )
+            .first()
+        )
 
+        if not sandhi:
+            return {"error": "Sandhi not found"}, 404
+
+        try:
             db.session.delete(sandhi)
             commit_session()
 
-            return {"message": "Sandhi deleted"}, 200
-
-        except IntegrityError as e:
-            db.session.rollback()
-            logger.error("Integrity error deleting sandhi: %s", e)
-            return {
-                "error": "Cannot delete sandhi due to related records"
-            }, 400
+            return {"message": "Deleted"}, 200
 
         except Exception as e:
-            db.session.rollback()
-            logger.error("Unexpected error deleting sandhi: %s", e)
-            return {"error": "Unexpected error"}, 500
+            logger.error("Delete sandhi failed: %s", e)
+            return {"error": "Delete failed"}, 500
 
-    # ==================== PADYA METHODS ====================
 
-    def get_padya_by_sandhi_and_number(
-            self,
-            sandhi_id,
-            padya_number,
+# -------------------------------------------------------
+# PADYA SERVICE
+# -------------------------------------------------------
+
+class PadyaService:
+
+    # ---------------------------------------------
+    # SEARCH WITH PAGINATION
+    # ---------------------------------------------
+
+    def search(
+        self,
+        parva_number=None,
+        sandhi_number=None,
+        keyword=None,
+        offset=0,
+        limit=20,
+        **kwargs,
     ):
-
         try:
-            padya = Padya.query.filter_by(
-                sandhi_id=sandhi_id,
-                padya_number=padya_number,
-            ).first()
+            offset, limit = get_pagination(offset, limit)
 
-            if not padya:
-                return {"error": "Padya not found"}, 404
-
-            return (
-                {
-                    "id": padya.id,
-                    "sandhi_id": padya.sandhi_id,
-                    "padya_number": padya.padya_number,
-                    "pathantar": padya.pathantar,
-                    "gadya": padya.gadya,
-                    "tippani": padya.tippani,
-                    "artha": padya.artha,
-                    "padya": padya.padya,
-                },
-                200,
+            query = (
+                Padya.query
+                .join(Sandhi)
+                .join(Parva)
             )
 
-        except Exception as e:
-            logger.error("Error fetching padya: %s", e)
-            return {"error": "Unexpected error"}, 500
+            if parva_number:
+                query = query.filter(
+                    Parva.parva_number == parva_number
+                )
 
-    def create_padya(self, data):
+            if sandhi_number:
+                query = query.filter(
+                    Sandhi.sandhi_number == sandhi_number
+                )
 
-        required_fields = [
-            "parva_number",
-            "sandhi_number",
-            "padya_number",
-        ]
+            if keyword:
+                like = f"%{keyword}%"
+                query = query.filter(
+                    Padya.padya.ilike(like)
+                )
 
-        missing = [
-            f for f in required_fields if f not in data
-        ]
+            query = query.order_by(
+                Padya.padya_number
+            )
 
-        if missing:
+            total = query.count()
+
+            records = (
+                query.offset(offset)
+                .limit(limit)
+                .all()
+            )
+
             return {
-                "error": f"Missing fields: {', '.join(missing)}"
-            }, 400
+                "offset": offset,
+                "limit": limit,
+                "total": total,
+                "data": [
+                    {
+                        "parva_number": r.sandhi.parva.parva_number,
+                        "sandhi_number": r.sandhi.sandhi_number,
+                        "padya_number": r.padya_number,
+                        "preview": (
+                            r.padya[:80] + "..."
+                            if r.padya
+                            else None
+                        ),
+                    }
+                    for r in records
+                ],
+            }, 200
 
+        except Exception as e:
+            logger.error("Search padya failed: %s", e)
+            return {"error": "Search failed"}, 500
+
+    # ---------------------------------------------
+    # FETCH UNIQUE PADYA
+    # ---------------------------------------------
+
+    def get_unique(
+        self,
+        parva_number,
+        sandhi_number,
+        padya_number,
+        **kwargs,
+    ):
+        record = (
+            Padya.query.join(Sandhi)
+            .join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+                Padya.padya_number == padya_number,
+            )
+            .first()
+        )
+
+        if not record:
+            return {"error": "Padya not found"}, 404
+
+        # Get sandhi and parva objects for names
+        sandhi = record.sandhi
+        parva = sandhi.parva if sandhi else None
+
+        return {
+            "id": record.id,
+            "parva_number": parva_number,
+            "parva_name": parva.name if parva else "",
+            "sandhi_number": sandhi_number,
+            "sandhi_name": sandhi.name if sandhi else "",
+            "padya_number": record.padya_number,
+            "padya": record.padya,
+            "artha": record.artha,
+            "tippani": record.tippani,
+            "gadya": record.gadya,
+            "suchane": record.suchane,
+            "pathantar": record.pathantar,
+        }, 200
+
+    # ---------------------------------------------
+    # CREATE
+    # ---------------------------------------------
+
+    def create(self, **kwargs):
         try:
+            parva_number = kwargs.get(
+                "parva_number"
+            )
+            sandhi_number = kwargs.get(
+                "sandhi_number"
+            )
+
+            padya_text = kwargs.get("padya")
+
+            if not (
+                parva_number
+                and sandhi_number
+                and padya_text
+            ):
+                return {"error": "Required fields missing"}, 400
+
             sandhi = (
                 Sandhi.query.join(Parva)
                 .filter(
                     Parva.parva_number
-                    == data["parva_number"],
+                    == parva_number,
                     Sandhi.sandhi_number
-                    == data["sandhi_number"],
+                    == sandhi_number,
                 )
                 .first()
             )
@@ -365,73 +503,134 @@ class ParvyaService:
             if not sandhi:
                 return {"error": "Sandhi not found"}, 404
 
-            if Padya.query.filter_by(
-                    sandhi_id=sandhi.id,
-                    padya_number=data["padya_number"],
-            ).first():
-                return {
-                    "error": "Padya already exists"
-                }, 409
+            max_number = db.session.query(
+                func.max(Padya.padya_number)
+            ).filter_by(
+                sandhi_id=sandhi.id
+            ).scalar()
 
-            new_padya = Padya(
+            next_number = (max_number or 0) + 1
+
+            record = Padya(
                 sandhi_id=sandhi.id,
-                padya_number=data["padya_number"],
-                pathantar=data.get("pathantar"),
-                gadya=data.get("gadya"),
-                tippani=data.get("tippani"),
-                artha=data.get("artha"),
-                padya=data.get("padya"),
+                padya_number=next_number,
+                padya=padya_text,
+                artha=kwargs.get("artha"),
+                tippani=kwargs.get("tippani"),
+                gadya=kwargs.get("gadya"),
+                suchane=kwargs.get("suchane"),
+                pathantar=kwargs.get("pathantar"),
             )
 
-            db.session.add(new_padya)
+            db.session.add(record)
             commit_session()
 
-            return (
-                {
-                    "id": new_padya.id,
-                    "sandhi_id": new_padya.sandhi_id,
-                    "padya_number": new_padya.padya_number,
-                },
-                201,
-            )
+            return {
+                "parva_number": parva_number,
+                "sandhi_number": sandhi_number,
+                "padya_number": record.padya_number,
+            }, 201
 
-        except IntegrityError as e:
-            db.session.rollback()
-            logger.error("Integrity error creating padya: %s", e)
-            return {"error": "Database error"}, 500
+        except IntegrityError:
+            return {"error": "Duplicate padya"}, 409
 
         except Exception as e:
-            db.session.rollback()
-            logger.error("Unexpected error creating padya: %s", e)
-            return {"error": "Unexpected error"}, 500
+            logger.error("Create padya failed: %s", e)
+            return {"error": "Create failed"}, 500
 
-    # ==================== STATISTICS ====================
+    # ---------------------------------------------
+    # UPDATE
+    # ---------------------------------------------
 
-    def get_statistics(self):
+    def update(
+        self,
+        parva_number,
+        sandhi_number,
+        padya_number,
+        **kwargs,
+    ):
+        record = (
+            Padya.query.join(Sandhi)
+            .join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+                Padya.padya_number == padya_number,
+            )
+            .first()
+        )
+
+        if not record:
+            return {"error": "Padya not found"}, 404
 
         try:
-            stats = get_stats()
+            record.padya = kwargs.get(
+                "padya", record.padya
+            )
+            record.artha = kwargs.get(
+                "artha", record.artha
+            )
+            record.tippani = kwargs.get(
+                "tippani", record.tippani
+            )
+            record.gadya = kwargs.get(
+                "gadya", record.gadya
+            )
+            record.suchane = kwargs.get(
+                "suchane", record.suchane
+            )
+            record.pathantar = kwargs.get(
+                "pathantar", record.pathantar
+            )
 
-            if stats is None:
-                return {
-                    "error": "Statistics module not available",
-                    "total_parva": 0,
-                    "total_sandhi": 0,
-                    "total_padya": 0,
-                    "total_users": 0,
-                }, 500
+            commit_session()
 
-            data = stats.fetch_statistics()
-
-            return data, 200
+            return {"message": "Updated"}, 200
 
         except Exception as e:
-            logger.error("Error fetching statistics: %s", e)
+            logger.error("Update padya failed: %s", e)
+            return {"error": "Update failed"}, 500
 
-            return {
-                "error": "Unable to fetch statistics",
-                "total_parva": 0,
-                "total_sandhi": 0,
-                "total_padya": 0,
-                "total_users": 0,
-            }, 500
+    # ---------------------------------------------
+    # DELETE
+    # ---------------------------------------------
+
+    def delete(
+        self,
+        parva_number,
+        sandhi_number,
+        padya_number,
+        **kwargs,
+    ):
+        record = (
+            Padya.query.join(Sandhi)
+            .join(Parva)
+            .filter(
+                Parva.parva_number == parva_number,
+                Sandhi.sandhi_number == sandhi_number,
+                Padya.padya_number == padya_number,
+            )
+            .first()
+        )
+
+        if not record:
+            return {"error": "Padya not found"}, 404
+
+        try:
+            db.session.delete(record)
+            commit_session()
+
+            return {"message": "Deleted"}, 200
+
+        except Exception as e:
+            logger.error("Delete padya failed: %s", e)
+            return {"error": "Delete failed"}, 500
+
+
+# -------------------------------------------------------
+# GLOBAL INSTANCES
+# -------------------------------------------------------
+
+parva_service = ParvaService()
+sandhi_service = SandhiService()
+padya_service = PadyaService()

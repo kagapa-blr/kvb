@@ -13,6 +13,7 @@ from routers.additional import additonal_bp
 from routers.gamaka_vachana import gamaka_bp
 from routers.parvya import parvya_bp
 from routers.users import users_bp
+from routers.web_routes.admin_routes import admin_ui_routes
 from services.user_management import create_or_update_default_user
 
 # Load environment variables
@@ -40,10 +41,11 @@ db.init_app(app)
 with app.app_context():
     create_or_update_default_user()
 # Register Blueprints
-app.register_blueprint(parvya_bp, url_prefix='/api')
+app.register_blueprint(parvya_bp, url_prefix='/api/v1')
 app.register_blueprint(additonal_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(gamaka_bp, url_prefix='/api')
+app.register_blueprint(admin_ui_routes)
 
 
 @app.before_request

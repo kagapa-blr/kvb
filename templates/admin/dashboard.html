@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="kn">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ಕುಮಾರವ್ಯಾಸ ಭಾರತ - ನಿರ್ವಹಣೆ</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: "Noto Sans Kannada", sans-serif;
+      background: #f8f9fa;
+    }
+
+    .content-card {
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Padya Dropdown Improvements */
+    .padya-dropdown {
+      max-height: 28px !important;
+      font-size: 0.875rem;
+      padding: 0.25rem 0.5rem;
+      line-height: 1.4;
+    }
+
+    .padya-dropdown:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      max-height: 28px !important;
+    }
+
+    /* Custom dropdown scroll */
+    .padya-dropdown option {
+      padding: 4px 8px;
+      font-size: 0.85rem;
+    }
+
+    /* Responsive table preview */
+    #padya_table td:nth-child(3) {
+      max-width: 250px;
+    }
+
+    /* Small form controls */
+    .form-control-sm,
+    .form-select-sm {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+
+    /* Labels */
+    .form-label {
+      margin-bottom: 0.25rem;
+      font-size: 0.8rem;
+    }
+
+    /* Search row improvements */
+    .search-row {
+      gap: 0.5rem !important;
+    }
+
+    /* Button improvements */
+    .btn-sm {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid py-4">
+    <div class="card content-card mb-4 bg-primary text-white text-center py-4">
+      <h2 class="fw-bold">ಕುಮಾರವ್ಯಾಸ ಭಾರತ</h2>
+      <div>ಡೇಟಾಬೇಸ್ ನಿರ್ವಹಣೆ</div>
+    </div>
+
+    <div id="alertContainer" class="mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#parva_tab">
+          ಪರ್ವಗಳು
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#sandhi_tab">
+          ಸಂಧಿಗಳು
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#padya_tab">
+          ಪದ್ಯಗಳು
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content card content-card p-3">
+      <!-- PARVA TAB -->
+      <div class="tab-pane fade show active" id="parva_tab">
+        <div class="row g-2 mb-3 search-row">
+          <div class="col-md-8">
+            <input id="parva_search" class="form-control form-control-sm" placeholder="ಪರ್ವ ಹುಡುಕಿ..." />
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100" id="parva-search-btn">
+              <i class="bi bi-search me-1"></i>ಹುಡುಕಿ
+            </button>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#parvaModal">
+              <i class="bi bi-plus-circle me-1"></i>Add Parva
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>ಹೆಸರು</th>
+                <th>ಪರ್ವ ಸಂಖ್ಯೆ</th>
+                <th>ಸಂಧಿಗಳು</th>
+                <th style="width: 120px">Action</th>
+              </tr>
+            </thead>
+            <tbody id="parva_table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SANDHI TAB -->
+      <div class="tab-pane fade" id="sandhi_tab">
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small text-muted">ಪರ್ವ</label>
+            <select id="sandhi_parva_select" class="form-select form-select-sm"></select>
+          </div>
+          <div class="col-md-5">
+            <input id="sandhi_search" class="form-control form-control-sm" placeholder="ಸಂಧಿ ಹುಡುಕಿ..." />
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100" id="sandhi-search-btn">
+              <i class="bi bi-search me-1"></i>ಹುಡುಕಿ
+            </button>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#sandhiModal">
+              <i class="bi bi-plus-circle me-1"></i>Add Sandhi
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>ಸಂಧಿ ಹೆಸರು</th>
+                <th>ಸಂಧಿ ಸಂಖ್ಯೆ</th>
+                <th>ಪದ್ಯಗಳು</th>
+                <th style="width: 120px">Action</th>
+              </tr>
+            </thead>
+            <tbody id="sandhi_table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PADYA TAB -->
+      <div class="tab-pane fade" id="padya_tab">
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small text-muted">ಪರ್ವ</label>
+            <select id="padya_parva_select" class="form-select form-select-sm padya-dropdown">
+              <option value="">ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small text-muted">ಸಂಧಿ</label>
+            <select id="padya_sandhi_select" class="form-select form-select-sm padya-dropdown">
+              <option value="">ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-muted">ಪದ್ಯ ಹುಡುಕಿ</label>
+            <input id="padya_search" class="form-control form-control-sm" placeholder="ಪದ್ಯ ಹುಡುಕಿ..." />
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary btn-sm w-100 padya-search-btn" id="padya-search-btn">
+              <i class="bi bi-search me-1"></i>ಹುಡುಕಿ
+            </button>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mb-2">
+          <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#padyaModal">
+            <i class="bi bi-plus-circle me-1"></i>Add Padya
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 100px">ಪದ್ಯ ಸಂಖ್ಯೆ</th>
+                <th>Preview</th>
+                <th style="width: 120px">Action</th>
+              </tr>
+            </thead>
+            <tbody id="padya_table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARVA MODAL -->
+  <div class="modal fade" id="parvaModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="parvaModalTitle">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">ಪರ್ವ ಹೆಸರು</label>
+            <input id="parva_name" class="form-control" placeholder="ಪರ್ವ ಹೆಸರು ನಮೂದಿಸಿ" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            ರದ್ದು
+          </button>
+          <button type="button" class="btn btn-success" id="save-parva-btn">
+            ಸೇರಿಸಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SANDHI MODAL -->
+  <div class="modal fade" id="sandhiModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sandhiModalTitle">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">ಪರ್ವ</label>
+            <select id="sandhi_parva_select_modal" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">ಸಂಧಿ ಹೆಸರು</label>
+            <input id="sandhi_name" class="form-control" placeholder="ಸಂಧಿ ಹೆಸರು ನಮೂದಿಸಿ" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            ರದ್ದು
+          </button>
+          <button type="button" class="btn btn-success" id="save-sandhi-btn">
+            ಸೇರಿಸಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PADYA MODAL -->
+  <div class="modal fade" id="padyaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="padyaModalTitle">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="modal_padya_id" />
+          <input type="hidden" id="modal_padya_parva_number" />
+          <input type="hidden" id="modal_padya_sandhi_number" />
+
+          <!-- For new padya: dropdowns -->
+          <div id="padya_select_mode" style="display: none">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">ಪರ್ವ</label>
+                <select id="padya_parva_select_modal" class="form-select"></select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ಸಂಧಿ</label>
+                <select id="padya_sandhi_select_modal" class="form-select"></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- For editing: display fields -->
+          <div id="padya_display_mode" style="display: none">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">ಪರ್ವ</label>
+                <div class="input-group">
+                  <input type="text" id="modal_padya_parva_display" class="form-control" readonly
+                    placeholder="ಪರ್ವ ಹೆಸರು" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ಸಂಧಿ</label>
+                <div class="input-group">
+                  <input type="text" id="modal_padya_sandhi_display" class="form-control" readonly
+                    placeholder="ಸಂಧಿ ಹೆಸರು" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">ಪದ್ಯ (ಅಗತ್ಯ)</label>
+            <textarea id="modal_padya_text" class="form-control" rows="5" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">ಅರ್ಥ</label>
+            <textarea id="modal_padya_artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">ಟಿಪ್ಪಣಿ</label>
+            <textarea id="modal_padya_tippani" class="form-control" rows="3"
+              placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">ಗದ್ಯ</label>
+            <textarea id="modal_padya_gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">ಸುಚನೆ</label>
+            <textarea id="modal_padya_suchane" class="form-control" rows="2" placeholder="ಸುಚನೆ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+          <div class="mt-3">
+            <label class="form-label">ಪಠಾಂತರ</label>
+            <textarea id="modal_padya_pathantar" class="form-control" rows="2"
+              placeholder="ಪಠಾಂತರ ನಮೂದಿಸಿ..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            ರದ್ದು
+          </button>
+          <button type="button" class="btn btn-success" id="save-padya-btn">
+            ಸೇರಿಸಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          ಈ ಐಟಂ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಇದನ್ನು ಮತ್ತೆ ತಿರಿಗಿ ತರಲು
+          ಸಾಧ್ಯವಿಲ್ಲ.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            ರದ್ದು
+          </button>
+          <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+            ಅಳಿಸಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>
