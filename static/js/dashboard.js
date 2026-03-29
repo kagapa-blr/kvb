@@ -129,17 +129,24 @@ function initializeEventListeners() {
   document.getElementById('padya_parva_select_modal')?.addEventListener('change', async () => {
     const parvaNumber = document.getElementById('padya_parva_select_modal').value;
     const sandhiDropdown = document.getElementById('padya_sandhi_select_modal');
+    
+    if (!sandhiDropdown) return;
+    
     sandhiDropdown.innerHTML = `<option value="">ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>`;
     
     if (parvaNumber) {
       try {
         const sandhiResult = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
-        sandhiResult.data.forEach(s => {
-          const sandhiNum = s.sandhi_number || s.id || '';
-          if (sandhiNum) {
-            sandhiDropdown.innerHTML += `<option value="${sandhiNum}">${escapeHtml(s.name || '')}</option>`;
-          }
-        });
+        const sandhis = (sandhiResult && sandhiResult.data) ? sandhiResult.data : [];
+        
+        if (Array.isArray(sandhis)) {
+          sandhis.forEach(s => {
+            const sandhiNum = s.sandhi_number || s.id || '';
+            if (sandhiNum) {
+              sandhiDropdown.innerHTML += `<option value="${sandhiNum}">${escapeHtml(s.name || '')}</option>`;
+            }
+          });
+        }
       } catch (error) {
         console.error("Modal sandhi load error:", error);
       }
@@ -976,17 +983,30 @@ async function populatePadyaModalDropdowns() {
     // Load parvas for modal
     const parvaResult = await apiRequest("/parva", { params: { offset: 0, limit: 100 } });
     const parvaDropdown = document.getElementById("padya_parva_select_modal");
+    
+    if (!parvaDropdown) {
+      console.error("Padya parva select modal element not found");
+      return;
+    }
+    
     parvaDropdown.innerHTML = `<option value="">ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
     
-    parvaResult.data.forEach(p => {
-      const parvaNumber = p.parva_number || p.id || '';
-      if (parvaNumber) {
-        parvaDropdown.innerHTML += `<option value="${parvaNumber}">${escapeHtml(p.name || '')}</option>`;
-      }
-    });
+    // Safely get the data array
+    const parvas = (parvaResult && parvaResult.data) ? parvaResult.data : [];
+    if (Array.isArray(parvas)) {
+      parvas.forEach(p => {
+        const parvaNumber = p.parva_number || p.id || '';
+        if (parvaNumber) {
+          parvaDropdown.innerHTML += `<option value="${parvaNumber}">${escapeHtml(p.name || '')}</option>`;
+        }
+      });
+    }
     
     // Reset sandhi dropdown
-    document.getElementById("padya_sandhi_select_modal").innerHTML = `<option value="">ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>`;
+    const sandhiDropdown = document.getElementById("padya_sandhi_select_modal");
+    if (sandhiDropdown) {
+      sandhiDropdown.innerHTML = `<option value="">ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>`;
+    }
 
   } catch (error) {
     console.error("Modal dropdown population error:", error);
@@ -1000,6 +1020,7 @@ async function savePadya() {
   
   const padyaText = document.getElementById("modal_padya_text").value.trim();
   const padyaNumber = document.getElementById("modal_padya_id").value;
+  const updatedBy = document.getElementById("modal_padya_updated_by")?.value.trim() || null;
 
   // If hidden fields are empty, get from dropdowns (new padya mode)
   if (!parvaNumber) {
@@ -1034,6 +1055,7 @@ async function savePadya() {
         gadya: document.getElementById("modal_padya_gadya")?.value.trim() || null,
         suchane: document.getElementById("modal_padya_suchane")?.value.trim() || null,
         pathantar: document.getElementById("modal_padya_pathantar")?.value.trim() || null,
+        updated_by: updatedBy,
       },
     });
 
@@ -1058,16 +1080,24 @@ function resetPadyaModal() {
   // Show dropdown mode (for creating new padya)
   document.getElementById("padya_select_mode").style.display = "block";
   document.getElementById("padya_display_mode").style.display = "none";
+  document.getElementById("padya_audit_info").style.display = "none";
   
   // Clear hidden fields
   document.getElementById("modal_padya_id").value = "";
   document.getElementById("modal_padya_parva_number").value = "";
   document.getElementById("modal_padya_sandhi_number").value = "";
   
+  // Clear timestamp fields
+  document.getElementById("modal_padya_created").value = "";
+  document.getElementById("modal_padya_updated").value = "";
+  document.getElementById("modal_padya_updated_by").value = "";
+  
   document.getElementById("padyaModalTitle").textContent = "ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ";
   document.getElementById("save-padya-btn").textContent = "ಸೇರಿಸಿ";
   document.getElementById("padya_parva_select_modal").value = "";
   document.getElementById("padya_sandhi_select_modal").value = "";
+  
+  // Clear text fields
   document.getElementById("modal_padya_text").value = "";
   document.getElementById("modal_padya_artha").value = "";
   document.getElementById("modal_padya_tippani").value = "";
@@ -1085,6 +1115,7 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
     // Show display mode (for editing)
     document.getElementById("padya_select_mode").style.display = "none";
     document.getElementById("padya_display_mode").style.display = "block";
+    document.getElementById("padya_audit_info").style.display = "grid";
     
     // Populate modal with existing data
     document.getElementById("modal_padya_id").value = padya.id || padyaNumber;
@@ -1106,6 +1137,17 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
     document.getElementById("modal_padya_gadya").value = padya.gadya || '';
     document.getElementById("modal_padya_suchane").value = padya.suchane || '';
     document.getElementById("modal_padya_pathantar").value = padya.pathantar || '';
+    
+    // Populate timestamp and audit fields
+    if (padya.created) {
+      const createdDate = new Date(padya.created);
+      document.getElementById("modal_padya_created").value = createdDate.toLocaleString('kn-IN');
+    }
+    if (padya.updated) {
+      const updatedDate = new Date(padya.updated);
+      document.getElementById("modal_padya_updated").value = updatedDate.toLocaleString('kn-IN');
+    }
+    document.getElementById("modal_padya_updated_by").value = padya.updated_by || '';
     
     state.modals.padyaModal?.show();
   } catch (error) {

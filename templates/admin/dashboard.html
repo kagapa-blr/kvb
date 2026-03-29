@@ -310,7 +310,7 @@
 
   <!-- PADYA MODAL -->
   <div class="modal fade" id="padyaModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="padyaModalTitle">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
@@ -352,6 +352,22 @@
                     placeholder="ಸಂಧಿ ಹೆಸರು" />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Timestamp and Audit Fields (Read-Only) -->
+          <div id="padya_audit_info" style="display: none" class="row g-3 mt-3 p-3 bg-light rounded">
+            <div class="col-md-4">
+              <label class="form-label small text-muted">ರಚನೆ ಸಮಯ</label>
+              <input type="text" id="modal_padya_created" class="form-control form-control-sm" readonly style="background-color: #f8f9fa;" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted">ಕೊನೆಯ ನವೀಕರಣ ಸಮಯ</label>
+              <input type="text" id="modal_padya_updated" class="form-control form-control-sm" readonly style="background-color: #f8f9fa;" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted">ನವೀಕರಿಸಿದ್ದು ಯಾರು</label>
+              <input type="text" id="modal_padya_updated_by" class="form-control form-control-sm" placeholder="(ಭವಿಷ್ಯತ್ತಿನ ಮಹತ್ವ ನಿರ್ಧಾರ)" />
             </div>
           </div>
 

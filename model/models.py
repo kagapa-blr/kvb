@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -94,6 +95,7 @@ class Sandhi(db.Model):
 # -------------------------------------------------------
 # PADYA
 # -------------------------------------------------------
+
 class Padya(db.Model):
     __tablename__ = "padya"
     __table_args__ = (
@@ -125,6 +127,11 @@ class Padya(db.Model):
     artha = db.Column(db.Text)
     suchane = db.Column(db.Text)
     padya = db.Column(db.Text)
+    
+    # Timestamp and audit fields
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.String(255), nullable=True)  # Optional: username or user ID
 
     def __repr__(self):
         return f"<Padya {self.padya_number} (Sandhi {self.sandhi_id})>"

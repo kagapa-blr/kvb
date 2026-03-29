@@ -579,6 +579,9 @@ class PadyaService:
             "gadya": record.gadya,
             "suchane": record.suchane,
             "pathantar": record.pathantar,
+            "created": record.created.isoformat() if record.created else None,
+            "updated": record.updated.isoformat() if record.updated else None,
+            "updated_by": record.updated_by,
         }, 200
 
     # ---------------------------------------------
@@ -634,6 +637,7 @@ class PadyaService:
                 gadya=kwargs.get("gadya"),
                 suchane=kwargs.get("suchane"),
                 pathantar=kwargs.get("pathantar"),
+                updated_by=kwargs.get("updated_by"),  # Store creator/initial editor
             )
 
             db.session.add(record)
@@ -696,6 +700,10 @@ class PadyaService:
             record.pathantar = kwargs.get(
                 "pathantar", record.pathantar
             )
+            
+            # Update the editor info if provided
+            if "updated_by" in kwargs and kwargs["updated_by"]:
+                record.updated_by = kwargs.get("updated_by")
 
             commit_session()
 
