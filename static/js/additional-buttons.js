@@ -16,6 +16,23 @@
  */
 
 /**
+ * Open a modal by ID
+ * @param {string} modalId - ID of the modal element
+ */
+function openModal(modalId) {
+    const modalElement = document.getElementById(modalId);
+    if (modalElement && typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } else {
+        console.warn(`[AdditionalButtons] Modal not found or Bootstrap unavailable: ${modalId}`);
+    }
+}
+
+// Expose to window so inline onclick handlers can use it
+window.openModal = openModal;
+
+/**
  * Wait for ApiClient to be ready before initializing buttons
  * Ensures axios and base URL detection has completed
  */
@@ -115,17 +132,16 @@ function initializeAdditionalButtons() {
 
     /**
      * Search for a word and display results
-     * Uses ApiClient.post for proper request handling
+     * Uses ApiClient.get with Axios to search padya by keyword
      */
     async function searchByWord(word) {
         try {
             console.log(`[AdditionalButtons] Searching for: ${word}`);
 
-            // Use ApiClient.post with Axios
-            const data = await window.ApiClient.post(
-                additionalApi['modal1'],
-                { search_word: word }
-            );
+            // Use ApiClient.get with Axios and the correct endpoint
+            // GET /api/v1/padya/search?keyword=word
+            const endpoint = `/api/v1/padya/search?keyword=${encodeURIComponent(word)}`;
+            const data = await window.ApiClient.get(endpoint);
 
             // Data is already parsed JSON from ApiClient interceptor
             displaySearchResults(data);
@@ -152,8 +168,10 @@ function initializeAdditionalButtons() {
 
         resultsContainer.innerHTML = ''; // Clear previous results
 
-        // Display total results count
-        const totalResults = Array.isArray(results) ? results.length : 0;
+        // Handle both array format and object with data property
+        let resultsArray = Array.isArray(results) ? results : (results.data || []);
+        const totalResults = resultsArray.length;
+        
         const resultsSummary = document.createElement('div');
         resultsSummary.className = 'mb-3';
         resultsSummary.innerHTML = `
@@ -168,18 +186,18 @@ function initializeAdditionalButtons() {
                 </li>
             `;
         } else {
-            results.forEach(result => {
+            resultsArray.forEach(result => {
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item mb-3 p-3 border rounded shadow-sm';
 
                 listItem.innerHTML = `
-                    <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name}</h5>
+                    <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name || result.parva_number}</h5>
                     <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_number}</p>
                     <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
-                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(result.padya, searchWord)}</pre></p>
-                    <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha}</p>
-                    <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${result.tippani.replace('nan', '-')}</p>
-                    <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar}</p>
+                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(result.padya || '', searchWord)}</pre></p>
+                    <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha || '-'}</p>
+                    <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${(result.tippani || '-').replace('nan', '-')}</p>
+                    <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar || '-'}</p>
                 `;
 
                 resultsContainer.appendChild(listItem);

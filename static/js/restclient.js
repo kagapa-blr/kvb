@@ -128,20 +128,11 @@ class ApiClient {
 
 
 // Singleton instance
+const apiClient = new ApiClient();
 
-const apiClient =
-    new ApiClient();
-
-
-// Browser global fallback
-
+// Browser global fallback (for non-module scripts like test.html)
 if (typeof window !== "undefined") {
-
-    window.ApiClient =
-        apiClient;
+    window.ApiClient = apiClient;
 }
 
-
-// Proper ES module export
-
-export default apiClient;
+console.log('[RestClient] ✓ ApiClient singleton initialized and exposed to window');

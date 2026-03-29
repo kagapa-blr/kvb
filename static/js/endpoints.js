@@ -34,8 +34,8 @@ const ApiEndpoints = {
      * Centralized settings for all API calls
      */
     CONFIG: {
-        // Base path for all API calls
-        API_BASE: '/api',
+        // Base path for all API calls (v1 for parva/sandhi/padya, base /api for gamaka)
+        API_BASE: '/api/v1',
 
         // Response format
         FORMAT: 'json',
@@ -79,13 +79,13 @@ const ApiEndpoints = {
         list: () => ApiEndpoints._buildPath('/parva'),
         create: () => ApiEndpoints._buildPath('/parva'),
         get: (id) => ApiEndpoints._buildPath(`/parva/${id}`),
-        sandhisByParva: (parvaNumber) => ApiEndpoints._buildPath(`/all_sandhi/by_parva/${parvaNumber}`),
+        sandhisByParva: (parvaNumber) => ApiEndpoints._buildPath(`/sandhi/by_parva/${parvaNumber}`),
 
         // Backward compatibility
-        LIST: '/api/parva',
-        GET_BY_ID: (id) => `/api/parva/${id}`,
-        ALL_SANDHIS: '/api/sandhi',
-        SANDHIS_BY_PARVA: (parvaNumber) => `/api/all_sandhi/by_parva/${parvaNumber}`,
+        LIST: '/api/v1/parva',
+        GET_BY_ID: (id) => `/api/v1/parva/${id}`,
+        ALL_SANDHIS: '/api/v1/sandhi',
+        SANDHIS_BY_PARVA: (parvaNumber) => `/api/v1/sandhi/by_parva/${parvaNumber}`,
     },
 
     // ========================================
@@ -94,14 +94,14 @@ const ApiEndpoints = {
     SANDHI: {
         list: () => ApiEndpoints._buildPath('/sandhi'),
         get: (id) => ApiEndpoints._buildPath(`/sandhi/${id}`),
-        byParva: (parvaNumber) => ApiEndpoints._buildPath(`/all_sandhi/by_parva/${parvaNumber}`),
+        byParva: (parvaNumber) => ApiEndpoints._buildPath(`/sandhi/by_parva/${parvaNumber}`),
         padyas: (sandhiId) => ApiEndpoints._buildPath(`/padya/by_sandhi/${sandhiId}`),
 
         // Backward compatibility
-        LIST: '/api/sandhi',
-        GET_BY_ID: (id) => `/api/sandhi/${id}`,
-        BY_PARVA: (parvaNumber) => `/api/all_sandhi/by_parva/${parvaNumber}`,
-        PADYAS_BY_SANDHI: (sandhiId) => `/api/padya/by_sandhi/${sandhiId}`,
+        LIST: '/api/v1/sandhi',
+        GET_BY_ID: (id) => `/api/v1/sandhi/${id}`,
+        BY_PARVA: (parvaNumber) => `/api/v1/sandhi/by_parva/${parvaNumber}`,
+        PADYAS_BY_SANDHI: (sandhiId) => `/api/v1/padya/by_sandhi/${sandhiId}`,
     },
 
     // ========================================
@@ -114,30 +114,30 @@ const ApiEndpoints = {
         update: () => ApiEndpoints._buildPath('/padya'),
         delete: (id) => ApiEndpoints._buildPath(`/padya/${id}`),
         byParva: (parvaNumber, sandhiNumber, padyaNumber) =>
-            ApiEndpoints._buildPath(`/padya/by_parva_sandhi_padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
+            ApiEndpoints._buildPath(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
 
         // Backward compatibility
-        LIST: '/api/padya',
-        CREATE: '/api/padya',
-        GET_BY_ID: (sandhiId, padyaNumber) => `/api/padya/${sandhiId}/${padyaNumber}`,
-        UPDATE: '/api/padya',
-        DELETE: (id) => `/api/padya/${id}`,
-        BY_SANDHI: (sandhiId) => `/api/padya/by_sandhi/${sandhiId}`,
-        GET_CONTENT: (sandhiId, padyaNumber) => `/api/padya/${sandhiId}/${padyaNumber}`,
+        LIST: '/api/v1/padya',
+        CREATE: '/api/v1/padya',
+        GET_BY_ID: (sandhiId, padyaNumber) => `/api/v1/padya/${sandhiId}/${padyaNumber}`,
+        UPDATE: '/api/v1/padya',
+        DELETE: (id) => `/api/v1/padya/${id}`,
+        BY_SANDHI: (sandhiId) => `/api/v1/padya/by_sandhi/${sandhiId}`,
+        GET_CONTENT: (parvaNumber, sandhiNumber, padyaNumber) => `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
         GET_BY_PARVA_SANDHI_PADYA: (parvaNumber, sandhiNumber, padyaNumber) =>
-            `/api/padya/by_parva_sandhi_padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
+            `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
     },
 
     // ========================================
     // GAMAKA VACHANA (Musical Raag/Singer Info) ENDPOINTS
     // ========================================
     GAMAKA: {
-        list: () => ApiEndpoints._buildPath('/gamaka'),
-        create: () => ApiEndpoints._buildPath('/gamaka'),
-        get: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
-        update: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
-        delete: (id) => ApiEndpoints._buildPath(`/gamaka/${id}`),
-        byPadya: (queryParams = '') => ApiEndpoints._buildPath(`/gamaka/padya${queryParams}`),
+        list: () => '/api/gamaka',
+        create: () => '/api/gamaka',
+        get: (id) => `/api/gamaka/${id}`,
+        update: (id) => `/api/gamaka/${id}`,
+        delete: (id) => `/api/gamaka/${id}`,
+        byPadya: (queryParams = '') => `/api/gamaka/padya${queryParams}`,
 
         // Backward compatibility
         LIST: '/api/gamaka',

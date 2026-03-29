@@ -1,6 +1,7 @@
 import logging
 from flask import Blueprint, request, jsonify
 
+from model.models import db, Sandhi
 from services.parvya_service import (
     parva_service,
     sandhi_service,
@@ -121,6 +122,37 @@ def delete_parva(parva_number):
 # =======================================================
 # SANDHI ROUTES
 # =======================================================
+
+
+@parvya_bp.route("/sandhi", methods=["GET"])
+def get_all_sandhis():
+    """Get all sandhis with pagination"""
+    offset, limit = get_offset_limit()
+    
+    try:
+        query = Sandhi.query.order_by(Sandhi.parva_id, Sandhi.sandhi_number)
+        total = query.count()
+        
+        records = query.offset(offset).limit(limit).all()
+        
+        return jsonify({
+            "offset": offset,
+            "limit": limit,
+            "total": total,
+            "data": [
+                {
+                    "id": s.id,
+                    "parva_id": s.parva_id,
+                    "parva_number": s.parva.parva_number,
+                    "sandhi_number": s.sandhi_number,
+                    "name": s.name,
+                }
+                for s in records
+            ],
+        }), 200
+    except Exception as e:
+        logger.error("Error fetching all sandhis: %s", e)
+        return jsonify({"error": "Failed to fetch sandhis"}), 500
 
 
 @parvya_bp.route(

@@ -163,12 +163,23 @@ function debounce(func, wait) {
 }
 
 $(document).ready(function () {
+  // Helper function to extract data from paginated responses
+  function extractData(response) {
+    // If response has a data property, it's paginated
+    if (response && typeof response === 'object' && 'data' in response) {
+      return response.data || [];
+    }
+    // Otherwise, assume it's already an array
+    return Array.isArray(response) ? response : [];
+  }
+
   // Function to populate a dropdown with data
   function populateDropdown(selector, data, valueKey, textKey) {
     const $dropdown = $(selector);
     $dropdown.empty(); // Clear existing options
     $dropdown.append($("<option>", { value: "", text: "Select" }));
-    data.forEach((item) => {
+    const items = extractData(data); // Extract data from paginated response
+    items.forEach((item) => {
       $dropdown.append(
         $("<option>", {
           value: item[valueKey],
@@ -184,7 +195,8 @@ $(document).ready(function () {
   async function fetchAndPopulateParva() {
     showLoading(); // Show loading overlay before fetching data
     try {
-      const data = await fetchData(ApiEndpoints.PARVA.LIST);
+      const response = await fetchData(ApiEndpoints.PARVA.LIST);
+      const data = extractData(response);
 
       // Populate dropdown with data
       populateDropdown("#parvaDropdown", data, "id", "name", "parva_number");
@@ -212,9 +224,10 @@ $(document).ready(function () {
 
   async function fetchSandhi(parvaNumber) {
     try {
-      const data = await fetchData(
+      const response = await fetchData(
         ApiEndpoints.PARVA.SANDHIS_BY_PARVA(parvaNumber)
       );
+      const data = extractData(response);
       populateDropdown("#sandhiDropdown", data, "id", "name");
       $("#sandhiDropdown").prop("disabled", false);
       $("#padyaNumberDropdown").prop("disabled", true).empty(); // Reset Padya Number dropdown
@@ -591,7 +604,8 @@ $(document).ready(function () {
   function allParvaTable(data) {
     const tableBody = $("#parvaTableBodyContent");
     tableBody.empty(); // Clear the table body
-    data.forEach((parva) => {
+    const items = extractData(data); // Extract data from paginated response
+    items.forEach((parva) => {
       const row = $("<tr>");
       row.append($("<td>").text(parva.parva_number));
       row.append($("<td>").text(parva.name));
@@ -602,7 +616,8 @@ $(document).ready(function () {
   // Function to populate modal table with all Sandhi data
   async function allSandhiTable() {
     try {
-      const data = await fetchData(ApiEndpoints.SANDHI.LIST);
+      const response = await fetchData(ApiEndpoints.SANDHI.LIST);
+      const data = extractData(response);
       const tableBody = $("#sandhiTableBodyContent");
       tableBody.empty(); // Clear the table body
       data.forEach((sandhi) => {

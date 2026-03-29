@@ -75,7 +75,8 @@
 <body>
   <div class="container-fluid py-4">
     <div class="card content-card mb-4 bg-primary text-white text-center py-4">
-      <h2 class="fw-bold">ಕುಮಾರವ್ಯಾಸ ಭಾರತ</h2>
+      <h2 class="fw-bold">ಕರ್ನಾಟ ಭಾರತ ಕಥಾ ಮಂಜರಿ</h2>
+
       <div>ಡೇಟಾಬೇಸ್ ನಿರ್ವಹಣೆ</div>
     </div>
 
@@ -553,6 +554,8 @@
 
   <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
+  <!-- Load restclient.js first so window.ApiClient is available -->
+  <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
   <script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 

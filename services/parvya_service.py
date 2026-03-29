@@ -261,10 +261,12 @@ class SandhiService:
             "total": total,
             "data": [
                 {
+                    "id": s.id,
                     "parva_number": s.parva.parva_number,
                     "sandhi_number": s.sandhi_number,
                     "name": s.name,
                     "padya_count": len(s.padyas),
+                    "padya_numbers": sorted([p.padya_number for p in s.padyas]),
                 }
                 for s in records
             ],
@@ -289,10 +291,12 @@ class SandhiService:
             return {"error": "Sandhi not found"}, 404
 
         return {
+            "id": sandhi.id,
             "parva_number": parva_number,
             "sandhi_number": sandhi.sandhi_number,
             "name": sandhi.name,
             "padya_count": len(sandhi.padyas),
+            "padya_numbers": sorted([p.padya_number for p in sandhi.padyas]),
         }, 200
 
     def create(self, **kwargs):
@@ -520,9 +524,15 @@ class PadyaService:
                 "total": total,
                 "data": [
                     {
+                        "parva_name": r.sandhi.parva.name,
                         "parva_number": r.sandhi.parva.parva_number,
                         "sandhi_number": r.sandhi.sandhi_number,
                         "padya_number": r.padya_number,
+                        "padya": r.padya,
+                        "pathantar": r.pathantar,
+                        "gadya": r.gadya,
+                        "tippani": r.tippani,
+                        "artha": r.artha,
                         "preview": (
                             r.padya[:80] + "..."
                             if r.padya

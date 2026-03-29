@@ -1,4 +1,10 @@
-import apiClient from "./restclient.js";
+// Use global ApiClient from restclient.js instead of ES6 import
+// This allows restclient.js to work both as a module and a regular script
+const apiClient = window.ApiClient;
+
+if (!apiClient) {
+    console.error('[Dashboard] ApiClient not initialized. Ensure restclient.js is loaded first.');
+}
 
 // ================= CONFIG =================
 apiClient.setBaseUrl("/api/v1");

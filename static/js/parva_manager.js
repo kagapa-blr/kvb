@@ -1,4 +1,9 @@
-import ApiClient from "./restclient.js";
+// Use global ApiClient from restclient.js instead of ES6 import
+const ApiClient = window.ApiClient;
+
+if (!ApiClient) {
+    console.error('[ParvaManager] ApiClient not initialized. Ensure restclient.js is loaded first.');
+}
 
 // API ENDPOINTS
 const ENDPOINTS = {
