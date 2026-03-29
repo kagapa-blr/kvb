@@ -1426,9 +1426,11 @@ function displayApiError(result) {
     <strong>ದೋಷ - ಕೆಳಗೆ ವಿವರಗಳನ್ನು ನೋಡಿ</strong>
   `;
   
-  // Extract error message
+  // Extract error message and column info
   const errorMessage = result.error || result.message || 'ಫೈಲ್ ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ';
   const missingColumns = result.missing_columns || [];
+  const givenColumns = result.given_columns || [];
+  const requiredColumns = result.required_columns || [];
   
   // Build error display
   let errorHtml = `
@@ -1440,13 +1442,37 @@ function displayApiError(result) {
       <p class="mb-0">${escapeHtml(errorMessage)}</p>
   `;
   
+  // Show given columns if available
+  if (givenColumns && givenColumns.length > 0) {
+    errorHtml += `
+      <div class="mt-2 pt-2 border-top">
+        <strong>📋 ನಿಮ್ಮ CSV ನಲ್ಲಿ ಇವೆ:</strong>
+        <ul class="mb-0 mt-1 small" style="color: #666;">
+          ${givenColumns.map(col => `<li><code>${escapeHtml(col)}</code></li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  // Show required columns
+  if (requiredColumns && requiredColumns.length > 0) {
+    errorHtml += `
+      <div class="mt-2 pt-2 border-top">
+        <strong>✓ ಅಗತ್ಯ ಖಾಲಿ ಮಾಡಬಹುದಾದ ಅಲ್ಲದ ಕ್ಷೇತ್ರಗಳು:</strong>
+        <ul class="mb-0 mt-1 small" style="color: #007bff;">
+          ${requiredColumns.map(col => `<li><code>${escapeHtml(col)}</code></li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
   // Show missing columns if available
   if (missingColumns && missingColumns.length > 0) {
     errorHtml += `
       <div class="mt-2 pt-2 border-top">
-        <strong>ಕಮ್ಮಿ ಕೆಳಗೆ:</strong>
-        <ul class="mb-0 mt-1 small">
-          ${missingColumns.map(col => `<li>${escapeHtml(col)}</li>`).join('')}
+        <strong style="color: #dc3545;">✗ ಕಮ್ಮಿ ಕ್ಷೇತ್ರಗಳು:</strong>
+        <ul class="mb-0 mt-1 small" style="color: #dc3545;">
+          ${missingColumns.map(col => `<li><code>${escapeHtml(col)}</code></li>`).join('')}
         </ul>
       </div>
     `;
@@ -1457,7 +1483,7 @@ function displayApiError(result) {
     <div class="alert alert-info mt-2">
       <h6 class="alert-heading mb-2">
         <i class="bi bi-info-circle me-2"></i>
-        ಆಗಿ ನೀಡಲಾದ ಕ್ಷೇತ್ರಗಳು:
+        ಹಿಂಟು:
       </h6>
       <ul class="mb-0 small">
         <li><strong>parva_number</strong> - ಪರ್ವ ಸಂಖ್ಯೆ</li>

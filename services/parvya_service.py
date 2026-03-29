@@ -842,6 +842,17 @@ class PadyaService:
             if not rows:
                 return {"error": "CSV file is empty. Please add data rows."}, 400
             
+            # Clean headers: remove BOM and strip whitespace
+            cleaned_rows = []
+            for row in rows:
+                cleaned_row = {}
+                for key, value in row.items():
+                    # Remove BOM from header keys
+                    clean_key = key.encode('utf-8').lstrip(b'\xef\xbb\xbf').decode('utf-8').strip() if key else ''
+                    cleaned_row[clean_key] = value
+                cleaned_rows.append(cleaned_row)
+            rows = cleaned_rows
+            
             # Get headers from first row keys
             if rows:
                 headers = list(rows[0].keys())
@@ -856,7 +867,10 @@ class PadyaService:
                 
                 if missing_cols:
                     return {
-                        "error": f"Missing required columns: {', '.join(missing_cols)}. Required columns are: parva_number, sandhi_number, padya"
+                        "error": f"Missing required columns: {', '.join(missing_cols)}",
+                        "given_columns": headers,
+                        "required_columns": required_cols,
+                        "missing_columns": missing_cols
                     }, 400
             
             # Validate each row has required field values
