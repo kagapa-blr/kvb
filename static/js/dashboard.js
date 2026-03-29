@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ================= MODAL INITIALIZATION =================
 function initializeModals() {
-  const modalIds = ['parvaModal', 'sandhiModal', 'padyaModal', 'deleteConfirmModal'];
+  const modalIds = ['parvaModal', 'sandhiModal', 'padyaModal', 'deleteConfirmModal', 'bulkUploadModal'];
   
   modalIds.forEach(id => {
     const element = document.getElementById(id);
@@ -40,6 +40,11 @@ function initializeModals() {
       // Padya modal dropdown population
       if (id === 'padyaModal') {
         element.addEventListener('show.bs.modal', populatePadyaModalDropdowns);
+      }
+      
+      // Bulk upload modal reset
+      if (id === 'bulkUploadModal') {
+        element.addEventListener('show.bs.modal', resetBulkUploadModal);
       }
     }
   });
@@ -75,6 +80,50 @@ function initializeEventListeners() {
   // Padya dropdown change listeners
   document.getElementById('padya_parva_select')?.addEventListener('change', loadSandhiOptions);
   document.getElementById('padya_sandhi_select')?.addEventListener('change', loadPadyaList);
+  
+  // Padya bulk operations
+  document.getElementById('download-padya-template-btn')?.addEventListener('click', downloadPadyaTemplate);
+  document.getElementById('export-padya-csv-btn')?.addEventListener('click', exportPadyaCSV);
+  
+  // Bulk upload modal handlers
+  document.getElementById('dropZone')?.addEventListener('click', () => {
+    document.getElementById('bulkUploadFile').click();
+  });
+  
+  // Drag and drop support
+  const dropZone = document.getElementById('dropZone');
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#0d6efd';
+      dropZone.style.backgroundColor = '#e7f1ff';
+    });
+    
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#0d6efd';
+      dropZone.style.backgroundColor = '';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = '#0d6efd';
+      dropZone.style.backgroundColor = '';
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        document.getElementById('bulkUploadFile').files = files;
+        updateFileSelectionUI(files[0]);
+      }
+    });
+  }
+  
+  document.getElementById('bulkUploadFile')?.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      updateFileSelectionUI(e.target.files[0]);
+    }
+  });
+  
+  document.getElementById('confirmUploadBtn')?.addEventListener('click', startBulkUpload);
   
   // Padya modal parva selection change
   document.getElementById('padya_parva_select_modal')?.addEventListener('change', async () => {
@@ -1081,6 +1130,421 @@ async function deletePadya(parvaNumber, sandhiNumber, padyaNumber) {
     showAlert("ಪದ್ಯ ಅಳಿಸುವಿಕೆಯಲ್ಲಿ ದೋಷ: " + error.message, "danger");
     console.error("Delete padya error:", error);
   }
+}
+
+// ================= BULK OPERATIONS =================
+async function downloadPadyaTemplate() {
+  try {
+    // Create a temporary link and trigger download
+    const response = await fetch("/api/v1/padya/template/download");
+    
+    if (!response.ok) {
+      throw new Error("Template download failed");
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'padya_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    showAlert("ಟೆಂಪ್ಲೇಟ್ ಡೌನ್‌ಲೋಡ್ ಪೂರ್ಣವಾಗಿದೆ", "success");
+  } catch (error) {
+    showAlert("ಟೆಂಪ್ಲೇಟ್ ಡೌನ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
+    console.error("Download template error:", error);
+  }
+}
+
+async function exportPadyaCSV() {
+  try {
+    showAlert("ನಿರ್ಯಾತ ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...", "info");
+    
+    // Fetch export from backend
+    const response = await fetch("/api/v1/padya/export");
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || "Export failed");
+    }
+    
+    // Get the filename from Content-Disposition header
+    const contentDisposition = response.headers.get('content-disposition');
+    let filename = 'padya_export.csv';
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    showAlert(`ಪದ್ಯ ನಿರ್ಯಾತಿ ಪೂರ್ಣವಾಗಿದೆ: ${filename}`, "success");
+  } catch (error) {
+    showAlert("ಪದ್ಯ ನಿರ್ಯಾತಿ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
+    console.error("Export padya error:", error);
+  }
+}
+
+async function uploadPadyaBulk(event) {
+  const file = event.target.files[0];
+  
+  if (!file) {
+    return;
+  }
+  
+  // Validate file type
+  const validTypes = ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+  const fileExtension = file.name.toLowerCase().split('.').pop();
+  
+  if (!validTypes.includes(file.type) && !['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+    showAlert("ಕೇವಲ CSV ಅಥವಾ Excel ಫೈಲ್ ಸಮರ್ಥಿತವಾಗಿದೆ", "warning");
+    event.target.value = '';
+    return;
+  }
+  
+  try {
+    showStatusMessage("upload_status_message", "ಅಪ್ಲೋಡ್ ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...", "info");
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Send file to backend
+    const response = await fetch("/api/v1/padya/bulk/upload", {
+      method: "POST",
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || "Upload failed");
+    }
+    
+    // Show results
+    const message = `ಪದ್ಯ ಸೇರಿಸಲಾಗಿದೆ: ${result.records_created}, ವಿಫಲ: ${result.records_failed}`;
+    
+    if (result.errors && result.errors.length > 0) {
+      console.error("Upload errors:", result.errors);
+      showStatusMessage("upload_status_message", message + ` (${result.total_errors} ದೋಷಗಳು)`, "warning");
+    } else {
+      showStatusMessage("upload_status_message", message, "success");
+    }
+    
+    showAlert(message, result.errors ? "warning" : "success");
+    
+    // Reload padya list
+    setTimeout(() => {
+      if (document.getElementById("padya_parva_select").value) {
+        loadPadyaList();
+      }
+    }, 1000);
+    
+  } catch (error) {
+    showStatusMessage("upload_status_message", "ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
+    showAlert("ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
+    console.error("Upload error:", error);
+  } finally {
+    // Clear file input
+    event.target.value = '';
+  }
+}
+
+// ================= BULK UPLOAD MODAL HANDLERS =================
+function updateFileSelectionUI(file) {
+  const fileInfo = document.getElementById('fileInfo');
+  const fileNameSpan = document.getElementById('fileName');
+  const confirmBtn = document.getElementById('confirmUploadBtn');
+  
+  if (file) {
+    fileNameSpan.textContent = file.name + ` (${(file.size / 1024).toFixed(2)} KB)`;
+    fileInfo.classList.remove('d-none');
+    confirmBtn.disabled = false;
+  } else {
+    fileInfo.classList.add('d-none');
+    confirmBtn.disabled = true;
+  }
+}
+
+async function startBulkUpload() {
+  const file = document.getElementById('bulkUploadFile').files[0];
+  
+  if (!file) {
+    showAlert("ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ", "warning");
+    return;
+  }
+  
+  // Transition to processing step
+  showBulkUploadStep(2);
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Simulate progress
+    const progressBar = document.getElementById('uploadProgressBar');
+    const statusText = document.getElementById('statusText');
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 30;
+        if (progress > 90) progress = 90;
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = Math.round(progress) + '%';
+      }
+    }, 500);
+    
+    statusText.textContent = 'ಸರ್ವರಕ್ಕೆ ಫೈಲ್ ನಿರೀಕ್ಷೆ...';
+    
+    // Send file to backend
+    const response = await fetch("/api/v1/padya/bulk/upload", {
+      method: "POST",
+      body: formData
+    });
+    
+    const result = await response.json();
+    clearInterval(progressInterval);
+    progressBar.style.width = '100%';
+    progressBar.textContent = '100%';
+    
+    // Check for validation errors (400 status)
+    if (!response.ok) {
+      if (result.validation_errors) {
+        // Validation errors - show them in modal
+        displayValidationErrors(result);
+        // Show processing step with errors visible
+        return;
+      } else {
+        // Other errors - show in modal
+        displayApiError(result);
+        return;
+      }
+    }
+    
+    // Update results
+    displayBulkUploadResults(result);
+    showBulkUploadStep(3);
+    
+    // Reload padya list after a delay
+    setTimeout(() => {
+      if (document.getElementById("padya_parva_select").value) {
+        loadPadyaList();
+      }
+    }, 2000);
+    
+  } catch (error) {
+    console.error("Upload error:", error);
+    showAlert("ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
+    showBulkUploadStep(1);
+  }
+}
+
+function showBulkUploadStep(step) {
+  // Hide all steps
+  document.getElementById('bulk-upload-step-1').classList.add('d-none');
+  document.getElementById('bulk-upload-step-2').classList.add('d-none');
+  document.getElementById('bulk-upload-step-3').classList.add('d-none');
+  
+  // Hide all footers
+  document.getElementById('footer-step-1').classList.add('d-none');
+  document.getElementById('footer-step-2').classList.add('d-none');
+  document.getElementById('footer-step-3').classList.add('d-none');
+  
+  // Show selected step
+  document.getElementById(`bulk-upload-step-${step}`).classList.remove('d-none');
+  document.getElementById(`footer-step-${step}`).classList.remove('d-none');
+}
+
+function displayValidationErrors(result) {
+  const statusText = document.getElementById('statusText');
+  const processingDetails = document.getElementById('processingDetails');
+  
+  // Update status
+  statusText.innerHTML = `
+    <i class="bi bi-exclamation-triangle me-2" style="color: #dc3545;"></i>
+    <strong>ಪರಿಶೋಧನೆ ವಿಫಲ - ಕೆಳಗೆ ದೋಷಗಳನ್ನು ನೋಡಿ</strong>
+  `;
+  
+  // Show validation errors
+  const errorHtml = `
+    <div class="alert alert-danger mt-3">
+      <h6 class="alert-heading mb-2">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        ಆವಶ್ಯಕ ಕ್ಷೇತ್ರಗಳು ಯಾವುವು?
+      </h6>
+      <ul class="mb-0 small">
+        <li><strong>parva_number</strong> - ಪರ್ವ ಸಂಖ್ಯೆ (ಆವಶ್ಯಕ, ಖಾಲಿ ಬೇಡ)</li>
+        <li><strong>sandhi_number</strong> - ಸಂಧಿ ಸಂಖ್ಯೆ (ಆವಶ್ಯಕ, ಖಾಲಿ ಬೇಡ)</li>
+        <li><strong>padya</strong> - ಪದ್ಯದ ಪಠ್ಯ (ಆವಶ್ಯಕ, ಖಾಲಿ ಬೇಡ)</li>
+      </ul>
+    </div>
+    <div class="alert alert-warning mt-2">
+      <h6 class="alert-heading mb-2">
+        <i class="bi bi-info-circle me-2"></i>
+        ಸಿದ್ಧಿ ಈ ದೋಷಗಳು:
+      </h6>
+      <div class="small" style="max-height: 200px; overflow-y: auto;">
+        ${(result.validation_errors || [])
+          .map(err => `<div class="mb-1">• ${escapeHtml(err)}</div>`)
+          .join('')}
+      </div>
+      ${result.total_validation_errors > 20 ? `<div class="mt-2 text-muted">... ಮತ್ತು ${result.total_validation_errors - 20} ಇತರ ದೋಷಗಳು</div>` : ''}
+    </div>
+  `;
+  
+  processingDetails.innerHTML = errorHtml;
+  
+  // Add retry button
+  const footer = document.getElementById('footer-step-2');
+  footer.innerHTML = `
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದುಮಾಡಿ</button>
+    <button type="button" class="btn btn-warning" onclick="resetBulkUploadModal(); document.getElementById('bulkUploadFile').click();">
+      <i class="bi bi-arrow-repeat me-1"></i>ಫೈಲ್ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು
+    </button>
+  `;
+}
+
+function displayApiError(result) {
+  const statusText = document.getElementById('statusText');
+  const processingDetails = document.getElementById('processingDetails');
+  
+  // Update status
+  statusText.innerHTML = `
+    <i class="bi bi-exclamation-triangle me-2" style="color: #dc3545;"></i>
+    <strong>ದೋಷ - ಕೆಳಗೆ ವಿವರಗಳನ್ನು ನೋಡಿ</strong>
+  `;
+  
+  // Extract error message
+  const errorMessage = result.error || result.message || 'ಫೈಲ್ ಅಪ್ಲೋಡ್ ವಿಫಲವಾಗಿದೆ';
+  const missingColumns = result.missing_columns || [];
+  
+  // Build error display
+  let errorHtml = `
+    <div class="alert alert-danger mt-3">
+      <h6 class="alert-heading mb-2">
+        <i class="bi bi-exclamation-circle me-2"></i>
+        ಸಮಸ್ಯೆ:
+      </h6>
+      <p class="mb-0">${escapeHtml(errorMessage)}</p>
+  `;
+  
+  // Show missing columns if available
+  if (missingColumns && missingColumns.length > 0) {
+    errorHtml += `
+      <div class="mt-2 pt-2 border-top">
+        <strong>ಕಮ್ಮಿ ಕೆಳಗೆ:</strong>
+        <ul class="mb-0 mt-1 small">
+          ${missingColumns.map(col => `<li>${escapeHtml(col)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+  
+  errorHtml += `
+    </div>
+    <div class="alert alert-info mt-2">
+      <h6 class="alert-heading mb-2">
+        <i class="bi bi-info-circle me-2"></i>
+        ಆಗಿ ನೀಡಲಾದ ಕ್ಷೇತ್ರಗಳು:
+      </h6>
+      <ul class="mb-0 small">
+        <li><strong>parva_number</strong> - ಪರ್ವ ಸಂಖ್ಯೆ</li>
+        <li><strong>sandhi_number</strong> - ಸಂಧಿ ಸಂಖ್ಯೆ</li>
+        <li><strong>padya</strong> - ಪದ್ಯದ ಪಠ್ಯ</li>
+      </ul>
+    </div>
+  `;
+  
+  processingDetails.innerHTML = errorHtml;
+  
+  // Add retry button
+  const footer = document.getElementById('footer-step-2');
+  footer.innerHTML = `
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದುಮಾಡಿ</button>
+    <button type="button" class="btn btn-danger" onclick="resetBulkUploadModal(); document.getElementById('bulkUploadFile').click();">
+      <i class="bi bi-arrow-repeat me-1"></i>ಮತ್ತೆ ಪ್ರಯತ್ನಿಸು
+    </button>
+  `;
+}
+
+function displayBulkUploadResults(result) {
+  const resultAlert = document.getElementById('resultAlert');
+  const resultTitle = document.getElementById('resultTitle');
+  const errorDetails = document.getElementById('errorDetails');
+  
+  // Update result counts
+  document.getElementById('resultCreated').textContent = result.records_created || 0;
+  document.getElementById('resultUpdated').textContent = result.records_updated || 0;
+  document.getElementById('resultFailed').textContent = result.records_failed || 0;
+  document.getElementById('resultParvasCreated').textContent = result.parvas_created || 0;
+  document.getElementById('resultSandhisCreated').textContent = result.sandhis_created || 0;
+  
+  // Determine result type
+  const hasErrors = (result.records_failed || 0) > 0;
+  const isSuccess = (result.records_failed || 0) === 0;
+  
+  if (isSuccess) {
+    resultAlert.className = 'alert alert-success';
+    resultTitle.innerHTML = '<i class="bi bi-check-circle me-2"></i>ಅಪ್ಲೋಡ್ ಯಶಸ್ವಿ!';
+  } else if (hasErrors) {
+    resultAlert.className = 'alert alert-warning';
+    resultTitle.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>ಅಪ್ಲೋಡ್ ಆಂಶಿಕವಾಗಿ ಸಮೀಪವಾಗಿದೆ';
+  }
+  
+  // Show error details if any
+  if (result.errors && result.errors.length > 0) {
+    errorDetails.classList.remove('d-none');
+    const errorList = document.getElementById('errorList');
+    errorList.innerHTML = result.errors
+      .map(err => `<div class="mb-1">• ${escapeHtml(err)}</div>`)
+      .join('');
+  } else {
+    errorDetails.classList.add('d-none');
+  }
+}
+
+function showStatusMessage(elementId, message, type) {
+  const container = document.getElementById(elementId);
+  if (!container) return;
+  
+  const textElement = document.getElementById(elementId.replace('_message', '_text'));
+  if (textElement) {
+    textElement.textContent = message;
+  }
+  
+  // Update alert class
+  container.className = `alert d-block`;
+  container.classList.add(`alert-${type}`);
+}
+
+function resetBulkUploadModal() {
+  // Reset to step 1
+  showBulkUploadStep(1);
+  
+  // Clear file input
+  document.getElementById('bulkUploadFile').value = '';
+  document.getElementById('fileInfo').classList.add('d-none');
+  document.getElementById('confirmUploadBtn').disabled = true;
+  
+  // Reset progress bar
+  const progressBar = document.getElementById('uploadProgressBar');
+  progressBar.style.width = '0%';
+  progressBar.textContent = '0%';
+  
+  // Reset status
+  document.getElementById('statusText').textContent = 'ಅಪ್ಲೋಡ್ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...';
 }
 
 // ================= DELETE OPERATIONS =================

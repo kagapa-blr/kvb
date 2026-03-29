@@ -209,6 +209,30 @@
           </div>
         </div>
 
+        <!-- Bulk Operations Row -->
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <button class="btn btn-info btn-sm w-100" id="download-padya-template-btn">
+              <i class="bi bi-download me-1"></i>ಟೆಂಪ್ಲೇಟ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
+            </button>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-warning btn-sm w-100" id="export-padya-csv-btn">
+              <i class="bi bi-file-earmark-csv me-1"></i>ಎಕ್ಸ್‌ಪೋರ್ಟ್ ಪದ್ಯ CSV
+            </button>
+          </div>
+          <div class="col-md-3">
+            <button class="btn btn-warning btn-sm w-100" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
+              <i class="bi bi-upload me-1"></i>ಬಲ್ಕ್ ಪದ್ಯ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ
+            </button>
+          </div>
+          <div class="col-md-3">
+            <div id="upload_status_message" class="alert alert-info d-none" role="alert">
+              <small id="upload_status_text"></small>
+            </div>
+          </div>
+        </div>
+
         <div class="table-responsive">
           <table class="table table-hover">
             <thead class="table-dark">
@@ -390,6 +414,123 @@
           <button type="button" class="btn btn-danger" id="confirm-delete-btn">
             ಅಳಿಸಿ
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK UPLOAD MODAL -->
+  <div class="modal fade" id="bulkUploadModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-cloud-upload me-2"></i>ಪದ್ಯ ಬಲ್ಕ್ ಅಪ್ಲೋಡ್
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="bulkUploadClose"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Step 1: Upload Confirmation -->
+          <div id="bulk-upload-step-1" class="bulk-upload-step">
+            <h6 class="mb-3"><i class="bi bi-file-arrow-up me-2"></i>ಫೈಲ್ ಆಯ್ಕೆ</h6>
+            <div class="card bg-light p-4 text-center" style="border: 2px dashed #0d6efd; cursor: pointer;" id="dropZone">
+              <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
+              <p class="fw-semibold mb-2">CSV ಅಥವಾ Excel ಫೈಲ್ ಅನ್ನು ಇಲ್ಲಿ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</p>
+              <small class="text-muted">ಅಥವಾ ಕ್ಲಿಕ್ ಮಾಡಿ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು</small>
+              <input type="file" id="bulkUploadFile" accept=".csv,.xlsx,.xls" style="display: none;" />
+            </div>
+            <div id="fileInfo" class="mt-3 alert alert-info d-none">
+              <strong>ಆಯ್ಕೆಯಾದ ಫೈಲ್:</strong> <span id="fileName"></span>
+            </div>
+            <div class="mt-3">
+              <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>ಫೈಲ್ ವಿವರಣೆ</h6>
+              <small class="text-muted">
+                <p><strong>ಬೇಕಾದ ಕಾಲಮ್‌ಗಳು:</strong> parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya</p>
+                <p><strong>ಐಚ್ಛಿಕ ಕಾಲಮ್‌ಗಳು:</strong> artha, tippani, gadya, suchane, pathantar</p>
+                <p><strong>ಗಮನಿಸಿ:</strong> padya_number ಖಾಲಿ ಇದ್ದರೆ, ಅದನ್ನು ಸ್ವಯಂ ರಚಿಸಲಾಗುತ್ತದೆ</p>
+              </small>
+            </div>
+          </div>
+
+          <!-- Step 2: Processing -->
+          <div id="bulk-upload-step-2" class="bulk-upload-step d-none">
+            <h6 class="mb-3"><i class="bi bi-hourglass-split me-2"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ</h6>
+            <div class="progress mb-3" style="height: 25px;">
+              <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">0%</div>
+            </div>
+            <div id="uploadStatus" class="alert alert-info">
+              <i class="bi bi-clock-history me-2"></i><span id="statusText">ಅಪ್ಲೋಡ್ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...</span>
+            </div>
+            <div id="processingDetails" class="card bg-light p-3 small">
+              <div class="row">
+                <div class="col-6">
+                  <p class="mb-1"><strong>ಸಂಸ್ಕರಿಸಿದ ಸಾಲುಗಳು:</strong> <span id="processedRows">0</span></p>
+                  <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="parvasCreated">0</span></p>
+                </div>
+                <div class="col-6">
+                  <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="sandhisCreated">0</span></p>
+                  <p class="mb-1"><strong>ದೋಷಗಳು:</strong> <span id="errorCount" class="text-danger">0</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Results -->
+          <div id="bulk-upload-step-3" class="bulk-upload-step d-none">
+            <h6 class="mb-3"><i class="bi bi-check-circle me-2"></i>ಫಲಿತಾಂಶಗಳು</h6>
+            <div id="resultAlert" class="alert alert-success">
+              <h6 id="resultTitle" class="alert-heading">
+                <i class="bi bi-check-circle me-2"></i>ಅಪ್ಲೋಡ್ ಯಶಸ್ವಿ
+              </h6>
+            </div>
+            <div class="card bg-light p-3 small">
+              <div class="row">
+                <div class="col-6">
+                  <p class="mb-1"><strong>ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultCreated" class="badge bg-success">0</span></p>
+                  <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultParvasCreated" class="badge bg-info">0</span></p>
+                </div>
+                <div class="col-6">
+                  <p class="mb-1"><strong>ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ:</strong> <span id="resultUpdated" class="badge bg-info">0</span></p>
+                  <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultSandhisCreated" class="badge bg-info">0</span></p>
+                </div>
+              </div>
+              <hr class="my-2" />
+              <p class="mb-0"><strong>ವಿಫಲ:</strong> <span id="resultFailed" class="text-danger">0</span></p>
+            </div>
+
+            <!-- Error Details -->
+            <div id="errorDetails" class="mt-3 d-none">
+              <h6 class="mb-2">
+                <i class="bi bi-exclamation-triangle me-2"></i>ದೋಷ ವಿವರಣೆಗಳು
+              </h6>
+              <div id="errorList" class="alert alert-warning small" style="max-height: 250px; overflow-y: auto;">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Step 1 Footer -->
+          <div id="footer-step-1" class="footer-step w-100">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+            <button type="button" class="btn btn-primary" id="confirmUploadBtn" disabled>
+              <i class="bi bi-check-circle me-1"></i>ಆರಂಭಿಸಿ
+            </button>
+          </div>
+
+          <!-- Step 2 Footer -->
+          <div id="footer-step-2" class="footer-step d-none w-100">
+            <button type="button" class="btn btn-secondary" disabled>
+              <i class="bi bi-pause-fill me-1"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...
+            </button>
+          </div>
+
+          <!-- Step 3 Footer -->
+          <div id="footer-step-3" class="footer-step d-none w-100">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
+            <button type="button" class="btn btn-primary" id="downloadResultsBtn">
+              <i class="bi bi-download me-1"></i>ಫಲಿತಾಂಶಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
+            </button>
+          </div>
         </div>
       </div>
     </div>

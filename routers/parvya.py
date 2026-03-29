@@ -338,3 +338,54 @@ def delete_padya(
             padya_number,
         )
     )
+
+@parvya_bp.route("/padya/template/download", methods=["GET"])
+def download_padya_template():
+    """
+    Download a CSV template for bulk padya creation.
+    
+    Template columns:
+    parva_number, sandhi_number, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+    """
+    return padya_service.generate_template()
+
+
+@parvya_bp.route("/padya/bulk/upload", methods=["POST"])
+def upload_padya_bulk():
+    """
+    Bulk upload padya from CSV or Excel file.
+    
+    Expected columns:
+    parva_number, sandhi_number, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+    """
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "No file selected"}), 400
+        
+        return handle_response(
+            padya_service.bulk_upload(file)
+        )
+    except Exception as e:
+        logger.exception("Error in bulk_upload_padya")
+        return jsonify({"error": str(e)}), 500
+
+
+@parvya_bp.route("/padya/export", methods=["GET"])
+def export_padya_csv():
+    """
+    Export all padyas with complete details as CSV file.
+    
+    Columns: parva_number, parva_name, sandhi_number, sandhi_name, 
+             padya_number, padya, artha, tippani, gadya, suchane, pathantar
+    
+    Filename includes timestamp: padya_export_YYYYMMDD_HHMMSS.csv
+    """
+    try:
+        return padya_service.export_all()
+    except Exception as e:
+        logger.exception("Error in export_padya_csv")
+        return jsonify({"error": str(e)}), 500
