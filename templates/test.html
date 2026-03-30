@@ -175,22 +175,15 @@
             <div class="col-md-3">
                 <div class="side-menu">
                     <div class="button-list">
-                        <button class="btn btn-primary" onclick="openModal('modal1')">ಹೆಚ್ಚಿನ ಶೋಧನೆ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="akaradi-suchi">ಅಕಾರಾದಿ
-                            ಸೂಚಿ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="lekhana-suchi">ಲೇಖನ
-                            ಸೂಚಿ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="gadegal-suchi">ಗಾದೆಗಳ
-                            ಸೂಚಿ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="artha-kosha">ಅರ್ಥ
-                            ಕೋಶ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="vishaya-parividi">ವಿಷಯ
-                            ಪರಿವಿಡಿ</button>
-                        <button class="btn btn-primary external-link-button" data-endpoint="gamaka">ಗಮಕ</button>
-                        <button class="btn btn-primary external-link-button"
-                            data-endpoint="anuband-info">ಅನುಬಂಧ</button>
-                        <button class="btn btn-primary external-link-button"
-                            data-endpoint="tippani-info">ಟಿಪ್ಪಣಿ</button>
+                        <button class="btn btn-primary">ಹೆಚ್ಚಿನ ಶೋಧನೆ</button>
+                        <button class="btn btn-primary">ಅಕಾರಾದಿ ಸೂಚಿ</button>
+                        <button class="btn btn-primary">ಲೇಖನ ಸೂಚಿ</button>
+                        <button class="btn btn-primary">ಗಾದೆಗಳ ಸೂಚಿ</button>
+                        <button class="btn btn-primary">ಅರ್ಥ ಕೋಶ</button>
+                        <button class="btn btn-primary">ವಿಷಯ ಪರಿವಿಡಿ</button>
+                        <button class="btn btn-primary">ಗಮಕ</button>
+                        <button class="btn btn-primary">ಅನುಬಂಧ</button>
+                        <button class="btn btn-primary">ಟಿಪ್ಪಣಿ</button>
                     </div>
                 </div>
             </div>
@@ -225,22 +218,125 @@
         </div>
     </div>
 
-    <!-- Endpoints Navigation Handler - Production Base Path Support -->
-    <script>
-        // Define all endpoints for this page
-        const ENDPOINTS = {
-            'akaradi-suchi': '/akaradi-suchi',
-            'lekhana-suchi': '/lekhana-suchi',
-            'gadegal-suchi': '/gadegal-suchi',
-            'artha-kosha': '/artha-kosha',
-            'vishaya-parividi': '/vishaya-parividi',
-            'gamaka': '/gamaka',
-            'anuband-info': '/anuband-info',
-            'tippani-info': '/tippani-info'
-        };
-    </script>
-    <!-- Navigation Handler Script -->
-    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+    <!-- Akaradi Suchi Modal -->
+    <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="modal2Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal2Label">ಅಕಾರಾದಿ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lekhana Suchi Modal -->
+    <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="modal3Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal3Label">ಲೇಖನ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gadegal Suchi Modal -->
+    <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="modal4Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal4Label">ಗಾದೆಗಳ ಸೂಚಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Artha Kosha Modal -->
+    <div class="modal fade" id="modal5" tabindex="-1" aria-labelledby="modal5Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal5Label">ಅರ್ಥ ಕೋಶ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vishaya Parividi Modal -->
+    <div class="modal fade" id="modal6" tabindex="-1" aria-labelledby="modal6Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal6Label">ವಿಷಯ ಪರಿವಿಡಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gamaka Modal -->
+    <div class="modal fade" id="modal7" tabindex="-1" aria-labelledby="modal7Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal7Label">ಗಮಕ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anuband Modal -->
+    <div class="modal fade" id="modal8" tabindex="-1" aria-labelledby="modal8Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal8Label">ಅನುಬಂಧ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tippani Modal -->
+    <div class="modal fade" id="modal9" tabindex="-1" aria-labelledby="modal9Label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal9Label">ಟಿಪ್ಪಣಿ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

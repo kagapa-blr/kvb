@@ -138,6 +138,16 @@ def tippani():
     return render_template('additional/tippani.html')
 
 
+@additonal_bp.get('/gamaka')
+def gamaka():
+    return render_template('additional/gamaka.html')
+
+
+@additonal_bp.get('/vishaya-parividi')
+def vishaya_parividi():
+    return render_template('additional/vishaya-parividi.html')
+
+
 @additonal_bp.get('/gade-suchi')
 def gade_suchi():
     def extract_and_save_data(file_path, file_type):

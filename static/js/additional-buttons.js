@@ -62,74 +62,21 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initializeAdditionalButtons() {
-    // API endpoints mapped to modal IDs
-    const additionalApi = {
-        'modal1': '/api/stats/search_word',         // For "ಹೆಚ್ಚಿನ ಶೋಧನೆ"
-        'modal2': '/api/akaradi-suchi',            // For "ಅಕಾರಾದಿ ಸೂಚಿ"
-        'modal3': '/api/gaadigala-suchi',          // For "ಗಾದೆಗಳ ಸೂಚಿ"
-        'modal4': '/api/lekhana-suchi',            // For "ಲೇಖನ ಸೂಚಿ"
-        'modal5': '/api/artha-kosha',              // For "ಅರ್ಥ ಕೋಶ"
-        'modal6': '/api/vishaya-parividi',         // For "ವಿಷಯ ಪರಿವಿಡಿ"
-        'modal7': '/api/gamaka',                   // For "ಗಮಕ"
-        'modal8': '/api/anubandha',                // For "ಅನುಬಂಧ"
-        'modal9': '/api/tippani'                   // For "ಟಿಪ್ಪಣಿ"
+    // Endpoints for buttons - first button opens modal, rest open in new tabs
+    const additionalPages = {
+        'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
+        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'newtab', url: '/akaradi-suchi' },
+        'ಲೇಖನ ಸೂಚಿ': { type: 'newtab', url: '/lekhana-suchi' },
+        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'newtab', url: '/gadegal-suchi' },
+        'ಅರ್ಥ ಕೋಶ': { type: 'newtab', url: '/artha-kosha' },
+        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'newtab', url: '/vishaya-parividi' },
+        'ಗಮಕ': { type: 'newtab', url: '/gamaka' },
+        'ಅನುಬಂಧ': { type: 'newtab', url: '/anuband-info' },
+        'ಟಿಪ್ಪಣಿ': { type: 'newtab', url: '/tippani-info' }
     };
 
     let searchWord = "";
     const modalInstances = {}; // Cache modal instances
-
-    /**
-     * Generic fetch function using ApiClient
-     * Handles both GET and POST requests with proper Axios error handling
-     * 
-     * @param {string} endpoint - API endpoint path
-     * @param {string} modalId - Modal element ID to update
-     * @param {Object} options - Optional: { method, data }
-     */
-    async function fetchModalContent(endpoint, modalId, options = {}) {
-        const method = options.method || 'GET';
-        const modalBody = document.querySelector(`#${modalId} .modal-body`);
-
-        if (!modalBody) {
-            console.warn(`[AdditionalButtons] Modal body not found: #${modalId}`);
-            return;
-        }
-
-        try {
-            let response;
-
-            if (method === 'POST') {
-                // Use ApiClient.post with Axios
-                response = await window.ApiClient.post(endpoint, options.data || {});
-            } else {
-                // Use ApiClient.get with Axios
-                response = await window.ApiClient.get(endpoint);
-            }
-
-            // Response is already data (not Response object) due to ApiClient interceptor
-            if (typeof response === 'string') {
-                // Text response (HTML content)
-                modalBody.innerHTML = response;
-            } else if (typeof response === 'object') {
-                // JSON response - render as content
-                if (Array.isArray(response)) {
-                    // Array of results
-                    displaySearchResults(response);
-                } else {
-                    // Single object or error response
-                    modalBody.innerHTML = '<p>Content loaded successfully</p>';
-                }
-            }
-
-            console.log(`[AdditionalButtons] Content loaded for modal: ${modalId}`);
-        } catch (error) {
-            // Use Axios error message if available
-            const errorMessage = error.userMessage || error.message || 'Sorry, there was an error loading the content.';
-            modalBody.innerHTML = `<p style="color: red;">${errorMessage}</p>`;
-            console.error(`[AdditionalButtons] Error loading ${modalId}:`, error);
-        }
-    }
-
     /**
      * Search for a word and display results
      * Uses ApiClient.get with Axios to search padya by keyword
@@ -243,87 +190,31 @@ function initializeAdditionalButtons() {
         });
     }
 
-    // Event listener for button clicks to load modal content
+    // Event listener for button clicks
     document.querySelectorAll('.button-list button').forEach(function (button) {
-        // Skip external link buttons - they have their own handler
-        if (button.classList.contains('external-link-button')) {
-            console.log(`[AdditionalButtons] Skipping external link button: ${button.textContent.trim()}`);
-            return;
-        }
-
         button.addEventListener('click', function (event) {
             event.stopPropagation();
             event.preventDefault();
 
             const buttonText = button.textContent.trim();
-            let modalId;
-            let endpoint;
-            let skipFetch = false;
+            const config = additionalPages[buttonText];
 
-            // Map button text to corresponding modal and endpoint
-            switch (buttonText) {
-                case 'ಹೆಚ್ಚಿನ ಶೋಧನೆ':
-                    // Modal1 is a search form - no content to fetch
-                    // The search form already exists in the modal HTML
-                    modalId = 'modal1';
-                    skipFetch = true; // Don't fetch content
-                    break;
-                case 'ಅಕಾರಾದಿ ಸೂಚಿ':
-                    modalId = 'modal2';
-                    endpoint = additionalApi['modal2'];
-                    break;
-                case 'ಗಾದೆಗಳ ಸೂಚಿ':
-                    modalId = 'modal3';
-                    endpoint = additionalApi['modal3'];
-                    break;
-                case 'ಲೇಖನ ಸೂಚಿ':
-                    modalId = 'modal4';
-                    endpoint = additionalApi['modal4'];
-                    break;
-                case 'ಅರ್ಥ ಕೋಶ':
-                    modalId = 'modal5';
-                    endpoint = additionalApi['modal5'];
-                    break;
-                case 'ವಿಷಯ ಪರಿವಿಡಿ':
-                    modalId = 'modal6';
-                    endpoint = additionalApi['modal6'];
-                    break;
-                case 'ಗಮಕ':
-                    modalId = 'modal7';
-                    endpoint = additionalApi['modal7'];
-                    break;
-                case 'ಅನುಬಂಧ':
-                    modalId = 'modal8';
-                    endpoint = additionalApi['modal8'];
-                    break;
-                case 'ಟಿಪ್ಪಣಿ':
-                    modalId = 'modal9';
-                    endpoint = additionalApi['modal9'];
-                    break;
-                default:
-                    modalId = null;
-                    endpoint = null;
+            if (!config) {
+                console.error(`[AdditionalButtons] Unknown button: ${buttonText}`);
+                return;
             }
 
-            if (modalId) {
-                // Only fetch content if not skipped and endpoint exists
-                if (!skipFetch && endpoint) {
-                    console.log(`[AdditionalButtons] Fetching content for ${modalId} from ${endpoint}`);
-                    fetchModalContent(endpoint, modalId);
-                } else if (skipFetch) {
-                    console.log(`[AdditionalButtons] Skipping API call for ${modalId} (static form modal)`);
-                }
-
-                // Show the modal - reuse instance if available
-                const modalElement = document.getElementById(modalId);
+            if (config.type === 'modal') {
+                // Open modal on same page
+                const modalElement = document.getElementById(config.id);
                 if (modalElement) {
                     // Get or create cached modal instance
-                    if (!modalInstances[modalId]) {
+                    if (!modalInstances[config.id]) {
                         const modal = new bootstrap.Modal(modalElement, { backdrop: true, keyboard: true });
 
                         // Add event listener to properly clean up when modal is hidden
                         modalElement.addEventListener('hidden.bs.modal', function () {
-                            console.log(`[AdditionalButtons] Modal hidden: ${modalId}`);
+                            console.log(`[AdditionalButtons] Modal hidden: ${config.id}`);
 
                             // Force cleanup of modal backdrop and body overflow
                             document.body.classList.remove('modal-open');
@@ -331,12 +222,16 @@ function initializeAdditionalButtons() {
                             backdropElements.forEach(backdrop => backdrop.remove());
                         }, { once: false });
 
-                        modalInstances[modalId] = modal;
+                        modalInstances[config.id] = modal;
                     }
 
-                    modalInstances[modalId].show();
-                    console.log(`[AdditionalButtons] Opening modal: ${modalId}`);
+                    modalInstances[config.id].show();
+                    console.log(`[AdditionalButtons] Opening modal: ${config.id}`);
                 }
+            } else if (config.type === 'newtab') {
+                // Open in new tab
+                console.log(`[AdditionalButtons] Opening in new tab: ${config.url}`);
+                window.open(config.url, '_blank');
             }
         });
     });
