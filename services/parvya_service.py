@@ -30,6 +30,7 @@ def get_gamaka_photo_path(parva_number, sandhi_number, padya_number, raga, autho
     Naming convention: {parva_number}_{sandhi_number}_{padya_number}_{raga}_{author_name}.ext
     
     Returns the relative path if file exists, None otherwise.
+    Supported formats: JPEG (.jpg, .jpeg), WebP (.webp)
     """
     if not all([parva_number, sandhi_number, padya_number, raga, author_name]):
         return None
@@ -43,8 +44,8 @@ def get_gamaka_photo_path(parva_number, sandhi_number, padya_number, raga, autho
         static_folder = current_app.static_folder
         photo_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
         
-        # Common image extensions
-        for ext in ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp']:
+        # Supported image extensions (JPEG and modern formats only)
+        for ext in ['jpg', 'jpeg', 'webp']:
             filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{ext}"
             filepath = os.path.join(photo_dir, filename)
             
@@ -1418,13 +1419,13 @@ class PadyaService:
             if not file or file.filename == "":
                 return {"error": "No file provided"}, 400
             
-            # Validate file type
-            allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
+            # Validate file type - only JPEG and WebP
+            allowed_extensions = {'jpg', 'jpeg', 'webp'}
             filename = secure_filename(file.filename)
-            file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'jpg'
+            file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
             
             if file_ext not in allowed_extensions:
-                return {"error": f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"}, 400
+                return {"error": "ಫೋಟೋ ಸ್ವರೂಪ ಸಮರ್ಥನೀಯವಲ್ಲ. ಸಮರ್ಥನೀಯ: JPEG (.jpg, .jpeg), WebP (.webp)"}, 400
             
             # Clean up raga and author_name for filename
             raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"

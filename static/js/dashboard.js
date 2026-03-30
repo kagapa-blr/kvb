@@ -1370,11 +1370,22 @@ function initializePhotoUpload() {
     uploadArea.style.backgroundColor = '#fff';
     
     const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
+    if (files.length > 0) {
+      const file = files[0];
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/webp'];
+      const fileName = file.name.toLowerCase();
+      const hasValidExt = ['.jpg', '.jpeg', '.webp'].some(ext => fileName.endsWith(ext));
+      
+      if (!allowedTypes.includes(file.type) || !hasValidExt) {
+        showAlert("ಸಮರ್ಥನೀಯ ಫೋಟೋ ಸ್ವರೂಪ: JPEG (.jpg, .jpeg) ಅಥವಾ WebP (.webp)", "warning");
+        return;
+      }
+      
       fileInput.files = files;
-      handlePhotoSelection(files[0]);
+      handlePhotoSelection(file);
     } else {
-      showAlert("ದಯವಿಟ್ಟು ಎರಡನೇ ಚಿತ್ರ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ", "warning");
+      showAlert("ದಯವಿಟ್ಟು ಚಿತ್ರ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಿ", "warning");
     }
   });
 
@@ -1387,10 +1398,10 @@ function initializePhotoUpload() {
 }
 
 function handlePhotoSelection(file) {
-  // Validate file type
-  const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+  // Validate file type - only JPEG and WebP
+  const allowed = ['image/jpeg', 'image/webp'];
   if (!allowed.includes(file.type)) {
-    showAlert("ಅನುಮತಿಸಿದ ಫೋಟೋ ಪ್ರಕಾರ: JPG, PNG, GIF, BMP, WebP", "warning");
+    showAlert("ಸಮರ್ಥನೀಯ ಫೋಟೋ ಸ್ವರೂಪ: JPEG (.jpg, .jpeg) ಅಥವಾ WebP (.webp)", "warning");
     return;
   }
 
@@ -1470,9 +1481,23 @@ async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     return null; // No photo selected, return null
   }
 
+  // Validate file type on client side
+  const file = fileInput.files[0];
+  const allowedMimeTypes = ['image/jpeg', 'image/webp'];
+  const allowedExtensions = ['.jpg', '.jpeg', '.webp'];
+  
+  if (!allowedMimeTypes.includes(file.type)) {
+    const fileName = file.name.toLowerCase();
+    const hasValidExt = allowedExtensions.some(ext => fileName.endsWith(ext));
+    if (!hasValidExt) {
+      showAlert('ಸಮರ್ಥನೀಯ ಫೋಟೋ ಸ್ವರೂಪ: JPEG (.jpg, .jpeg) ಅಥವಾ WebP (.webp)', 'danger');
+      return null;
+    }
+  }
+
   try {
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', file);
     formData.append('parva_number', parvaNumber);
     formData.append('sandhi_number', sandhiNumber);
     formData.append('padya_number', padyaNumber);
