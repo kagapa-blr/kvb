@@ -15,6 +15,7 @@ from model.models import (
     Padya,
     GamakaVachana,
 )
+from utils.audio_file_handler import AudioFileHandler
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ def get_gamaka_audio_path(parva_number, sandhi_number, padya_number, raga, autho
     Naming convention: {parva_number}_{sandhi_number}_{padya_number}_{raga}_{author_name}.ext
     
     Returns the relative path if file exists, None otherwise.
+    Supports both padded and unpadded formats (1_1_1 and 01_01_01 are same).
     """
     if not all([parva_number, sandhi_number, padya_number, raga, author_name]):
         return None
@@ -89,6 +91,54 @@ def get_gamaka_audio_path(parva_number, sandhi_number, padya_number, raga, autho
         return None
     except Exception as e:
         logger.error(f"Error generating gamaka audio path: {e}")
+        return None
+
+
+def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sandhi_number, padya_number):
+    """
+    Get audio path for gamaka vachana entry with filesystem fallback and DB update.
+    
+    This function:
+    1. Checks if audio_path is already in database
+    2. If NULL/empty, searches filesystem using padding-aware patterns (1_1_1 and 01_01_01 are same)
+    3. If found in filesystem, updates database and returns path
+    4. Returns None if not found anywhere
+    
+    Returns: relative path string or None
+    """
+    if not gamaka_vachana_entry:
+        return None
+    
+    try:
+        # If path is already in database, return it
+        if gamaka_vachana_entry.gamaka_vachakar_audio_path:
+            return gamaka_vachana_entry.gamaka_vachakar_audio_path
+        
+        # Path is NULL/empty - search filesystem
+        audio_dir = os.path.join(current_app.static_folder, 'audio', 'gamakaAudio')
+        audio_file_path = AudioFileHandler.find_audio_file_in_filesystem(
+            parva_number, sandhi_number, padya_number, audio_dir
+        )
+        
+        if audio_file_path:
+            # File found in filesystem! Update database
+            try:
+                gamaka_vachana_entry.gamaka_vachakar_audio_path = audio_file_path
+                db.session.commit()
+            except Exception as e:
+                logger.warning(f"Could not update database with audio path: {e}")
+                db.session.rollback()
+            
+            # Return relative path
+            if audio_file_path.startswith(current_app.static_folder):
+                relative_path = os.path.relpath(audio_file_path, current_app.static_folder)
+                return relative_path.replace("\\", "/")
+            return audio_file_path
+        
+        return None
+    
+    except Exception as e:
+        logger.error(f"Error in get_gamaka_audio_path_with_fs_check: {e}")
         return None
 
 
@@ -682,16 +732,10 @@ class PadyaService:
                         gv.gamaka_vachakara_name
                     )
                 
-                # Generate audio path if not stored in database
-                audio_path = gv.gamaka_vachakar_audio_path
-                if not audio_path:
-                    audio_path = get_gamaka_audio_path(
-                        parva_number,
-                        sandhi_number,
-                        gv.padya_number,
-                        gv.raga,
-                        gv.gamaka_vachakara_name
-                    )
+                # Get audio path with filesystem check and auto-update
+                audio_path = get_gamaka_audio_path_with_fs_check(
+                    gv, parva_number, sandhi_number, padya_number
+                )
                 
                 gamaka_vachana_data.append({
                     "id": gv.id,

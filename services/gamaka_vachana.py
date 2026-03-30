@@ -1,4 +1,5 @@
 from model.models import GamakaVachana, db
+from utils.audio_file_handler import AudioFileHandler
 
 
 class GamakaVachanaService:
@@ -96,3 +97,56 @@ class GamakaVachanaService:
         db.session.commit()
 
         return True
+
+    # -------------------------------------------------------
+    # AUDIO FILE MAPPING
+    # -------------------------------------------------------
+    @staticmethod
+    def parse_and_map_audio_file(filename):
+        """
+        Parse an audio filename and map to gamaka vachana entry.
+        """
+        return AudioFileHandler.parse_and_map(filename)
+
+    @staticmethod
+    def get_by_audio_filename(filename):
+        """
+        Get gamaka vachana entry by parsing audio filename.
+        """
+        result = AudioFileHandler.parse_and_map(filename)
+        return result.get('padya_entry')
+
+    @staticmethod
+    def process_audio_directory(directory_path):
+        """
+        Process all audio files in a directory.
+        """
+        return AudioFileHandler.process_audio_directory(directory_path)
+
+    @staticmethod
+    def get_audio_with_filesystem_check(parva_id, sandhi_id, padya_number, audio_dir=None):
+        """
+        Get gamaka vachana entry and audio path with filesystem fallback.
+        
+        If database audio_path is null, searches filesystem and updates database.
+        """
+        return AudioFileHandler.map_to_padya_with_fs_check(
+            parva_id, sandhi_id, padya_number, audio_dir
+        )
+
+    @staticmethod
+    def find_audio_file(parva_id, sandhi_id, padya_number, audio_dir=None):
+        """
+        Find audio file in filesystem with padding-aware search.
+        """
+        return AudioFileHandler.find_audio_file_in_filesystem(
+            parva_id, sandhi_id, padya_number, audio_dir
+        )
+
+    @staticmethod
+    def update_audio_path(entry_id, audio_path):
+        """
+        Update audio path for a gamaka vachana entry.
+        """
+        return AudioFileHandler.update_audio_path_in_database(entry_id, audio_path)
+
