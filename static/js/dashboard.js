@@ -1626,6 +1626,7 @@ function handleAudioSelection(file) {
   const audioUrl = URL.createObjectURL(file);
   const audioSource = audioPreview.querySelector('source');
   audioSource.src = audioUrl;
+  audioPreview.load(); // Reload audio element with new source
   
   filename.textContent = file.name;
   pathDisplay.textContent = '(ಸಂರಕ್ಷಿತ ಸೂಚನೆ: ಸಂರಕ್ಷಿಸಿದ ನಂತರ ಪಥ ತೋರಿಸುತ್ತಾರೆ)';
@@ -1716,6 +1717,7 @@ function displayGamakaAudioPreview(audioPath, authorName) {
     const fullUrl = '/static/' + audioPath;
     const source = audioPlayer.querySelector('source');
     source.src = fullUrl;
+    audioPlayer.load(); // Reload audio element with new source
     
     filename.textContent = authorName || 'ಆಡಿಯೊ';
     pathDisplay.textContent = audioPath;
