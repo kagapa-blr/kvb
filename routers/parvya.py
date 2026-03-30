@@ -299,14 +299,19 @@ def search_padya():
     methods=["GET"],
 )
 def get_padya(parva_number, sandhi_number, padya_number):
+    # Optional query parameters to filter GamakaVachana by author and raga
+    author_name = request.args.get("author_name", "").strip() or None
+    raga = request.args.get("raga", "").strip() or None
+    
     return handle_response(
         padya_service.get_unique(
             parva_number,
             sandhi_number,
             padya_number,
+            author_name=author_name,
+            raga=raga,
         )
     )
-
 
 @parvya_bp.route("/padya", methods=["POST"])
 def create_padya():
@@ -403,6 +408,84 @@ def upload_padya_bulk():
         )
     except Exception as e:
         logger.exception("Error in bulk_upload_padya")
+        return jsonify({"error": str(e)}), 500
+
+
+@parvya_bp.route("/padya/upload-photo", methods=["POST"])
+def upload_gamaka_photo():
+    """
+    Upload photo for GamakaVachana (who sang the padya).
+    
+    Expected form data:
+    - file: photo file
+    - parva_number: parva number
+    - sandhi_number: sandhi number
+    - padya_number: padya number
+    - raga: raga name
+    - author_name: gamaka vachakara name
+    
+    Returns photo path relative to static folder
+    """
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files["file"]
+        
+        # Get metadata for naming
+        parva_number = request.form.get("parva_number")
+        sandhi_number = request.form.get("sandhi_number")
+        padya_number = request.form.get("padya_number")
+        raga = request.form.get("raga", "").strip()
+        author_name = request.form.get("author_name", "").strip()
+        
+        if not all([parva_number, sandhi_number, padya_number]):
+            return jsonify({"error": "Missing required metadata (parva_number, sandhi_number, padya_number)"}), 400
+        
+        return handle_response(
+            padya_service.save_gamaka_photo(file, parva_number, sandhi_number, padya_number, raga, author_name)
+        )
+    except Exception as e:
+        logger.exception("Error in upload_gamaka_photo")
+        return jsonify({"error": str(e)}), 500
+
+
+@parvya_bp.route("/padya/upload-audio", methods=["POST"])
+def upload_gamaka_audio():
+    """
+    Upload audio for GamakaVachana (who sang the padya).
+    
+    Expected form data:
+    - file: audio file
+    - parva_number: parva number
+    - sandhi_number: sandhi number
+    - padya_number: padya number
+    - raga: raga name
+    - author_name: gamaka vachakara name
+    
+    Returns audio path relative to static folder
+    """
+    try:
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files["file"]
+        
+        # Get metadata for naming
+        parva_number = request.form.get("parva_number")
+        sandhi_number = request.form.get("sandhi_number")
+        padya_number = request.form.get("padya_number")
+        raga = request.form.get("raga", "").strip()
+        author_name = request.form.get("author_name", "").strip()
+        
+        if not all([parva_number, sandhi_number, padya_number]):
+            return jsonify({"error": "Missing required metadata (parva_number, sandhi_number, padya_number)"}), 400
+        
+        return handle_response(
+            padya_service.save_gamaka_audio(file, parva_number, sandhi_number, padya_number, raga, author_name)
+        )
+    except Exception as e:
+        logger.exception("Error in upload_gamaka_audio")
         return jsonify({"error": str(e)}), 500
 
 

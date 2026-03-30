@@ -1,20 +1,94 @@
 import logging
 import csv
+import os
 from io import StringIO, BytesIO
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
-from flask import send_file
+from flask import send_file, current_app
 
 from model.models import (
     db,
     Parva,
     Sandhi,
     Padya,
+    GamakaVachana,
 )
 
 logger = logging.getLogger(__name__)
+
+
+# -------------------------------------------------------
+# HELPER FUNCTIONS
+# -------------------------------------------------------
+
+def get_gamaka_photo_path(parva_number, sandhi_number, padya_number, raga, author_name):
+    """
+    Generate the expected photo path for a gamaka vachana entry.
+    
+    Naming convention: {parva_number}_{sandhi_number}_{padya_number}_{raga}_{author_name}.ext
+    
+    Returns the relative path if file exists, None otherwise.
+    """
+    if not all([parva_number, sandhi_number, padya_number, raga, author_name]):
+        return None
+    
+    try:
+        # Clean up raga and author_name for filename
+        raga_clean = str(raga).replace(" ", "_").replace("/", "_").replace("\\", "_")
+        author_clean = str(author_name).replace(" ", "_").replace("/", "_").replace("\\", "_")
+        
+        # Check for file with different extensions
+        static_folder = current_app.static_folder
+        photo_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
+        
+        # Common image extensions
+        for ext in ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'webp']:
+            filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{ext}"
+            filepath = os.path.join(photo_dir, filename)
+            
+            if os.path.exists(filepath):
+                return f"photos/gamakaPhotos/{filename}"
+        
+        return None
+    except Exception as e:
+        logger.error(f"Error generating gamaka photo path: {e}")
+        return None
+
+
+def get_gamaka_audio_path(parva_number, sandhi_number, padya_number, raga, author_name):
+    """
+    Generate the expected audio path for a gamaka vachana entry.
+    
+    Naming convention: {parva_number}_{sandhi_number}_{padya_number}_{raga}_{author_name}.ext
+    
+    Returns the relative path if file exists, None otherwise.
+    """
+    if not all([parva_number, sandhi_number, padya_number, raga, author_name]):
+        return None
+    
+    try:
+        # Clean up raga and author_name for filename
+        raga_clean = str(raga).replace(" ", "_").replace("/", "_").replace("\\", "_")
+        author_clean = str(author_name).replace(" ", "_").replace("/", "_").replace("\\", "_")
+        
+        # Check for file with different extensions
+        static_folder = current_app.static_folder
+        audio_dir = os.path.join(static_folder, 'audio', 'gamakaAudio')
+        
+        # Common audio extensions
+        for ext in ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac']:
+            filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{ext}"
+            filepath = os.path.join(audio_dir, filename)
+            
+            if os.path.exists(filepath):
+                return f"audio/gamakaAudio/{filename}"
+        
+        return None
+    except Exception as e:
+        logger.error(f"Error generating gamaka audio path: {e}")
+        return None
 
 
 
@@ -556,6 +630,8 @@ class PadyaService:
         parva_number,
         sandhi_number,
         padya_number,
+        author_name=None,
+        raga=None,
         **kwargs,
     ):
         record = (
@@ -576,6 +652,56 @@ class PadyaService:
         sandhi = record.sandhi
         parva = sandhi.parva if sandhi else None
 
+        # Fetch GamakaVachana data for this padya
+        gamaka_query = GamakaVachana.query.filter_by(
+            parva_id=parva.id if parva else None,
+            sandhi_id=sandhi.id if sandhi else None,
+            padya_number=padya_number
+        )
+        
+        # Filter by author name and raga if provided
+        if author_name and author_name.strip():
+            gamaka_query = gamaka_query.filter_by(gamaka_vachakara_name=author_name.strip())
+        if raga and raga.strip():
+            gamaka_query = gamaka_query.filter_by(raga=raga.strip())
+        
+        gamaka_vachana_list = gamaka_query.all()
+
+        gamaka_vachana_data = []
+        if gamaka_vachana_list:
+            for gv in gamaka_vachana_list:
+                # Generate photo path if not stored in database
+                photo_path = gv.gamaka_vachakar_photo_path
+                if not photo_path:
+                    photo_path = get_gamaka_photo_path(
+                        parva_number,
+                        sandhi_number,
+                        gv.padya_number,
+                        gv.raga,
+                        gv.gamaka_vachakara_name
+                    )
+                
+                # Generate audio path if not stored in database
+                audio_path = gv.gamaka_vachakar_audio_path
+                if not audio_path:
+                    audio_path = get_gamaka_audio_path(
+                        parva_number,
+                        sandhi_number,
+                        gv.padya_number,
+                        gv.raga,
+                        gv.gamaka_vachakara_name
+                    )
+                
+                gamaka_vachana_data.append({
+                    "id": gv.id,
+                    "gamaka_vachakara_name": gv.gamaka_vachakara_name,
+                    "raga": gv.raga,
+                    "gamaka_vachakar_photo_path": photo_path,
+                    "gamaka_vachakar_audio_path": audio_path,
+                })
+
+
+
         return {
             "id": record.id,
             "parva_number": parva_number,
@@ -592,6 +718,7 @@ class PadyaService:
             "created": record.created.isoformat() if record.created else None,
             "updated": record.updated.isoformat() if record.updated else None,
             "updated_by": record.updated_by,
+            "gamaka_vachana": gamaka_vachana_data,
         }, 200
 
     # ---------------------------------------------
@@ -651,6 +778,26 @@ class PadyaService:
             )
 
             db.session.add(record)
+            db.session.flush()  # Flush to get the ID
+
+            # Handle GamakaVachana data if provided
+            gamaka_vachakara_name = kwargs.get("gamaka_vachakara_name", "").strip()
+            raga = kwargs.get("gamaka_raga", "").strip()
+            gamaka_vachakar_photo_path = kwargs.get("gamaka_photo_path", "").strip()
+            gamaka_vachakar_audio_path = kwargs.get("gamaka_audio_path", "").strip()
+
+            if gamaka_vachakara_name:  # Only create if at least the name is provided
+                gamaka_vachana = GamakaVachana(
+                    parva_id=sandhi.parva_id,
+                    sandhi_id=sandhi.id,
+                    padya_number=next_number,
+                    gamaka_vachakara_name=gamaka_vachakara_name,
+                    raga=raga if raga else None,
+                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None,
+                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+                )
+                db.session.add(gamaka_vachana)
+
             commit_session()
 
             return {
@@ -714,6 +861,62 @@ class PadyaService:
             # Update the editor info if provided
             if "updated_by" in kwargs and kwargs["updated_by"]:
                 record.updated_by = kwargs.get("updated_by")
+
+            # Handle GamakaVachana data update
+            sandhi = record.sandhi
+            parva = sandhi.parva if sandhi else None
+            
+            # Get the raw values from kwargs first (before stripping)
+            gamaka_vachakara_name_raw = kwargs.get("gamaka_vachakara_name")
+            gamaka_raga_raw = kwargs.get("gamaka_raga")
+            gamaka_photo_path_raw = kwargs.get("gamaka_photo_path")
+            gamaka_audio_path_raw = kwargs.get("gamaka_audio_path")
+            
+            # Process and strip the values
+            gamaka_vachakara_name = (gamaka_vachakara_name_raw or "").strip() if gamaka_vachakara_name_raw is not None else None
+            raga = (gamaka_raga_raw or "").strip() if gamaka_raga_raw is not None else None
+            gamaka_vachakar_photo_path = (gamaka_photo_path_raw or "").strip() if gamaka_photo_path_raw is not None else None
+            gamaka_vachakar_audio_path = (gamaka_audio_path_raw or "").strip() if gamaka_audio_path_raw is not None else None
+
+            # Get existing GamakaVachana for this padya
+            existing_gamaka = GamakaVachana.query.filter_by(
+                parva_id=parva.id if parva else None,
+                sandhi_id=sandhi.id if sandhi else None,
+                padya_number=padya_number
+            ).first()
+            
+            # Check if there's any gamaka data to save or update
+            has_gamaka_data = (
+                gamaka_vachakara_name or raga or 
+                gamaka_vachakar_photo_path or gamaka_vachakar_audio_path
+            )
+            
+            if existing_gamaka:
+                # Update existing record - only update if a value is explicitly provided (not None)
+                if gamaka_vachakara_name:
+                    existing_gamaka.gamaka_vachakara_name = gamaka_vachakara_name
+                if raga:
+                    existing_gamaka.raga = raga
+                # Always update paths if they are provided (not None), even if empty string
+                # This ensures that newly uploaded photos/audio override previous values
+                if gamaka_photo_path_raw is not None:
+                    # If raw value is not None, use the processed value (could be empty string or actual path)
+                    existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None
+                if gamaka_audio_path_raw is not None:
+                    # If raw value is not None, use the processed value (could be empty string or actual path)
+                    existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+            elif has_gamaka_data:
+                # Create new GamakaVachana only if there's data to save
+                gamaka_vachana = GamakaVachana(
+                    parva_id=parva.id if parva else None,
+                    sandhi_id=sandhi.id if sandhi else None,
+                    padya_number=padya_number,
+                    gamaka_vachakara_name=gamaka_vachakara_name if gamaka_vachakara_name else None,
+                    raga=raga if raga else None,
+                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None,
+                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+                )
+                db.session.add(gamaka_vachana)
 
             commit_session()
 
@@ -1195,11 +1398,138 @@ class PadyaService:
             logger.error("Export padyas failed: %s", e)
             return {"error": f"Export failed: {str(e)}"}, 500
 
+    # ---------------------------------------------
+    # PHOTO UPLOAD
+    # ---------------------------------------------
+
+    def save_gamaka_photo(self, file, parva_number, sandhi_number, padya_number, raga, author_name, **kwargs):
+        """
+        Save uploaded photo for GamakaVachana (who sang the padya).
+        
+        Naming convention: parva_number_sandhi_number_padya_number_raga_authorname.ext
+        Example: 1_1_1_Dheeravati_RamanandaSagara.jpg
+        
+        Returns the relative photo path for storage in database.
+        """
+        try:
+            import os
+            from werkzeug.utils import secure_filename
+            
+            if not file or file.filename == "":
+                return {"error": "No file provided"}, 400
+            
+            # Validate file type
+            allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
+            filename = secure_filename(file.filename)
+            file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'jpg'
+            
+            if file_ext not in allowed_extensions:
+                return {"error": f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"}, 400
+            
+            # Clean up raga and author_name for filename
+            raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"
+            author_clean = author_name.replace(" ", "_").replace("/", "_").replace("\\", "_") if author_name else "unknown"
+            
+            # Create filename with naming convention
+            new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{file_ext}"
+            
+            # Get absolute path to static folder
+            from flask import current_app
+            static_folder = current_app.static_folder
+            photo_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
+            
+            # Ensure directory exists
+            os.makedirs(photo_dir, exist_ok=True)
+            
+            # Full path to save the file
+            filepath = os.path.join(photo_dir, new_filename)
+            
+            # Save the file
+            file.save(filepath)
+            
+            # Return relative path for storage in database (relative to static folder)
+            relative_path = f"photos/gamakaPhotos/{new_filename}"
+            
+            return {
+                "photo_path": relative_path,
+                "filename": new_filename,
+                "message": "Photo uploaded successfully"
+            }, 200
+            
+        except Exception as e:
+            logger.error("Photo upload failed: %s", e)
+            return {"error": f"Photo upload failed: {str(e)}"}, 500
+
+    # ---------------------------------------------
+    # AUDIO UPLOAD
+    # ---------------------------------------------
+
+    def save_gamaka_audio(self, file, parva_number, sandhi_number, padya_number, raga, author_name, **kwargs):
+        """
+        Save uploaded audio for GamakaVachana (who sang the padya).
+        
+        Naming convention: parva_number_sandhi_number_padya_number_raga_authorname.ext
+        Example: 1_1_5_Yaman_RamanandaSagara.mp3
+        
+        Returns the relative audio path for storage in database.
+        """
+        try:
+            import os
+            from werkzeug.utils import secure_filename
+            
+            if not file or file.filename == "":
+                return {"error": "No file provided"}, 400
+            
+            # Validate file type
+            allowed_extensions = {'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac', 'wma'}
+            filename = secure_filename(file.filename)
+            file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'mp3'
+            
+            if file_ext not in allowed_extensions:
+                return {"error": f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"}, 400
+            
+            # Clean up raga and author_name for filename
+            raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"
+            author_clean = author_name.replace(" ", "_").replace("/", "_").replace("\\", "_") if author_name else "unknown"
+            
+            # Create filename with naming convention
+            new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{file_ext}"
+            
+            # Get absolute path to static folder
+            from flask import current_app
+            static_folder = current_app.static_folder
+            audio_dir = os.path.join(static_folder, 'audio', 'gamakaAudio')
+            
+            # Ensure directory exists
+            os.makedirs(audio_dir, exist_ok=True)
+            
+            # Full path to save the file
+            filepath = os.path.join(audio_dir, new_filename)
+            
+            # Save the file
+            file.save(filepath)
+            
+            # Return relative path for storage in database (relative to static folder)
+            relative_path = f"audio/gamakaAudio/{new_filename}"
+            
+            return {
+                "audio_path": relative_path,
+                "filename": new_filename,
+                "message": "Audio uploaded successfully"
+            }, 200
+            
+        except Exception as e:
+            logger.error("Audio upload failed: %s", e)
+            return {"error": f"Audio upload failed: {str(e)}"}, 500
+
 
 # -------------------------------------------------------
-# GLOBAL INSTANCES
+# GLOBAL SERVICE INSTANCES
 # -------------------------------------------------------
 
 parva_service = ParvaService()
 sandhi_service = SandhiService()
 padya_service = PadyaService()
+
+
+

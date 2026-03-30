@@ -175,6 +175,7 @@ class GamakaVachana(db.Model):
     raga = db.Column(db.String(255), nullable=False)
     gamaka_vachakara_name = db.Column(db.String(255), nullable=False)
     gamaka_vachakar_photo_path = db.Column(db.String(500))
+    gamaka_vachakar_audio_path = db.Column(db.String(500))  # Audio file path
 
     parva = db.relationship("Parva", backref="gamaka_vachana_entries")
     sandhi = db.relationship("Sandhi", backref="gamaka_vachana_entries")

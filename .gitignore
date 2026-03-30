@@ -5,3 +5,4 @@ docs
 *.csv
 *.mp3
 migrations
+static/photos
