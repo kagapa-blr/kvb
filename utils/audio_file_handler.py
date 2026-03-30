@@ -120,10 +120,10 @@ class AudioFileHandler:
         """
         Find audio file in filesystem using padding-aware search.
         
-        Supports both padded and unpadded formats:
-        - 1_1_1_*.mp3
-        - 01_01_01_*.mp3
-        - 001_001_001_*.mp3
+        Supports both padded and unpadded formats with multiple separators:
+        - Underscore: 1_1_1_*.mp3, 01_01_01_*.mp3, 001_001_001_*.mp3
+        - Hyphen: 1-1-1_*.mp3, 01-01-01_*.mp3, 001-001-001_*.mp3
+        - Exact match: 1_1_1.mp3, 01-01-01.mp3, etc.
         
         Args:
             parva_id (int): Parva identifier
@@ -143,22 +143,48 @@ class AudioFileHandler:
         try:
             audio_extensions = {'.mp3', '.wav', '.ogg', '.flac', '.m4a'}
             
-            # Generate search patterns with different padding levels
-            search_patterns = [
+            # Generate search patterns with different padding levels and separators
+            search_patterns = []
+            
+            # Patterns with UNDERSCORE separator
+            search_patterns.extend([
                 # Unpadded: 1_1_1_*.mp3
                 f"{parva_id}_{sandhi_id}_{padya_number}_*",
                 # Zero-padded to 2 digits: 01_01_01_*.mp3
                 f"{parva_id:02d}_{sandhi_id:02d}_{padya_number:02d}_*",
                 # Zero-padded to 3 digits: 001_001_001_*.mp3
                 f"{parva_id:03d}_{sandhi_id:03d}_{padya_number:03d}_*",
-            ]
+            ])
+            
+            # Patterns with HYPHEN separator
+            search_patterns.extend([
+                # Unpadded: 1-1-1_*.mp3 or 1-1-1-*.mp3
+                f"{parva_id}-{sandhi_id}-{padya_number}_*",
+                f"{parva_id}-{sandhi_id}-{padya_number}-*",
+                # Zero-padded to 2 digits: 01-01-01_*.mp3 or 01-01-01-*.mp3
+                f"{parva_id:02d}-{sandhi_id:02d}-{padya_number:02d}_*",
+                f"{parva_id:02d}-{sandhi_id:02d}-{padya_number:02d}-*",
+                # Zero-padded to 3 digits: 001-001-001_*.mp3 or 001-001-001-*.mp3
+                f"{parva_id:03d}-{sandhi_id:03d}-{padya_number:03d}_*",
+                f"{parva_id:03d}-{sandhi_id:03d}-{padya_number:03d}-*",
+            ])
             
             # Also search without any suffix (just exact ID match)
-            exact_patterns = [
+            exact_patterns = []
+            
+            # Exact patterns with UNDERSCORE
+            exact_patterns.extend([
                 f"{parva_id}_{sandhi_id}_{padya_number}",
                 f"{parva_id:02d}_{sandhi_id:02d}_{padya_number:02d}",
                 f"{parva_id:03d}_{sandhi_id:03d}_{padya_number:03d}",
-            ]
+            ])
+            
+            # Exact patterns with HYPHEN
+            exact_patterns.extend([
+                f"{parva_id}-{sandhi_id}-{padya_number}",
+                f"{parva_id:02d}-{sandhi_id:02d}-{padya_number:02d}",
+                f"{parva_id:03d}-{sandhi_id:03d}-{padya_number:03d}",
+            ])
             
             # Search with metadata patterns
             for pattern in search_patterns:
