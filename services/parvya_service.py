@@ -936,9 +936,10 @@ class PadyaService:
         Generate a CSV template for bulk padya upload.
         
         Template columns:
-        parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+        parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar, raga, gamaka_vachanakara_name
         
         Note: parva_name and sandhi_name are optional - used only if parva/sandhi needs to be created
+        Note: raga and gamaka_vachanakara_name are optional - used to create gamaka_vachana records
         """
         try:
             from io import StringIO
@@ -961,7 +962,9 @@ class PadyaService:
                 "tippani",
                 "gadya",
                 "suchane",
-                "pathantar"
+                "pathantar",
+                "raga",
+                "gamaka_vachanakara_name"
             ])
             
             # Write sample rows
@@ -976,7 +979,9 @@ class PadyaService:
                 "ಟಿಪ್ಪಣಿ",
                 "ಗದ್ಯ",
                 "ಸುಚನೆ",
-                "ಪಠಾಂತರ"
+                "ಪಠಾಂತರ",
+                "ಧೀರಶಂಕರಾಭರಣ",
+                "ಗಾಯಕರ ಹೆಸರು"
             ])
             writer.writerow([
                 "1",
@@ -989,7 +994,9 @@ class PadyaService:
                 "ಟಿಪ್ಪಣಿ",
                 "ಗದ್ಯ",
                 "ಸುಚನೆ",
-                "ಪಠಾಂತರ"
+                "ಪಠಾಂತರ",
+                "ಭೈರವ",
+                "ಇತರ ಗಾಯಕರು"
             ])
             
             # Get the CSV content
@@ -1016,12 +1023,13 @@ class PadyaService:
         Bulk upload padya from CSV or Excel file.
         
         Expected columns:
-        parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+        parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar, raga, gamaka_vachanakara_name
         
         Features:
         - Auto-creates Parva if parva_number and parva_name are provided
         - Auto-creates Sandhi if sandhi_number and sandhi_name are provided
         - Updates existing padya or creates new one if not found
+        - Creates/updates GamakaVachana records if raga and gamaka_vachanakara_name are provided
         """
         try:
             import csv
@@ -1226,6 +1234,38 @@ class PadyaService:
                         existing.suchane = (row.get('suchane') or '').strip() or None
                         existing.pathantar = (row.get('pathantar') or '').strip() or None
                         records_updated += 1
+                        
+                        # Handle gamaka_vachana details if provided
+                        raga = (row.get('raga') or '').strip()
+                        gamaka_vachakara_name = (row.get('gamaka_vachanakara_name') or '').strip()
+                        
+                        if raga or gamaka_vachakara_name:
+                            # Both fields should be present if either is provided
+                            if not raga or not gamaka_vachakara_name:
+                                errors.append(f"Row {row_idx}: If providing gamaka details, both raga and gamaka_vachanakara_name are required")
+                            else:
+                                # Check if gamaka_vachana already exists
+                                from model.models import GamakaVachana
+                                gamaka = GamakaVachana.query.filter_by(
+                                    parva_id=parva.id,
+                                    sandhi_id=sandhi.id,
+                                    padya_number=padya_number,
+                                    gamaka_vachakara_name=gamaka_vachakara_name
+                                ).first()
+                                
+                                if gamaka:
+                                    # Update existing gamaka_vachana
+                                    gamaka.raga = raga
+                                else:
+                                    # Create new gamaka_vachana
+                                    new_gamaka = GamakaVachana(
+                                        parva_id=parva.id,
+                                        sandhi_id=sandhi.id,
+                                        padya_number=padya_number,
+                                        raga=raga,
+                                        gamaka_vachakara_name=gamaka_vachakara_name
+                                    )
+                                    db.session.add(new_gamaka)
                     else:
                         # Create new
                         new_padya = Padya(
@@ -1240,6 +1280,26 @@ class PadyaService:
                         )
                         db.session.add(new_padya)
                         records_created += 1
+                        
+                        # Handle gamaka_vachana details if provided
+                        raga = (row.get('raga') or '').strip()
+                        gamaka_vachakara_name = (row.get('gamaka_vachanakara_name') or '').strip()
+                        
+                        if raga or gamaka_vachakara_name:
+                            # Both fields should be present if either is provided
+                            if not raga or not gamaka_vachakara_name:
+                                errors.append(f"Row {row_idx}: If providing gamaka details, both raga and gamaka_vachanakara_name are required")
+                            else:
+                                # Create gamaka_vachana record
+                                from model.models import GamakaVachana
+                                new_gamaka = GamakaVachana(
+                                    parva_id=parva.id,
+                                    sandhi_id=sandhi.id,
+                                    padya_number=padya_number,
+                                    raga=raga,
+                                    gamaka_vachakara_name=gamaka_vachakara_name
+                                )
+                                db.session.add(new_gamaka)
                     
                 except ValueError as ve:
                     errors.append(f"Row {row_idx}: Invalid number format - {str(ve)}")
@@ -1319,13 +1379,14 @@ class PadyaService:
         Export all padyas with complete details as CSV.
         
         Columns: parva_number, parva_name, sandhi_number, sandhi_name, 
-                 padya_number, padya, artha, tippani, gadya, suchane, pathantar
+                 padya_number, padya, artha, tippani, gadya, suchane, pathantar, raga, gamaka_vachanakara_name
         """
         try:
             from datetime import datetime
             from io import StringIO, BytesIO
             from flask import send_file
             import csv
+            from model.models import GamakaVachana
             
             # Query all padyas with their parva and sandhi details
             query = (
@@ -1355,13 +1416,22 @@ class PadyaService:
                 "tippani",
                 "gadya",
                 "suchane",
-                "pathantar"
+                "pathantar",
+                "raga",
+                "gamaka_vachanakara_name"
             ])
             
             # Write all padya records
             for padya in query:
                 sandhi = padya.sandhi
                 parva = sandhi.parva if sandhi else None
+                
+                # Get gamaka details if they exist
+                gamaka = GamakaVachana.query.filter_by(
+                    parva_id=parva.id if parva else None,
+                    sandhi_id=sandhi.id if sandhi else None,
+                    padya_number=padya.padya_number
+                ).first()
                 
                 writer.writerow([
                     parva.parva_number if parva else "",
@@ -1374,7 +1444,9 @@ class PadyaService:
                     padya.tippani or "",
                     padya.gadya or "",
                     padya.suchane or "",
-                    padya.pathantar or ""
+                    padya.pathantar or "",
+                    gamaka.raga if gamaka else "",
+                    gamaka.gamaka_vachakara_name if gamaka else ""
                 ])
             
             # Get the CSV content

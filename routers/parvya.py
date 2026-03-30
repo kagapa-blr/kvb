@@ -382,7 +382,7 @@ def download_padya_template():
     Download a CSV template for bulk padya creation.
     
     Template columns:
-    parva_number, sandhi_number, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+    parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar, raga, gamaka_vachanakara_name
     """
     return padya_service.generate_template()
 
@@ -393,7 +393,11 @@ def upload_padya_bulk():
     Bulk upload padya from CSV or Excel file.
     
     Expected columns:
-    parva_number, sandhi_number, padya_number, padya, artha, tippani, gadya, suchane, pathantar
+    parva_number, parva_name, sandhi_number, sandhi_name, padya_number, padya, artha, tippani, gadya, suchane, pathantar, raga, gamaka_vachanakara_name
+    
+    Notes:
+    - parva_name and sandhi_name are optional if parva/sandhi already exist
+    - raga and gamaka_vachanakara_name are optional for creating gamaka_vachana records
     """
     try:
         if "file" not in request.files:
