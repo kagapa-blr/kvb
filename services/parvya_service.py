@@ -101,10 +101,10 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sand
     This function:
     1. Checks if audio_path is already in database
     2. If NULL/empty, searches filesystem using padding-aware patterns (1_1_1 and 01_01_01 are same)
-    3. If found in filesystem, updates database and returns path
+    3. If found in filesystem, updates database with RELATIVE path and returns it
     4. Returns None if not found anywhere
     
-    Returns: relative path string or None
+    Returns: relative path string (e.g., 'audio/gamakaAudio/01-01-01.mp3') or None
     """
     if not gamaka_vachana_entry:
         return None
@@ -121,19 +121,24 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sand
         )
         
         if audio_file_path:
-            # File found in filesystem! Update database
+            # File found in filesystem! Convert to relative path
+            relative_path = None
+            if audio_file_path.startswith(current_app.static_folder):
+                relative_path = os.path.relpath(audio_file_path, current_app.static_folder)
+                relative_path = relative_path.replace("\\", "/")
+            else:
+                # Fallback: extract relative path
+                relative_path = audio_file_path.replace("\\", "/")
+            
+            # Update database with RELATIVE path
             try:
-                gamaka_vachana_entry.gamaka_vachakar_audio_path = audio_file_path
+                gamaka_vachana_entry.gamaka_vachakar_audio_path = relative_path
                 db.session.commit()
             except Exception as e:
                 logger.warning(f"Could not update database with audio path: {e}")
                 db.session.rollback()
             
-            # Return relative path
-            if audio_file_path.startswith(current_app.static_folder):
-                relative_path = os.path.relpath(audio_file_path, current_app.static_folder)
-                return relative_path.replace("\\", "/")
-            return audio_file_path
+            return relative_path
         
         return None
     
