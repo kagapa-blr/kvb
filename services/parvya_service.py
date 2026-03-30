@@ -716,8 +716,8 @@ class PadyaService:
             "gadya": record.gadya,
             "suchane": record.suchane,
             "pathantar": record.pathantar,
-            "created": record.created.isoformat() if record.created else None,
-            "updated": record.updated.isoformat() if record.updated else None,
+            "created": record.created.isoformat() if record.created and hasattr(record.created, 'isoformat') else record.created,
+            "updated": record.updated.isoformat() if record.updated and hasattr(record.updated, 'isoformat') else record.updated,
             "updated_by": record.updated_by,
             "gamaka_vachana": gamaka_vachana_data,
         }, 200
