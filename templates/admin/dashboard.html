@@ -675,6 +675,8 @@
   <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
   <!-- Load restclient.js first so window.ApiClient is available -->
   <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
+  <!-- Load endpoints.js for centralized API configuration -->
+  <script src="{{ url_for('static', filename='js/endpoints.js') }}"></script>
   <script type="module" src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 

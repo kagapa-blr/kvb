@@ -79,11 +79,18 @@ const ApiEndpoints = {
         list: () => ApiEndpoints._buildPath('/parva'),
         create: () => ApiEndpoints._buildPath('/parva'),
         get: (id) => ApiEndpoints._buildPath(`/parva/${id}`),
+        update: (id) => ApiEndpoints._buildPath(`/parva/${id}`),
+        delete: (id) => ApiEndpoints._buildPath(`/parva/${id}`),
+        search: () => ApiEndpoints._buildPath('/parva/search'),
         sandhisByParva: (parvaNumber) => ApiEndpoints._buildPath(`/sandhi/by_parva/${parvaNumber}`),
 
         // Backward compatibility
         LIST: '/api/v1/parva',
+        CREATE: '/api/v1/parva',
         GET_BY_ID: (id) => `/api/v1/parva/${id}`,
+        UPDATE: (id) => `/api/v1/parva/${id}`,
+        DELETE: (id) => `/api/v1/parva/${id}`,
+        SEARCH: '/api/v1/parva/search',
         ALL_SANDHIS: '/api/v1/sandhi',
         SANDHIS_BY_PARVA: (parvaNumber) => `/api/v1/sandhi/by_parva/${parvaNumber}`,
     },
@@ -93,15 +100,21 @@ const ApiEndpoints = {
     // ========================================
     SANDHI: {
         list: () => ApiEndpoints._buildPath('/sandhi'),
-        get: (id) => ApiEndpoints._buildPath(`/sandhi/${id}`),
+        create: () => ApiEndpoints._buildPath('/sandhi'),
+        get: (parvaNumber, sandhiNumber) => ApiEndpoints._buildPath(`/sandhi/${parvaNumber}/${sandhiNumber}`),
+        update: (parvaNumber, sandhiNumber) => ApiEndpoints._buildPath(`/sandhi/${parvaNumber}/${sandhiNumber}`),
+        delete: (parvaNumber, sandhiNumber) => ApiEndpoints._buildPath(`/sandhi/${parvaNumber}/${sandhiNumber}`),
         byParva: (parvaNumber) => ApiEndpoints._buildPath(`/sandhi/by_parva/${parvaNumber}`),
-        padyas: (sandhiId) => ApiEndpoints._buildPath(`/padya/by_sandhi/${sandhiId}`),
+        search: (parvaNumber) => ApiEndpoints._buildPath(`/sandhi/search/${parvaNumber}`),
 
         // Backward compatibility
         LIST: '/api/v1/sandhi',
-        GET_BY_ID: (id) => `/api/v1/sandhi/${id}`,
+        CREATE: '/api/v1/sandhi',
+        GET_BY_ID: (parvaNumber, sandhiNumber) => `/api/v1/sandhi/${parvaNumber}/${sandhiNumber}`,
+        UPDATE: (parvaNumber, sandhiNumber) => `/api/v1/sandhi/${parvaNumber}/${sandhiNumber}`,
+        DELETE: (parvaNumber, sandhiNumber) => `/api/v1/sandhi/${parvaNumber}/${sandhiNumber}`,
         BY_PARVA: (parvaNumber) => `/api/v1/sandhi/by_parva/${parvaNumber}`,
-        PADYAS_BY_SANDHI: (sandhiId) => `/api/v1/padya/by_sandhi/${sandhiId}`,
+        SEARCH: (parvaNumber) => `/api/v1/sandhi/search/${parvaNumber}`,
     },
 
     // ========================================
@@ -110,22 +123,34 @@ const ApiEndpoints = {
     PADYA: {
         list: () => ApiEndpoints._buildPath('/padya'),
         create: () => ApiEndpoints._buildPath('/padya'),
-        get: (id) => ApiEndpoints._buildPath(`/padya/${id}`),
-        update: () => ApiEndpoints._buildPath('/padya'),
-        delete: (id) => ApiEndpoints._buildPath(`/padya/${id}`),
-        byParva: (parvaNumber, sandhiNumber, padyaNumber) =>
+        search: () => ApiEndpoints._buildPath('/padya/search'),
+        get: (parvaNumber, sandhiNumber, padyaNumber) => 
             ApiEndpoints._buildPath(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
+        update: (parvaNumber, sandhiNumber, padyaNumber) => 
+            ApiEndpoints._buildPath(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
+        delete: (parvaNumber, sandhiNumber, padyaNumber) => 
+            ApiEndpoints._buildPath(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`),
+        downloadTemplate: () => ApiEndpoints._buildPath('/padya/template/download'),
+        uploadBulk: () => ApiEndpoints._buildPath('/padya/bulk/upload'),
+        uploadPhoto: () => ApiEndpoints._buildPath('/padya/upload-photo'),
+        uploadAudio: () => ApiEndpoints._buildPath('/padya/upload-audio'),
+        exportCsv: () => ApiEndpoints._buildPath('/padya/export'),
 
         // Backward compatibility
         LIST: '/api/v1/padya',
         CREATE: '/api/v1/padya',
-        GET_BY_ID: (sandhiId, padyaNumber) => `/api/v1/padya/${sandhiId}/${padyaNumber}`,
-        UPDATE: '/api/v1/padya',
-        DELETE: (id) => `/api/v1/padya/${id}`,
-        BY_SANDHI: (sandhiId) => `/api/v1/padya/by_sandhi/${sandhiId}`,
-        GET_CONTENT: (parvaNumber, sandhiNumber, padyaNumber) => `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
-        GET_BY_PARVA_SANDHI_PADYA: (parvaNumber, sandhiNumber, padyaNumber) =>
+        SEARCH: '/api/v1/padya/search',
+        GET_BY_ID: (parvaNumber, sandhiNumber, padyaNumber) => 
             `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
+        UPDATE: (parvaNumber, sandhiNumber, padyaNumber) => 
+            `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
+        DELETE: (parvaNumber, sandhiNumber, padyaNumber) => 
+            `/api/v1/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`,
+        DOWNLOAD_TEMPLATE: '/api/v1/padya/template/download',
+        UPLOAD_BULK: '/api/v1/padya/bulk/upload',
+        UPLOAD_PHOTO: '/api/v1/padya/upload-photo',
+        UPLOAD_AUDIO: '/api/v1/padya/upload-audio',
+        EXPORT_CSV: '/api/v1/padya/export',
     },
 
     // ========================================
@@ -138,6 +163,13 @@ const ApiEndpoints = {
         update: (id) => `/api/gamaka/${id}`,
         delete: (id) => `/api/gamaka/${id}`,
         byPadya: (queryParams = '') => `/api/gamaka/padya${queryParams}`,
+        // Audio file handling endpoints
+        parseFilename: () => '/api/audio/parse-filename',
+        mapToPadya: () => '/api/audio/map-to-padya',
+        processDirectory: () => '/api/audio/process-directory',
+        getWithFsCheck: () => '/api/audio/get-with-fs-check',
+        findInFilesystem: () => '/api/audio/find-in-filesystem',
+        updateAudioPath: () => '/api/audio/update-path',
 
         // Backward compatibility
         LIST: '/api/gamaka',
@@ -146,6 +178,12 @@ const ApiEndpoints = {
         UPDATE: (id) => `/api/gamaka/${id}`,
         DELETE: (id) => `/api/gamaka/${id}`,
         BY_PADYA: () => '/api/gamaka/padya',
+        PARSE_FILENAME: '/api/audio/parse-filename',
+        MAP_TO_PADYA: '/api/audio/map-to-padya',
+        PROCESS_DIRECTORY: '/api/audio/process-directory',
+        GET_WITH_FS_CHECK: '/api/audio/get-with-fs-check',
+        FIND_IN_FILESYSTEM: '/api/audio/find-in-filesystem',
+        UPDATE_AUDIO_PATH: '/api/audio/update-path',
     },
 
     // ========================================
@@ -155,21 +193,29 @@ const ApiEndpoints = {
         stats: () => ApiEndpoints._buildPath('/dashboard/stats'),
 
         // Backward compatibility
-        STATS: '/api/dashboard/stats',
+        STATS: '/api/v1/dashboard/stats',
     },
 
     // ========================================
     // ADDITIONAL CONTENT MANAGEMENT ENDPOINTS
     // ========================================
     ADDITIONAL: {
-        akaradiUpdate: () => ApiEndpoints._buildPath('/akaradi-suchi/update'),
-        gadeUpload: () => ApiEndpoints._buildPath('/gade-suchi/upload'),
-        tippaniUpdate: () => ApiEndpoints._buildPath('/tippani/update'),
+        akaradiSuchi: () => '/api/additional/akaradi-suchi',
+        gadeSuchi: () => '/api/additional/gade-suchi',
+        lekanSuchi: () => '/api/additional/lekhan-suchi',
+        arhaKosha: () => '/api/additional/artha-kosha',
+        vishayaParividi: () => '/api/additional/vishaya-parividi',
+        anubanch: () => '/api/additional/anuband',
+        tippani: () => '/api/additional/tippani',
 
         // Backward compatibility
-        AKARADI_UPDATE: '/akaradi-suchi/update',
-        GADE_UPLOAD: '/gade-suchi/upload',
-        TIPPANI_UPDATE: '/tippani/update',
+        AKARADI_SUCHI: '/api/additional/akaradi-suchi',
+        GADE_SUCHI: '/api/additional/gade-suchi',
+        LEKAN_SUCHI: '/api/additional/lekhan-suchi',
+        ARTHA_KOSHA: '/api/additional/artha-kosha',
+        VISHAYA_PARIVIDI: '/api/additional/vishaya-parividi',
+        ANUBAND: '/api/additional/anuband',
+        TIPPANI: '/api/additional/tippani',
     },
 
     /**

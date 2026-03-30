@@ -112,7 +112,7 @@ $(document).ready(function () {
   async function loadParva() {
     showLoading();
     try {
-      const response = await ApiClient.get(ApiEndpoints.PARVA.LIST);
+      const response = await ApiClient.get(ApiEndpoints.PARVA.list());
       const data = extractData(response);
       populateDropdown("#parvaDropdown", data, "id", "name");
       
@@ -134,7 +134,7 @@ $(document).ready(function () {
   // Fetch Sandhi data for selected Parva
   async function loadSandhi(parvaNumber) {
     try {
-      const response = await ApiClient.get(ApiEndpoints.PARVA.SANDHIS_BY_PARVA(parvaNumber));
+      const response = await ApiClient.get(ApiEndpoints.PARVA.sandhisByParva(parvaNumber));
       const data = extractData(response);
       populateDropdown("#sandhiDropdown", data, "id", "name");
       $("#sandhiDropdown").prop("disabled", false);
@@ -191,7 +191,7 @@ $(document).ready(function () {
     showLoading();
     try {
       const response = await ApiClient.get(
-        ApiEndpoints.PADYA.GET_BY_PARVA_SANDHI_PADYA(parva.parva_number, sandhi.sandhi_number, padyaNumber)
+        ApiEndpoints.PADYA.get(parva.parva_number, sandhi.sandhi_number, padyaNumber)
       );
 
       const data = response;
@@ -268,9 +268,12 @@ $(document).ready(function () {
     }
   });
 
-  // Initialize - Wait for ApiClient and start loading data
+  // Initialize - Wait for ApiClient and ApiEndpoints, then start loading data
   const initCheck = setInterval(() => {
-    if (typeof window.ApiClient !== 'undefined' && typeof window.ApiClient.get === 'function') {
+    if (typeof window.ApiClient !== 'undefined' && 
+        typeof window.ApiClient.get === 'function' &&
+        typeof window.ApiEndpoints !== 'undefined' &&
+        typeof window.ApiEndpoints.PARVA !== 'undefined') {
       clearInterval(initCheck);
       window.__ApiClientRef = window.ApiClient;
       loadParva();

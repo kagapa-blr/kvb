@@ -33,22 +33,24 @@ function openModal(modalId) {
 window.openModal = openModal;
 
 /**
- * Wait for ApiClient to be ready before initializing buttons
- * Ensures axios and base URL detection has completed
+ * Wait for ApiClient and ApiEndpoints to be ready before initializing buttons
+ * Ensures axios, base URL detection, and endpoints configuration have completed
  */
 function ensureApiClientReady(callback, timeout = 5000) {
     const startTime = Date.now();
     const checkInterval = setInterval(() => {
-        // Check if ApiClient and required methods are available
+        // Check if ApiClient, ApiEndpoints and required methods are available
         if (typeof window.ApiClient !== 'undefined' &&
             typeof window.ApiClient.get === 'function' &&
-            typeof window.ApiClient.post === 'function') {
+            typeof window.ApiClient.post === 'function' &&
+            typeof window.ApiEndpoints !== 'undefined' &&
+            typeof window.ApiEndpoints._buildPath === 'function') {
             clearInterval(checkInterval);
-            console.log('[AdditionalButtons] ApiClient is ready');
+            console.log('[AdditionalButtons] ApiClient and ApiEndpoints are ready');
             callback();
         } else if (Date.now() - startTime > timeout) {
             clearInterval(checkInterval);
-            console.error('[AdditionalButtons] TIMEOUT: ApiClient did not initialize within ' + timeout + 'ms');
+            console.warn('[AdditionalButtons] TIMEOUT: ApiClient or ApiEndpoints did not initialize within ' + timeout + 'ms - proceeding anyway');
             // Still try to proceed
             callback();
         }
@@ -62,43 +64,59 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initializeAdditionalButtons() {
-    // Endpoints for buttons - first button opens modal, rest open in new tabs
+    // Verify ApiEndpoints is available
+    if (typeof window.ApiEndpoints === 'undefined') {
+        console.error('[AdditionalButtons] ApiEndpoints is not available - initialization skipped');
+        return;
+    }
+
+    // Endpoints for buttons - first button opens modal, rest load via API
+    // Using centralized ApiEndpoints for all API references
     const additionalPages = {
         'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
-        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'newtab', url: '/akaradi-suchi' },
-        'ಲೇಖನ ಸೂಚಿ': { type: 'newtab', url: '/lekhana-suchi' },
-        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'newtab', url: '/gadegal-suchi' },
-        'ಅರ್ಥ ಕೋಶ': { type: 'newtab', url: '/artha-kosha' },
-        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'newtab', url: '/vishaya-parividi' },
-        'ಗಮಕ': { type: 'newtab', url: '/gamaka' },
-        'ಅನುಬಂಧ': { type: 'newtab', url: '/anuband-info' },
-        'ಟಿಪ್ಪಣಿ': { type: 'newtab', url: '/tippani-info' }
+        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.akaradiSuchi() },
+        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.lekanSuchi() },
+        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.gadeSuchi() },
+        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.arhaKosha() },
+        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.vishayaParividi() },
+        'ಗಮಕ': { type: 'api', endpoint: () => window.ApiEndpoints.GAMAKA.list() },
+        'ಅನುಬಂಧ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.anubanch() },
+        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.tippani() }
     };
 
     let searchWord = "";
     const modalInstances = {}; // Cache modal instances
+    const modalContentCache = {}; // Cache loaded modal content
+    
     /**
      * Search for a word and display results
-     * Uses ApiClient.get with Axios to search padya by keyword
+     * Uses ApiClient.get with centralized ApiEndpoints for padya search
      */
     async function searchByWord(word) {
         try {
             console.log(`[AdditionalButtons] Searching for: ${word}`);
 
-            // Use ApiClient.get with Axios and the correct endpoint
-            // GET /api/v1/padya/search?keyword=word
-            const endpoint = `/api/v1/padya/search?keyword=${encodeURIComponent(word)}`;
-            const data = await window.ApiClient.get(endpoint);
+            // Verify ApiClient and ApiEndpoints available
+            if (typeof window.ApiClient === 'undefined' || typeof window.ApiEndpoints === 'undefined') {
+                throw new Error('ApiClient or ApiEndpoints not available');
+            }
+
+            // Use ApiClient.get with ApiEndpoints - properly constructed with query params
+            const searchEndpoint = window.ApiEndpoints.PADYA.search() + 
+                window.ApiEndpoints.formatQueryParams({ keyword: word });
+            
+            console.log(`[AdditionalButtons] Calling endpoint: ${searchEndpoint}`);
+            const data = await window.ApiClient.get(searchEndpoint);
 
             // Data is already parsed JSON from ApiClient interceptor
             displaySearchResults(data);
         } catch (error) {
-            const errorMessage = error.userMessage || 'Error fetching search results';
+            const errorMessage = error.userMessage || error.message || 'Error fetching search results';
             console.error(`[AdditionalButtons] ${errorMessage}:`, error);
 
             const resultsContainer = document.getElementById('search-results');
             if (resultsContainer) {
-                resultsContainer.innerHTML = `<p style="color: red;">${errorMessage}</p>`;
+                resultsContainer.innerHTML = `<p style="color: red;">⚠️ ${errorMessage}</p>`;
             }
         }
     }
@@ -175,6 +193,159 @@ function initializeAdditionalButtons() {
         return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
     }
 
+    /**
+     * Load additional content via API and display in modal
+     * Uses ApiClient with centralized ApiEndpoints
+     */
+    async function loadAdditionalContent(buttonText, config) {
+        try {
+            // Verify ApiClient is available
+            if (typeof window.ApiClient === 'undefined') {
+                throw new Error('ApiClient is not available');
+            }
+
+            // Check if content is already cached
+            if (modalContentCache[buttonText]) {
+                console.log(`[AdditionalButtons] Using cached content for: ${buttonText}`);
+                displayAdditionalContentInModal(buttonText, modalContentCache[buttonText]);
+                return;
+            }
+
+            console.log(`[AdditionalButtons] Loading content for: ${buttonText}`);
+            
+            // Get the endpoint from config
+            const endpoint = config.endpoint();
+            console.log(`[AdditionalButtons] API endpoint: ${endpoint}`);
+
+            // Use ApiClient.get with the endpoint
+            const response = await window.ApiClient.get(endpoint);
+            
+            // Store in cache for future use
+            modalContentCache[buttonText] = response;
+            
+            // Display in appropriate modal
+            displayAdditionalContentInModal(buttonText, response);
+        } catch (error) {
+            const errorMessage = error.userMessage || error.message || 'Error loading content';
+            console.error(`[AdditionalButtons] ${errorMessage}:`, error);
+            
+            // Show error in modal
+            showErrorModal(buttonText, errorMessage);
+        }
+    }
+
+    /**
+     * Display additional content in modal based on button text
+     */
+    function displayAdditionalContentInModal(buttonText, response) {
+        let modalId = null;
+        let htmlContent = '';
+
+        // Map button text to modal ID
+        const buttonToModalMap = {
+            'ಅಕಾರಾದಿ ಸೂಚಿ': 'modal2',
+            'ಲೇಖನ ಸೂಚಿ': 'modal3',
+            'ಗಾದೆಗಳ ಸೂಚಿ': 'modal4',
+            'ಅರ್ಥ ಕೋಶ': 'modal5',
+            'ವಿಷಯ ಪರಿವಿಡಿ': 'modal6',
+            'ಗಮಕ': 'modal7',
+            'ಅನುಬಂಧ': 'modal8',
+            'ಟಿಪ್ಪಣಿ': 'modal9'
+        };
+
+        modalId = buttonToModalMap[buttonText];
+        if (!modalId) {
+            console.error(`[AdditionalButtons] No modal mapping for: ${buttonText}`);
+            return;
+        }
+
+        // Format response data into HTML
+        try {
+            // Handle different response formats
+            let dataArray = Array.isArray(response) ? response : (response.data || response);
+            
+            if (Array.isArray(dataArray)) {
+                // List view for array responses
+                htmlContent = '<div class="content-list">';
+                dataArray.forEach((item, index) => {
+                    htmlContent += `
+                        <div class="content-item p-3 mb-3 border rounded" style="background: #f9f9f9;">
+                            <h6>${item.name || item.title || `Item ${index + 1}`}</h6>
+                            <p class="text-muted small">${item.description || item.content || ''}</p>
+                        </div>
+                    `;
+                });
+                htmlContent += '</div>';
+            } else if (typeof dataArray === 'object') {
+                // Object view for single item responses
+                htmlContent = `
+                    <div class="content-item p-3">
+                        <h5>${dataArray.name || dataArray.title || 'Content'}</h5>
+                        <p>${dataArray.description || dataArray.content || 'No content available'}</p>
+                    </div>
+                `;
+            } else {
+                // Plain text/HTML response
+                htmlContent = `<div class="p-3">${dataArray}</div>`;
+            }
+
+            // Update modal body with content
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                const modalBody = modalElement.querySelector('.modal-body');
+                if (modalBody) {
+                    modalBody.innerHTML = htmlContent;
+
+                    // Show the modal
+                    if (!modalInstances[modalId]) {
+                        modalInstances[modalId] = new bootstrap.Modal(modalElement);
+                    }
+                    modalInstances[modalId].show();
+                    console.log(`[AdditionalButtons] Displayed content in modal: ${modalId}`);
+                }
+            }
+        } catch (error) {
+            console.error('[AdditionalButtons] Error formatting content:', error);
+            showErrorModal(buttonText, 'Error displaying content');
+        }
+    }
+
+    /**
+     * Show error message in modal
+     */
+    function showErrorModal(buttonText, errorMessage) {
+        const modalMap = {
+            'ಅಕಾರಾದಿ ಸೂಚಿ': 'modal2',
+            'ಲೇಖನ ಸೂಚಿ': 'modal3',
+            'ಗಾದೆಗಳ ಸೂಚಿ': 'modal4',
+            'ಅರ್ಥ ಕೋಶ': 'modal5',
+            'ವಿಷಯ ಪರಿವಿಡಿ': 'modal6',
+            'ಗಮಕ': 'modal7',
+            'ಅನುಬಂಧ': 'modal8',
+            'ಟಿಪ್ಪಣಿ': 'modal9'
+        };
+
+        const modalId = modalMap[buttonText];
+        if (modalId) {
+            const modalElement = document.getElementById(modalId);
+            if (modalElement) {
+                const modalBody = modalElement.querySelector('.modal-body');
+                if (modalBody) {
+                    modalBody.innerHTML = `
+                        <div class="alert alert-danger" role="alert">
+                            <strong>ಲೋಡಿಂಗ್ ದೋಷ:</strong> ${errorMessage}
+                        </div>
+                    `;
+
+                    if (!modalInstances[modalId]) {
+                        modalInstances[modalId] = new bootstrap.Modal(modalElement);
+                    }
+                    modalInstances[modalId].show();
+                }
+            }
+        }
+    }
+
     // Event listener for search form
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
@@ -228,10 +399,9 @@ function initializeAdditionalButtons() {
                     modalInstances[config.id].show();
                     console.log(`[AdditionalButtons] Opening modal: ${config.id}`);
                 }
-            } else if (config.type === 'newtab') {
-                // Open in new tab
-                console.log(`[AdditionalButtons] Opening in new tab: ${config.url}`);
-                window.open(config.url, '_blank');
+            } else if (config.type === 'api') {
+                // Load content via API and display in modal
+                loadAdditionalContent(buttonText, config);
             }
         });
     });
