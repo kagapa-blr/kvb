@@ -12,12 +12,132 @@
   <style>
     body {
       font-family: "Noto Sans Kannada", sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding-bottom: 30px;
+    }
+
+    .container-fluid {
       background: #f8f9fa;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     .content-card {
       border-radius: 14px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .content-card:hover {
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Header Styling */
+    .content-card.bg-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      border: none;
+    }
+
+    .content-card.bg-primary h2 {
+      font-size: 1.8rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.5px;
+    }
+
+    /* Tab Styling */
+    .nav-tabs {
+      border-bottom: 2px solid #e9ecef;
+      background: #f8f9fa;
+      border-radius: 10px 10px 0 0;
+      padding: 0.5rem;
+      gap: 0.5rem;
+    }
+
+    .nav-tabs .nav-link {
+      color: #495057;
+      font-weight: 500;
+      border: none;
+      border-bottom: 3px solid transparent;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.3s ease;
+      margin-bottom: -2px;
+      padding: 0.75rem 1rem;
+    }
+
+    .nav-tabs .nav-link:hover {
+      background-color: #e9ecef;
+      color: #495057;
+      border-color: transparent;
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: white;
+      color: #667eea;
+      border-bottom-color: #667eea;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+
+    /* Tab Content Styling */
+    .tab-content {
+      background: white;
+      border-radius: 0 0 10px 10px;
+      border-top: none;
+    }
+
+    /* Table Styling */
+    .table {
+      margin-bottom: 0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .table thead.table-dark {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .table tbody tr {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+      box-shadow: inset 0 0 10px rgba(102, 126, 234, 0.05);
+    }
+
+    .table-hover tbody tr:hover {
+      color: inherit;
+    }
+
+    /* Badge Styling */
+    .badge {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .badge.bg-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+    }
+
+    .badge.bg-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
+    }
+
+    .badge.bg-warning {
+      background: linear-gradient(135deg, #f77e21 0%, #ffa500 100%) !important;
+      color: white !important;
+    }
+
+    .badge.bg-danger-light {
+      background-color: #fff5f5;
+      color: #eb3349;
+      border: 1px solid #fcc0c0;
     }
 
     /* Padya Dropdown Improvements */
@@ -29,8 +149,8 @@
     }
 
     .padya-dropdown:focus {
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
       max-height: 28px !important;
     }
 
@@ -51,12 +171,25 @@
       padding: 0.25rem 0.5rem;
       font-size: 0.875rem;
       line-height: 1.4;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+      transition: all 0.3s ease;
+    }
+
+    .form-control-sm:focus,
+    .form-select-sm:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
 
     /* Labels */
     .form-label {
       margin-bottom: 0.25rem;
       font-size: 0.8rem;
+      color: #6c757d;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     /* Search row improvements */
@@ -65,9 +198,208 @@
     }
 
     /* Button improvements */
+    .btn {
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
     .btn-sm {
       padding: 0.25rem 0.75rem;
       font-size: 0.8rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #68408f 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #0d7560 0%, #2bc16a 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #d62a37 0%, #dd4a34 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(235, 51, 73, 0.4);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: linear-gradient(135deg, #5568d3 0%, #68408f 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f77e21 0%, #ffa500 100%);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: linear-gradient(135deg, #e06a0a 0%, #ff9500 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(247, 126, 33, 0.4);
+    }
+
+    /* Modal Styling */
+    .modal-content {
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .modal-header.bg-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .modal-header.bg-info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .modal-header.bg-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
+    }
+
+    /* Alert Styling */
+    .alert {
+      border-radius: 8px;
+      border: 1px solid transparent;
+    }
+
+    .alert-info {
+      background-color: #e7f3ff;
+      border-color: #b3d9ff;
+      color: #004085;
+    }
+
+    .alert-success {
+      background-color: #e8f5e9;
+      border-color: #c8e6c9;
+      color: #2e7d32;
+    }
+
+    .alert-warning {
+      background-color: #fff3cd;
+      border-color: #ffeaa7;
+      color: #856404;
+    }
+
+    .alert-danger {
+      background-color: #ffebee;
+      border-color: #ffcdd2;
+      color: #c5192d;
+    }
+
+    /* Default User Badge */
+    .default-user-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f77e21 0%, #ffa500 100%);
+      color: white;
+      padding: 0.35rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* Input Group Styling */
+    .input-group .btn {
+      background-color: white;
+      border: 1px solid #dee2e6 !important;
+      color: #667eea;
+    }
+
+    .input-group .btn:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .content-card {
+        margin-bottom: 1rem;
+      }
+
+      .nav-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+      }
+
+      .btn-sm {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* Loading Spinner */
+    .spinner-border {
+      width: 1rem;
+      height: 1rem;
+      color: #667eea;
+    }
+
+    /* Status Indicator */
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-indicator.active {
+      background-color: #28a745;
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    }
+
+    .status-indicator.inactive {
+      background-color: #dc3545;
+      box-shadow: 0 0 5px rgba(220, 53, 69, 0.5);
+    }
+
+    /* Card Border Styles */
+    .border-start {
+      border-left: 4px solid;
+    }
+
+    .border-success {
+      border-left-color: #11998e;
     }
   </style>
 </head>
@@ -96,6 +428,11 @@
       <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#padya_tab">
           ಪದ್ಯಗಳು
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#users_tab">
+          <i class="bi bi-people me-1"></i>ಬಳಕೆದಾರರು
         </button>
       </li>
     </ul>
@@ -247,6 +584,40 @@
               </tr>
             </thead>
             <tbody id="padya_table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USERS TAB -->
+      <div class="tab-pane fade" id="users_tab">
+        <div class="row g-2 mb-3 search-row">
+          <div class="col-md-8">
+            <input id="user_search" class="form-control form-control-sm" placeholder="ಬಳಕೆದಾರ ಹುಡುಕಿ (ಹೆಸರು ಅಥವಾ ಇಮೇಲ್)..." />
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100" id="user-search-btn">
+              <i class="bi bi-search me-1"></i>ಹುಡುಕಿ
+            </button>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#userModal">
+              <i class="bi bi-person-plus me-1"></i>ಹೊಸ ಬಳಕೆದಾರ
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover table-sm">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 200px">ಬಳಕೆದಾರ ಹೆಸರು</th>
+                <th>ಇಮೇಲ್</th>
+                <th style="width: 150px">ಫೋನ್</th>
+                <th style="width: 80px" class="text-center">ಸ್ಥಿತಿ</th>
+                <th style="width: 120px" class="text-center">ಕ್ರಿಯೆ</th>
+              </tr>
+            </thead>
+            <tbody id="users_table"></tbody>
           </table>
         </div>
       </div>
@@ -668,6 +1039,123 @@
               <i class="bi bi-download me-1"></i>ಫಲಿತಾಂಶಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT MODAL -->
+  <div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="userModalTitle">
+            <i class="bi bi-person-plus me-2"></i>ಹೊಸ ಬಳಕೆದಾರ ಸೇರಿಸಿ
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಬಳಕೆದಾರ ಹೆಸರು <span class="text-danger">*</span></label>
+            <input type="text" id="modal_user_username" class="form-control" placeholder="ಬಳಕೆದಾರ ಹೆಸರು ನಮೂದಿಸಿ" />
+            <small class="text-muted d-block mt-1">3-255 ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಡಾಟ್, ಹಲಗೆ ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್ ಮಾತ್ರ</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಇಮೇಲ್ <span class="text-danger">*</span></label>
+            <input type="email" id="modal_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+            <input type="tel" id="modal_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ (ಐಚ್ಛಿಕ)" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಪಾಸ್‌ವರ್ಡ್ <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="password" id="modal_user_password" class="form-control" placeholder="ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" />
+              <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <small class="text-muted d-block mt-1">ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳು</small>
+          </div>
+          <div id="userModalError" class="alert alert-danger d-none" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+          <button type="button" class="btn btn-primary" id="save-user-btn">
+            <i class="bi bi-check-circle me-1"></i>ಸೇರಿಸಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER EDIT MODAL -->
+  <div class="modal fade" id="userEditModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="userEditModalTitle">
+            <i class="bi bi-pencil-square me-2"></i>ಬಳಕೆದಾರ ಸಂಪಾದಿಸಿ
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="modal_edit_user_username" />
+          <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>ಬಳಕೆದಾರ ಹೆಸರು:</strong> <span id="edit_user_display_name" class="fw-bold"></span>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಇಮೇಲ್</label>
+            <input type="email" id="modal_edit_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+            <input type="tel" id="modal_edit_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ (ಐಚ್ಛಿಕ)</label>
+            <div class="input-group">
+              <input type="password" id="modal_edit_user_password" class="form-control" placeholder="ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ನಮೂದಿಸಿ" />
+              <button class="btn btn-outline-secondary" type="button" id="toggleEditPasswordBtn">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <small class="text-muted d-block mt-1">ಖಾಲಿ ಬಿಟ್ಟರೆ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗುವುದಿಲ್ಲ</small>
+          </div>
+          <div id="userEditModalError" class="alert alert-danger d-none" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+          <button type="button" class="btn btn-info" id="save-user-edit-btn">
+            <i class="bi bi-check-circle me-1"></i>ಅಪ್‌ಡೇಟ್ ಮಾಡಿ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER DELETE CONFIRM MODAL -->
+  <div class="modal fade" id="userDeleteConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle me-2"></i>ಬಳಕೆದಾರ ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>ಬಳಕೆದಾರ:</strong> <span id="delete_user_display_name" class="fw-bold text-danger"></span></p>
+          <p class="text-muted">ಈ ಬಳಕೆದಾರ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಈ ಕ್ರಿಯೆಯನ್ನು ತಿರಿಗಿ ತರಲು ಸಾಧ್ಯವಿಲ್ಲ.</p>
+        </div>
+        <div class="modal-footer">
+          <input type="hidden" id="delete_user_username" />
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+          <button type="button" class="btn btn-danger" id="confirm-user-delete-btn">
+            <i class="bi bi-trash me-1"></i>ಅಳಿಸಿ
+          </button>
         </div>
       </div>
     </div>

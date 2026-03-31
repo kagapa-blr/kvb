@@ -71,12 +71,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ================= MODAL INITIALIZATION =================
 function initializeModals() {
-  const modalIds = ['parvaModal', 'sandhiModal', 'padyaModal', 'deleteConfirmModal', 'bulkUploadModal'];
+  const modalIds = ['parvaModal', 'sandhiModal', 'padyaModal', 'deleteConfirmModal', 'bulkUploadModal', 'userModal', 'userEditModal', 'userDeleteConfirmModal'];
   
   modalIds.forEach(id => {
     const element = document.getElementById(id);
     if (element) {
-      state.modals[id] = new bootstrap.Modal(element);
+      state.modals[id] = new bootstrap.Modal(element, { backdrop: id.includes('user') ? 'static' : true });
       
       // Sandhi modal dropdown population
       if (id === 'sandhiModal') {
@@ -260,7 +260,7 @@ function initializeEventListeners() {
   }
   
   // Search inputs (Enter key)
-  ['parva_search', 'sandhi_search', 'padya_search'].forEach(id => {
+  ['parva_search', 'sandhi_search', 'padya_search', 'user_search'].forEach(id => {
     document.getElementById(id)?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         const btnId = id.replace('_search', '-search-btn');
@@ -268,6 +268,47 @@ function initializeEventListeners() {
       }
     });
   });
+
+  // User management event listeners
+  const userSearchBtn = document.getElementById('user-search-btn');
+  const userSearchInput = document.getElementById('user_search');
+  
+  if (userSearchBtn) {
+    userSearchBtn.addEventListener('click', handleUserSearch);
+  }
+  
+  if (userSearchInput) {
+    userSearchInput.addEventListener('keyup', handleUserSearch);
+  }
+  
+  const saveUserBtn = document.getElementById('save-user-btn');
+  if (saveUserBtn) {
+    saveUserBtn.addEventListener('click', saveUser);
+  }
+  
+  const saveUserEditBtn = document.getElementById('save-user-edit-btn');
+  if (saveUserEditBtn) {
+    saveUserEditBtn.addEventListener('click', saveUserEdit);
+  }
+  
+  const confirmUserDeleteBtn = document.getElementById('confirm-user-delete-btn');
+  if (confirmUserDeleteBtn) {
+    confirmUserDeleteBtn.addEventListener('click', confirmUserDelete);
+  }
+  
+  const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener('click', () => {
+      togglePasswordVisibility('modal_user_password', 'togglePasswordBtn');
+    });
+  }
+  
+  const toggleEditPasswordBtn = document.getElementById('toggleEditPasswordBtn');
+  if (toggleEditPasswordBtn) {
+    toggleEditPasswordBtn.addEventListener('click', () => {
+      togglePasswordVisibility('modal_edit_user_password', 'toggleEditPasswordBtn');
+    });
+  }
 }
 
 // ================= TAB HANDLING =================
@@ -294,6 +335,9 @@ function handleTabChange(target) {
       if (state.currentData.parvas.length > 0) {
         fillPadyaParvaDropdown(state.currentData.parvas);
       }
+      break;
+    case "#users_tab":
+      loadUsers();
       break;
   }
 }
@@ -2302,3 +2346,398 @@ async function confirmDelete() {
   state.modals.deleteConfirmModal?.hide();
   state.deleteAction = null;
 }
+
+
+// ================= USER MANAGEMENT OPERATIONS =================
+
+
+
+async function loadUsers() {
+  const tableBody = document.getElementById('users_table');
+
+  try {
+
+    const response = await apiRequest(
+      ApiEndpoints.USERS.list(),
+      { method: 'GET' }
+    );
+
+    console.log("Users API response:", response);
+
+    // Backend returns array directly
+    let users = [];
+
+    if (Array.isArray(response)) {
+      users = response;
+    } 
+    else if (response && Array.isArray(response.data)) {
+      users = response.data;
+    }
+
+    tableBody.innerHTML = '';
+
+    if (!users || users.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5"
+              class="text-center text-muted py-4">
+            ಯಾವುದೇ ಬಳಕೆದಾರರು ಕಂಡುಬಂದಿಲ್ಲ
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    users.forEach(user => {
+
+      const row = document.createElement('tr');
+
+      let actionButtons = '';
+
+      if (user.is_default) {
+
+        actionButtons = `
+          <button
+            class="btn btn-sm btn-secondary"
+            title="ಡಿಫಾಲ್ಟ ಬಳಕೆದಾರ"
+            disabled>
+            <i class="bi bi-lock me-1"></i>
+            ಸುರಕ್ಷಿತ
+          </button>
+        `;
+
+      } else {
+actionButtons = `
+  <button
+    type="button"
+    class="btn btn-sm btn-info me-1"
+    onclick="openUserEditModal('${user.username}')"
+    title="ಸಂಪಾದಿಸಿ">
+    <i class="bi bi-pencil"></i>
+  </button>
+
+  <button
+    type="button"
+    class="btn btn-sm btn-danger"
+    onclick="openUserDeleteConfirmModal('${user.username}')"
+    title="ಅಳಿಸಿ">
+    <i class="bi bi-trash"></i>
+  </button>
+`;
+      }
+
+      row.innerHTML = `
+        <td>
+          <strong>
+            ${escapeHtml(user.username)}
+          </strong>
+
+          ${
+            user.is_default
+              ? '<span class="default-user-badge ms-2">ಡಿಫಾಲ್ಟ</span>'
+              : ''
+          }
+        </td>
+
+        <td>
+          ${
+            user.email
+              ? escapeHtml(user.email)
+              : '<span class="text-muted">-</span>'
+          }
+        </td>
+
+        <td>
+          ${
+            user.phone_number
+              ? escapeHtml(user.phone_number)
+              : '<span class="text-muted">-</span>'
+          }
+        </td>
+
+        <td class="text-center">
+          <span class="badge ${
+            user.is_default
+              ? 'bg-warning'
+              : 'bg-success'
+          }">
+            ${
+              user.is_default
+                ? 'ನಿರ್ವಾಹಕ'
+                : 'ಸಕ್ರಿಯ'
+            }
+          </span>
+        </td>
+
+        <td class="text-center">
+          ${actionButtons}
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+
+    });
+
+  } catch (error) {
+
+    console.error("Load users error:", error);
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5"
+            class="text-center text-danger py-4">
+          ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲ
+        </td>
+      </tr>
+    `;
+
+    showAlert(
+      error.message || 'ಬಳಕೆದಾರರನ್ನು ಲೋಡ್ ಮಾಡಲು ವಿಫಲ',
+      'danger'
+    );
+
+  }
+}
+
+
+
+
+/**
+ * Handle user search
+ */
+function handleUserSearch() {
+  const searchInput = document.getElementById('user_search').value.toLowerCase();
+  const tableRows = document.querySelectorAll('#users_table tr');
+  
+  tableRows.forEach(row => {
+    if (tableRows.length === 1 && row.querySelector('td')?.colSpan) {
+      // Skip the "no users" message row
+      return;
+    }
+    
+    const username = row.cells[0]?.textContent.toLowerCase() || '';
+    const email = row.cells[1]?.textContent.toLowerCase() || '';
+    const phone = row.cells[2]?.textContent.toLowerCase() || '';
+    
+    const matches = username.includes(searchInput) || 
+                   email.includes(searchInput) || 
+                   phone.includes(searchInput);
+    
+    row.style.display = matches ? '' : 'none';
+  });
+}
+
+/**
+ * Open user creation modal
+ */
+function openUserModal() {
+  // Reset form
+  document.getElementById('modal_user_username').value = '';
+  document.getElementById('modal_user_email').value = '';
+  document.getElementById('modal_user_phone').value = '';
+  document.getElementById('modal_user_password').value = '';
+  document.getElementById('userModalError').classList.add('d-none');
+  document.getElementById('modal_user_password').type = 'password';
+  document.getElementById('togglePasswordBtn').innerHTML = '<i class="bi bi-eye"></i>';
+  
+  state.modals.userModal?.show();
+}
+
+/**
+ * Toggle password visibility
+ */
+function togglePasswordVisibility(inputId, buttonId) {
+  const input = document.getElementById(inputId);
+  const button = document.getElementById(buttonId);
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    button.innerHTML = '<i class="bi bi-eye-slash"></i>';
+  } else {
+    input.type = 'password';
+    button.innerHTML = '<i class="bi bi-eye"></i>';
+  }
+}
+
+/**
+ * Save new user
+ */
+async function saveUser() {
+  const username = document.getElementById('modal_user_username').value.trim();
+  const email = document.getElementById('modal_user_email').value.trim();
+  const phone = document.getElementById('modal_user_phone').value.trim();
+  const password = document.getElementById('modal_user_password').value.trim();
+  const errorDiv = document.getElementById('userModalError');
+  
+  // Validate
+  if (!username) {
+    showModalError(errorDiv, 'ಬಳಕೆದಾರ ಹೆಸರು ಅಗತ್ಯ');
+    return;
+  }
+  
+  if (!email) {
+    showModalError(errorDiv, 'ಇಮೇಲ್ ಅಗತ್ಯ');
+    return;
+  }
+  
+  if (!password) {
+    showModalError(errorDiv, 'ಪಾಸ್‌ವರ್ಡ್ ಅಗತ್ಯ');
+    return;
+  }
+  
+  try {
+    const saveBtn = document.getElementById('save-user-btn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ಸೇರಿಸುತ್ತಿದೆ...';
+    
+    const response = await apiRequest(ApiEndpoints.USERS.create(), {
+      method: 'POST',
+      body: {
+        username,
+        email,
+        phone_number: phone || null,
+        password
+      }
+    });
+    
+    showAlert('ಬಳಕೆದಾರ ಯಶಸ್ವಿಯಾಗಿ ಸೃಷ್ಟಿಸಲಾಗಿದೆ', 'success');
+    state.modals.userModal?.hide();
+    await loadUsers();
+    
+  } catch (error) {
+    showModalError(errorDiv, error.message || 'ಬಳಕೆದಾರ ರಚನೆ ವಿಫಲ');
+  } finally {
+    const saveBtn = document.getElementById('save-user-btn');
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>ಸೇರಿಸಿ';
+  }
+}
+
+/**
+ * Open user edit modal
+ */
+async function openUserEditModal(username) {
+  try {
+    const user = await apiRequest(ApiEndpoints.USERS.get(username), { method: 'GET' });
+    
+    document.getElementById('modal_edit_user_username').value = username;
+    document.getElementById('edit_user_display_name').textContent = username;
+    document.getElementById('modal_edit_user_email').value = user.email || '';
+    document.getElementById('modal_edit_user_phone').value = user.phone_number || '';
+    document.getElementById('modal_edit_user_password').value = '';
+    document.getElementById('userEditModalError').classList.add('d-none');
+    document.getElementById('modal_edit_user_password').type = 'password';
+    document.getElementById('toggleEditPasswordBtn').innerHTML = '<i class="bi bi-eye"></i>';
+    
+    state.modals.userEditModal?.show();
+  } catch (error) {
+    showAlert(`ಬಳಕೆದಾರ ಡೇಟಾ ಲೋಡ್ ವಿಫಲ: ${error.message}`, 'danger');
+  }
+}
+
+/**
+ * Save user edits
+ */
+async function saveUserEdit() {
+  const username = document.getElementById('modal_edit_user_username').value;
+  const email = document.getElementById('modal_edit_user_email').value.trim();
+  const phone = document.getElementById('modal_edit_user_phone').value.trim();
+  const password = document.getElementById('modal_edit_user_password').value.trim();
+  const errorDiv = document.getElementById('userEditModalError');
+  
+  // Validate
+  if (!email) {
+    showModalError(errorDiv, 'ಇಮೇಲ್ ಅಗತ್ಯ');
+    return;
+  }
+  
+  try {
+    const saveBtn = document.getElementById('save-user-edit-btn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ಅಪ್‌ಡೇಟ್ ಮಾಡುತ್ತಿದೆ...';
+    
+    const body = {
+      email,
+      phone_number: phone || null
+    };
+    
+    if (password) {
+      body.password = password;
+    }
+    
+    await apiRequest(ApiEndpoints.USERS.update(username), {
+      method: 'PUT',
+      body
+    });
+    
+    showAlert('ಬಳಕೆದಾರ ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ', 'success');
+    state.modals.userEditModal?.hide();
+    await loadUsers();
+    
+  } catch (error) {
+    showModalError(errorDiv, error.message || 'ಬಳಕೆದಾರ ಅಪ್‌ಡೇಟ್ ವಿಫಲ');
+  } finally {
+    const saveBtn = document.getElementById('save-user-edit-btn');
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>ಅಪ್‌ಡೇಟ್ ಮಾಡಿ';
+  }
+}
+
+/**
+ * Open user delete confirmation modal
+ */
+function openUserDeleteConfirmModal(username) {
+  document.getElementById('delete_user_display_name').textContent = username;
+  document.getElementById('delete_user_username').value = username;
+  state.modals.userDeleteConfirmModal?.show();
+}
+
+/**
+ * Confirm user deletion
+ */
+async function confirmUserDelete() {
+  const username = document.getElementById('delete_user_username').value;
+  
+  if (!username) {
+    showAlert('Invalid username', 'danger');
+    return;
+  }
+  
+  try {
+    const btn = document.getElementById('confirm-user-delete-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ಅಳಿಸುತ್ತಿದೆ...';
+    
+    await apiRequest(ApiEndpoints.USERS.delete(username), { method: 'DELETE' });
+    
+    showAlert('ಬಳಕೆದಾರ ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ', 'success');
+    state.modals.userDeleteConfirmModal?.hide();
+    await loadUsers();
+    
+  } catch (error) {
+    showAlert(`ಬಳಕೆದಾರ ಅಳಿಸುವಿಕೆ ವಿಫಲ: ${error.message}`, 'danger');
+  } finally {
+    const btn = document.getElementById('confirm-user-delete-btn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-trash me-1"></i>ಅಳಿಸಿ';
+  }
+}
+
+/**
+ * Helper function to show modal errors
+ */
+function showModalError(errorDiv, message) {
+  errorDiv.textContent = message;
+  errorDiv.classList.remove('d-none');
+}
+
+// ================= EXPOSE TO GLOBAL SCOPE =================
+// Since this file is loaded as ES6 module, expose functions to window object
+// for inline onclick handlers in HTML
+window.openUserModal = openUserModal;
+window.openUserEditModal = openUserEditModal;
+window.openUserDeleteConfirmModal = openUserDeleteConfirmModal;
+window.saveUser = saveUser;
+window.saveUserEdit = saveUserEdit;
+window.confirmUserDelete = confirmUserDelete;
+window.togglePasswordVisibility = togglePasswordVisibility;

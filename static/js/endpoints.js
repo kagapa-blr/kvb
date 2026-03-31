@@ -49,27 +49,24 @@ const ApiEndpoints = {
 
     /**
      * Helper to construct full endpoint paths
+     * Since apiClient already has '/api/v1' as base URL,
+     * this function returns only the relative path (resources and verbs)
      * @param {string} path - Relative path from API base
-     * @returns {string} Full endpoint path
+     * @returns {string} Relative endpoint path for use with apiClient
      */
     _buildPath(path) {
-        const base = this.CONFIG.API_BASE;
         const cleanPath = path.startsWith('/') ? path : `/${path}`;
-        return `${base}${cleanPath}`;
+        return cleanPath;  // Return relative path only - apiClient adds the base URL
     },
     // ========================================
     // USER MANAGEMENT ENDPOINTS
     // ========================================
     USERS: {
-        list: () => ApiEndpoints._buildPath('/users'),
-        create: () => ApiEndpoints._buildPath('/users'),
+        list: () => ApiEndpoints._buildPath('/users/'),
+        create: () => ApiEndpoints._buildPath('/users/'),
         get: (username) => ApiEndpoints._buildPath(`/users/${username}`),
+        update: (username) => ApiEndpoints._buildPath(`/users/${username}`),
         delete: (username) => ApiEndpoints._buildPath(`/users/${username}`),
-
-        // Backward compatibility
-        LIST: '/api/users',
-        CREATE: '/api/users',
-        DELETE: (username) => `/api/users/${username}`,
     },
 
     // ========================================
