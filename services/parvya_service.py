@@ -24,6 +24,49 @@ logger = logging.getLogger(__name__)
 # HELPER FUNCTIONS
 # -------------------------------------------------------
 
+def normalize_file_path(file_path):
+    """
+    Normalize file paths - convert absolute paths to relative paths.
+    
+    Examples:
+    - Input: "C:/Users/techk/Desktop/kagapa/kvb/static/photos/gamakaPhotos/file.jpg"
+    - Output: "photos/gamakaPhotos/file.jpg"
+    - Input: "photos/gamakaPhotos/file.jpg"
+    - Output: "photos/gamakaPhotos/file.jpg"
+    - Input: None or empty string
+    - Output: None
+    
+    Returns relative path or None if invalid.
+    """
+    if not file_path or not isinstance(file_path, str):
+        return None
+    
+    # Normalize backslashes to forward slashes
+    normalized = file_path.replace("\\", "/")
+    
+    # Try to extract relative path starting from 'photos/' or 'audio/'
+    if "photos/gamakaPhotos/" in normalized:
+        idx = normalized.find("photos/gamakaPhotos/")
+        return normalized[idx:]
+    
+    if "audio/gamakaAudio/" in normalized:
+        idx = normalized.find("audio/gamakaAudio/")
+        return normalized[idx:]
+    
+    # If already relative (starts with photos/ or audio/), return as is
+    if normalized.startswith("photos/") or normalized.startswith("audio/"):
+        return normalized
+    
+    # If it's an absolute path that doesn't match patterns, try to extract from static folder
+    if "static/" in normalized:
+        idx = normalized.find("static/")
+        if idx >= 0:
+            # Return everything after 'static/'
+            return normalized[idx + len("static/"):]
+    
+    return normalized
+
+
 def get_gamaka_photo_path(parva_number, sandhi_number, padya_number, raga, author_name):
     """
     Generate the expected photo path for a gamaka vachana entry.
@@ -98,11 +141,16 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sand
     """
     Get audio path for gamaka vachana entry with filesystem fallback and DB update.
     
-    This function:
-    1. Checks if audio_path is already in database
-    2. If NULL/empty, searches filesystem using padding-aware patterns (1_1_1 and 01_01_01 are same)
-    3. If found in filesystem, updates database with RELATIVE path and returns it
-    4. Returns None if not found anywhere
+    IMPORTANT: Path Resolution Logic (for reload/refresh):
+    1. If gamaka_vachakar_audio_path is NOT empty/null in database → RETURN IT (use DB value)
+    2. If gamaka_vachakar_audio_path IS empty/null in database → search filesystem
+    3. If found in filesystem → update database with RELATIVE path and return it
+    4. If NOT found in filesystem → return None (audio path is null, show as unavailable)
+    
+    This ensures:
+    - Database values are always preferred and never overridden by filesystem search
+    - Filesystem is only used as fallback when DB is empty
+    - User deleted audio shows as null even if file exists on filesystem
     
     Returns: relative path string (e.g., 'audio/gamakaAudio/01-01-01.mp3') or None
     """
@@ -110,18 +158,20 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sand
         return None
     
     try:
-        # If path is already in database, return it
+        # STEP 1: Check if path is already in database - if so, RETURN IT
         if gamaka_vachana_entry.gamaka_vachakar_audio_path:
-            return gamaka_vachana_entry.gamaka_vachakar_audio_path
+            # Normalize the stored path in case it's an old absolute path
+            normalized_path = normalize_file_path(gamaka_vachana_entry.gamaka_vachakar_audio_path)
+            return normalized_path if normalized_path else None
         
-        # Path is NULL/empty - search filesystem
+        # STEP 2: Database value is empty/null - search filesystem
         audio_dir = os.path.join(current_app.static_folder, 'audio', 'gamakaAudio')
         audio_file_path = AudioFileHandler.find_audio_file_in_filesystem(
             parva_number, sandhi_number, padya_number, audio_dir
         )
         
         if audio_file_path:
-            # File found in filesystem! Convert to relative path
+            # STEP 3: File found in filesystem! Convert to relative path
             relative_path = None
             if audio_file_path.startswith(current_app.static_folder):
                 relative_path = os.path.relpath(audio_file_path, current_app.static_folder)
@@ -130,20 +180,80 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_entry, parva_number, sand
                 # Fallback: extract relative path
                 relative_path = audio_file_path.replace("\\", "/")
             
-            # Update database with RELATIVE path
+            # Update database with RELATIVE path (so next time we use DB value)
             try:
                 gamaka_vachana_entry.gamaka_vachakar_audio_path = relative_path
                 db.session.commit()
+                logger.info(f"Updated DB with audio path: {relative_path}")
             except Exception as e:
                 logger.warning(f"Could not update database with audio path: {e}")
                 db.session.rollback()
             
             return relative_path
         
+        # STEP 4: Not found in filesystem or DB - return None (audio is unavailable)
         return None
     
     except Exception as e:
         logger.error(f"Error in get_gamaka_audio_path_with_fs_check: {e}")
+        return None
+
+
+def get_gamaka_photo_path_with_fs_check(gamaka_vachana_entry, parva_number, sandhi_number, padya_number):
+    """
+    Get photo path for gamaka vachana entry with filesystem fallback and DB update.
+    
+    IMPORTANT: Path Resolution Logic (for reload/refresh):
+    1. If gamaka_vachakar_photo_path is NOT empty/null in database → RETURN IT (use DB value)
+    2. If gamaka_vachakar_photo_path IS empty/null in database → search filesystem
+    3. If found in filesystem → update database with RELATIVE path and return it
+    4. If NOT found in filesystem → return None (photo path is null, show as unavailable)
+    
+    This ensures:
+    - Database values are always preferred and never overridden by filesystem search
+    - Filesystem is only used as fallback when DB is empty
+    - User deleted photo shows as null even if file exists on filesystem
+    
+    Returns: relative path string (e.g., 'photos/gamakaPhotos/01-01-01.jpg') or None
+    """
+    if not gamaka_vachana_entry:
+        return None
+    
+    try:
+        # STEP 1: Check if path is already in database - if so, RETURN IT
+        if gamaka_vachana_entry.gamaka_vachakar_photo_path:
+            # Normalize the stored path in case it's an old absolute path
+            normalized_path = normalize_file_path(gamaka_vachana_entry.gamaka_vachakar_photo_path)
+            return normalized_path if normalized_path else None
+        
+        # STEP 2: Database value is empty/null - search filesystem
+        # Only search if we have the audio path available (use raga and author from audio entry)
+        photo_dir = os.path.join(current_app.static_folder, 'photos', 'gamakaPhotos')
+        photo_path = get_gamaka_photo_path(
+            parva_number,
+            sandhi_number,
+            padya_number,
+            gamaka_vachana_entry.raga if gamaka_vachana_entry else None,
+            gamaka_vachana_entry.gamaka_vachakara_name if gamaka_vachana_entry else None
+        )
+        
+        if photo_path:
+            # STEP 3: File found in filesystem! Update database with RELATIVE path
+            try:
+                gamaka_vachana_entry.gamaka_vachakar_photo_path = photo_path
+                db.session.commit()
+                logger.info(f"Updated DB with photo path: {photo_path}")
+            except Exception as e:
+                logger.warning(f"Could not update database with photo path: {e}")
+                db.session.rollback()
+            
+            return photo_path
+        
+        # STEP 4: Not found in filesystem or DB - return None (photo is unavailable)
+        return None
+    
+    except Exception as e:
+        logger.error(f"Error in get_gamaka_photo_path_with_fs_check: {e}")
         return None
 
 
@@ -726,18 +836,15 @@ class PadyaService:
         gamaka_vachana_data = []
         if gamaka_vachana_list:
             for gv in gamaka_vachana_list:
-                # Generate photo path if not stored in database
-                photo_path = gv.gamaka_vachakar_photo_path
-                if not photo_path:
-                    photo_path = get_gamaka_photo_path(
-                        parva_number,
-                        sandhi_number,
-                        gv.padya_number,
-                        gv.raga,
-                        gv.gamaka_vachakara_name
-                    )
+                # Get photo path using same logic as audio:
+                # 1. Use DB value if present
+                # 2. Search filesystem if DB is empty
+                # 3. Return None if found nowhere
+                photo_path = get_gamaka_photo_path_with_fs_check(
+                    gv, parva_number, sandhi_number, padya_number
+                )
                 
-                # Get audio path with filesystem check and auto-update
+                # Get audio path with same filesystem fallback logic
                 audio_path = get_gamaka_audio_path_with_fs_check(
                     gv, parva_number, sandhi_number, padya_number
                 )
@@ -833,8 +940,8 @@ class PadyaService:
             # Handle GamakaVachana data if provided
             gamaka_vachakara_name = kwargs.get("gamaka_vachakara_name", "").strip()
             raga = kwargs.get("gamaka_raga", "").strip()
-            gamaka_vachakar_photo_path = kwargs.get("gamaka_photo_path", "").strip()
-            gamaka_vachakar_audio_path = kwargs.get("gamaka_audio_path", "").strip()
+            gamaka_vachakar_photo_path = normalize_file_path(kwargs.get("gamaka_photo_path", "").strip())
+            gamaka_vachakar_audio_path = normalize_file_path(kwargs.get("gamaka_audio_path", "").strip())
 
             if gamaka_vachakara_name:  # Only create if at least the name is provided
                 gamaka_vachana = GamakaVachana(
@@ -843,8 +950,8 @@ class PadyaService:
                     padya_number=next_number,
                     gamaka_vachakara_name=gamaka_vachakara_name,
                     raga=raga if raga else None,
-                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None,
-                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path,
+                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path
                 )
                 db.session.add(gamaka_vachana)
 
@@ -925,8 +1032,8 @@ class PadyaService:
             # Process and strip the values
             gamaka_vachakara_name = (gamaka_vachakara_name_raw or "").strip() if gamaka_vachakara_name_raw is not None else None
             raga = (gamaka_raga_raw or "").strip() if gamaka_raga_raw is not None else None
-            gamaka_vachakar_photo_path = (gamaka_photo_path_raw or "").strip() if gamaka_photo_path_raw is not None else None
-            gamaka_vachakar_audio_path = (gamaka_audio_path_raw or "").strip() if gamaka_audio_path_raw is not None else None
+            gamaka_vachakar_photo_path = normalize_file_path(gamaka_photo_path_raw) if gamaka_photo_path_raw is not None else None
+            gamaka_vachakar_audio_path = normalize_file_path(gamaka_audio_path_raw) if gamaka_audio_path_raw is not None else None
 
             # Get existing GamakaVachana for this padya
             existing_gamaka = GamakaVachana.query.filter_by(
@@ -942,19 +1049,23 @@ class PadyaService:
             )
             
             if existing_gamaka:
-                # Update existing record - only update if a value is explicitly provided (not None)
+                # Update existing record - only update if a value is explicitly provided
                 if gamaka_vachakara_name:
                     existing_gamaka.gamaka_vachakara_name = gamaka_vachakara_name
                 if raga:
                     existing_gamaka.raga = raga
-                # Always update paths if they are provided (not None), even if empty string
-                # This ensures that newly uploaded photos/audio override previous values
-                if gamaka_photo_path_raw is not None:
-                    # If raw value is not None, use the processed value (could be empty string or actual path)
-                    existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None
-                if gamaka_audio_path_raw is not None:
-                    # If raw value is not None, use the processed value (could be empty string or actual path)
-                    existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+                
+                # IMPORTANT: Check if key was SENT in request (not just if value is not None)
+                # This handles: empty string "", null, and actual paths
+                # Frontend sends "" or null when user deletes media - we must update DB to null
+                if "gamaka_photo_path" in kwargs:
+                    # Key was explicitly sent - update it (even if null or empty)
+                    existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path
+                
+                if "gamaka_audio_path" in kwargs:
+                    # Key was explicitly sent - update it (even if null or empty) 
+                    # This ensures deletion (null) actually gets saved to database
+                    existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path
             elif has_gamaka_data:
                 # Create new GamakaVachana only if there's data to save
                 gamaka_vachana = GamakaVachana(
@@ -963,8 +1074,8 @@ class PadyaService:
                     padya_number=padya_number,
                     gamaka_vachakara_name=gamaka_vachakara_name if gamaka_vachakara_name else None,
                     raga=raga if raga else None,
-                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path if gamaka_vachakar_photo_path else None,
-                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path if gamaka_vachakar_audio_path else None
+                    gamaka_vachakar_photo_path=gamaka_vachakar_photo_path,
+                    gamaka_vachakar_audio_path=gamaka_vachakar_audio_path
                 )
                 db.session.add(gamaka_vachana)
 

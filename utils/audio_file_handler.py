@@ -234,6 +234,52 @@ class AudioFileHandler:
             return False
 
     @staticmethod
+    def convert_absolute_to_relative_path(absolute_path):
+        """
+        Convert absolute file path to relative path (relative to static folder).
+        
+        Args:
+            absolute_path (str): Absolute file path
+            
+        Returns:
+            str: Relative path (e.g., 'audio/gamakaAudio/filename.mp3') or original path if not convertible
+        """
+        try:
+            import os
+            from flask import current_app
+            
+            # Try to get static folder from Flask app
+            if current_app:
+                static_folder = current_app.static_folder
+                
+                # Normalize paths for comparison
+                abs_path_normalized = os.path.normpath(absolute_path)
+                static_folder_normalized = os.path.normpath(static_folder)
+                
+                # If path is within static folder, convert to relative
+                if abs_path_normalized.startswith(static_folder_normalized):
+                    # Get relative path from static folder
+                    relative_path = os.path.relpath(abs_path_normalized, static_folder_normalized)
+                    # Convert backslashes to forward slashes for web URLs
+                    relative_path = relative_path.replace('\\', '/')
+                    return relative_path
+            
+            # If current_app not available, try manual extraction for known pattern
+            # Look for 'static' directory in path and extract from there
+            if 'static' in absolute_path:
+                parts = absolute_path.split('static')
+                if len(parts) >= 2:
+                    relative_part = parts[-1].lstrip('\\/').replace('\\', '/')
+                    return relative_part
+            
+            # Return original if cannot convert
+            return absolute_path
+            
+        except Exception as e:
+            print(f"Error converting path to relative: {str(e)}")
+            return absolute_path
+
+    @staticmethod
     def map_to_padya_with_fs_check(parva_id, sandhi_id, padya_number, 
                                    audio_dir=None):
         """
@@ -292,9 +338,12 @@ class AudioFileHandler:
                 )
                 
                 if audio_file_path:
-                    # Update database
-                    if AudioFileHandler.update_audio_path_in_database(entry.id, audio_file_path):
-                        result['audio_path'] = audio_file_path
+                    # Convert absolute path to relative path before saving
+                    relative_audio_path = AudioFileHandler.convert_absolute_to_relative_path(audio_file_path)
+                    
+                    # Update database with relative path
+                    if AudioFileHandler.update_audio_path_in_database(entry.id, relative_audio_path):
+                        result['audio_path'] = relative_audio_path
                         result['audio_found_in'] = 'filesystem'
             
             # Prepare details

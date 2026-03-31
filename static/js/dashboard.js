@@ -21,6 +21,43 @@ const state = {
   }
 };
 
+// ================= UTILITY FUNCTIONS =================
+/**
+ * Normalize file paths - convert absolute paths to relative paths
+ * Examples:
+ * - Input: "C:/Users/techk/Desktop/kagapa/kvb/static/photos/gamakaPhotos/file.jpg"
+ * - Output: "photos/gamakaPhotos/file.jpg"
+ * - Input: "photos/gamakaPhotos/file.jpg"
+ * - Output: "photos/gamakaPhotos/file.jpg"
+ */
+function normalizePath(filePath) {
+  if (!filePath || typeof filePath !== 'string') {
+    return null;
+  }
+
+  // If path contains absolute Windows or Unix paths, extract the relative part
+  // Look for patterns like "static/photos/..." or "static/audio/..." in the path
+  const normalizedPath = filePath.replace(/\\/g, '/'); // Convert backslashes to forward slashes
+  
+  // Extract relative path starting from 'photos/' or 'audio/' if absolute path exists
+  const photoMatch = normalizedPath.match(/photos\/gamakaPhotos\/.+/);
+  if (photoMatch) {
+    return photoMatch[0];
+  }
+  
+  const audioMatch = normalizedPath.match(/audio\/gamakaAudio\/.+/);
+  if (audioMatch) {
+    return audioMatch[0];
+  }
+  
+  // If already relative, return as is
+  if (normalizedPath.startsWith('photos/') || normalizedPath.startsWith('audio/')) {
+    return normalizedPath;
+  }
+  
+  return normalizedPath; // Return original if can't normalize
+}
+
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", async () => {
   initializeModals();
@@ -1169,6 +1206,7 @@ function resetPadyaModal() {
   document.getElementById("modal_padya_gamaka_raga").value = "";
   document.getElementById("modal_padya_gamaka_photo_path").value = "";
   document.getElementById("modal_padya_gamaka_audio_path").value = "";
+  document.getElementById("modal_padya_gamaka_id").value = "";
   
   // Clear photo and audio upload
   clearPhotoUpload();
@@ -1208,6 +1246,12 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
     document.getElementById("modal_padya_pathantar").value = padya.pathantar || '';
     
     // Populate GamakaVachana fields
+    // NOTE: Backend implements this path resolution logic:
+    // 1. If gamaka_vachakar_photo_path is NOT empty in DB → use DB value
+    // 2. If gamaka_vachakar_photo_path IS empty in DB → search filesystem
+    // 3. If found in filesystem → update DB and return it
+    // 4. If NOT found → return null (media is unavailable)
+    // Same logic applies to audio. Frontend just displays what backend returns.
     let authorName = '';
     let ragaName = '';
     
@@ -1216,10 +1260,15 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
       authorName = gamaka.gamaka_vachakara_name || '';
       ragaName = gamaka.raga || '';
       
+      // Normalize paths from database before storing (in case of old absolute paths)
+      const normalizedPhotoPath = normalizePath(gamaka.gamaka_vachakar_photo_path) || '';
+      const normalizedAudioPath = normalizePath(gamaka.gamaka_vachakar_audio_path) || '';
+      
       document.getElementById("modal_padya_gamaka_vachakara_name").value = authorName;
       document.getElementById("modal_padya_gamaka_raga").value = ragaName;
-      document.getElementById("modal_padya_gamaka_photo_path").value = gamaka.gamaka_vachakar_photo_path || '';
-      document.getElementById("modal_padya_gamaka_audio_path").value = gamaka.gamaka_vachakar_audio_path || '';
+      document.getElementById("modal_padya_gamaka_photo_path").value = normalizedPhotoPath;
+      document.getElementById("modal_padya_gamaka_audio_path").value = normalizedAudioPath;
+      document.getElementById("modal_padya_gamaka_id").value = gamaka.id || ''; // Store gamaka ID for delete operations
       
       // Re-fetch with author and raga filter to ensure we get the correct record
       if (authorName || ragaName) {
@@ -1229,9 +1278,13 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
         
         if (filteredPadya.gamaka_vachana && filteredPadya.gamaka_vachana.length > 0) {
           const filteredGamaka = filteredPadya.gamaka_vachana[0];
-          // Update with correctly filtered data
-          document.getElementById("modal_padya_gamaka_photo_path").value = filteredGamaka.gamaka_vachakar_photo_path || '';
-          document.getElementById("modal_padya_gamaka_audio_path").value = filteredGamaka.gamaka_vachakar_audio_path || '';
+          // Update with correctly filtered data and normalize paths
+          const filteredPhotoPath = normalizePath(filteredGamaka.gamaka_vachakar_photo_path) || '';
+          const filteredAudioPath = normalizePath(filteredGamaka.gamaka_vachakar_audio_path) || '';
+          
+          document.getElementById("modal_padya_gamaka_photo_path").value = filteredPhotoPath;
+          document.getElementById("modal_padya_gamaka_audio_path").value = filteredAudioPath;
+          document.getElementById("modal_padya_gamaka_id").value = filteredGamaka.id || ''; // Update gamaka ID for delete operations
           
           // Display photo preview if exists
           if (filteredGamaka.gamaka_vachakar_photo_path) {
@@ -1271,6 +1324,7 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
       document.getElementById("modal_padya_gamaka_raga").value = '';
       document.getElementById("modal_padya_gamaka_photo_path").value = '';
       document.getElementById("modal_padya_gamaka_audio_path").value = '';
+      document.getElementById("modal_padya_gamaka_id").value = ''; // Clear gamaka ID
       clearPhotoUpload();
       clearAudioUpload();
     }
@@ -1442,7 +1496,7 @@ function clearPhotoUpload() {
   const pathDisplay = document.getElementById('gamaka_photo_path_display');
 
   fileInput.value = '';
-  photoPath.value = '';
+  photoPath.value = ''; // Setting to empty string - will be null when saved to database
   fileInput.dataset.selectedFile = '';
   
   if (pathDisplay) {
@@ -1461,14 +1515,21 @@ function displayGamakaPhotoPreview(photoPath, authorName) {
   const pathDisplay = document.getElementById('gamaka_photo_path_display');
 
   if (photoPath) {
-    // Build full URL from relative path
-    const fullUrl = '/static/' + photoPath;
-    preview.src = fullUrl;
-    filename.textContent = authorName || 'ಫೋಟೋ';
-    pathDisplay.textContent = photoPath;
+    // Normalize the path - convert absolute paths to relative
+    const normalizedPath = normalizePath(photoPath);
     
-    uploadArea.style.display = 'none';
-    previewContainer.style.display = 'block';
+    if (normalizedPath) {
+      // Build full URL from relative path
+      const fullUrl = '/static/' + normalizedPath;
+      preview.src = fullUrl;
+      filename.textContent = authorName || 'ಫೋಟೋ';
+      pathDisplay.textContent = normalizedPath;
+      
+      uploadArea.style.display = 'none';
+      previewContainer.style.display = 'block';
+    } else {
+      clearPhotoUpload();
+    }
   } else {
     clearPhotoUpload();
   }
@@ -1515,7 +1576,10 @@ async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     }
 
     const result = await response.json();
-    const photoPath = result.data.photo_path;
+    let photoPath = result.data.photo_path;
+    
+    // Normalize the path in case backend returns absolute path
+    photoPath = normalizePath(photoPath);
     
     // Update hidden field with the photo path for database storage
     const photoPathField = document.getElementById('modal_padya_gamaka_photo_path');
@@ -1645,8 +1709,9 @@ function clearAudioUpload() {
   const audioPath = document.getElementById('modal_padya_gamaka_audio_path');
   const pathDisplay = document.getElementById('gamaka_audio_path_display');
 
+  // Clear UI elements
   fileInput.value = '';
-  audioPath.value = '';
+  audioPath.value = '';  // Setting to empty string - will be null when saved to database
   fileInput.dataset.selectedFile = '';
   
   if (pathDisplay) {
@@ -1655,6 +1720,9 @@ function clearAudioUpload() {
   
   uploadArea.style.display = 'block';
   previewContainer.style.display = 'none';
+  
+  // Note: Actual database update happens when user clicks Save button
+  showAlert('ಆಡಿಯೊ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
 }
 
 async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaName, authorName) {
@@ -1684,7 +1752,10 @@ async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     }
 
     const result = await response.json();
-    const audioPath = result.data.audio_path;
+    let audioPath = result.data.audio_path;
+    
+    // Normalize the path in case backend returns absolute path
+    audioPath = normalizePath(audioPath);
     
     // Update hidden field with the audio path for database storage
     const audioPathField = document.getElementById('modal_padya_gamaka_audio_path');
@@ -1713,17 +1784,24 @@ function displayGamakaAudioPreview(audioPath, authorName) {
   const pathDisplay = document.getElementById('gamaka_audio_path_display');
 
   if (audioPath) {
-    // Build full URL from relative path
-    const fullUrl = '/static/' + audioPath;
-    const source = audioPlayer.querySelector('source');
-    source.src = fullUrl;
-    audioPlayer.load(); // Reload audio element with new source
+    // Normalize the path - convert absolute paths to relative
+    const normalizedPath = normalizePath(audioPath);
     
-    filename.textContent = authorName || 'ಆಡಿಯೊ';
-    pathDisplay.textContent = audioPath;
-    
-    uploadArea.style.display = 'none';
-    previewContainer.style.display = 'block';
+    if (normalizedPath) {
+      // Build full URL from relative path
+      const fullUrl = '/static/' + normalizedPath;
+      const source = audioPlayer.querySelector('source');
+      source.src = fullUrl;
+      audioPlayer.load(); // Reload audio element with new source
+      
+      filename.textContent = authorName || 'ಆಡಿಯೊ';
+      pathDisplay.textContent = normalizedPath;
+      
+      uploadArea.style.display = 'none';
+      previewContainer.style.display = 'block';
+    } else {
+      clearAudioUpload();
+    }
   } else {
     clearAudioUpload();
   }
