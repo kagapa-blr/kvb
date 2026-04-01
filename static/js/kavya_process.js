@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from './restclient.js';
+import { ApiEndpoints } from './endpoints.js';
 
 console.log('[KavyaProcess] ✓ Module initialized with apiClient');
 
@@ -246,7 +247,7 @@ $(document).ready(function () {
   async function loadParva() {
     showLoading();
     try {
-      const response = await apiRequest("/parva");
+      const response = await apiRequest(ApiEndpoints.PARVA.list);
       const data = extractData(response.data);
       populateDropdown("#parvaDropdown", data, "id", "name");
       
@@ -269,7 +270,7 @@ $(document).ready(function () {
   // Fetch Sandhi data for selected Parva
   async function loadSandhi(parvaNumber) {
     try {
-      const response = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
+      const response = await apiRequest(ApiEndpoints.SANDHI.byParva(parvaNumber));
       const data = extractData(response.data);
       populateDropdown("#sandhiDropdown", data, "id", "name");
       $("#sandhiDropdown").prop("disabled", false);
@@ -296,7 +297,7 @@ $(document).ready(function () {
       if (!sandhi) return;
 
       // Fetch padya numbers for this sandhi (optimized endpoint - returns only numbers)
-      const response = await apiRequest(`/padya/numbers/by_sandhi/${sandhiId}`);
+      const response = await apiRequest(ApiEndpoints.PADYA.numbersBySandhi(sandhiId));
       
       const padyaNumbers = response.data.padya_numbers || [];
       
@@ -347,7 +348,7 @@ $(document).ready(function () {
     showLoading();
     try {
       const response = await apiRequest(
-        `/padya/${parva.parva_number}/${sandhi.sandhi_number}/${padyaNumber}`
+        ApiEndpoints.PADYA.get(parva.parva_number, sandhi.sandhi_number, padyaNumber)
       );
 
       const data = response.data;

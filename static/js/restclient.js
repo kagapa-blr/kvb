@@ -10,7 +10,7 @@
  * const client = new ApiClient('/api/v1');
  */
 
-const BASE_PATH = "/api/v1";
+const BASE_PATH = "";  // Empty by default, set to your API base path (e.g., '/api/v1' or '/kvb/api/v1')
 
 class ApiClient {
     constructor(baseUrl = BASE_PATH) {
