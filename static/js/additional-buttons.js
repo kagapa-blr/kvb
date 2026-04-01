@@ -12,8 +12,12 @@
  * 
  * DEPENDENCIES:
  * - restclient.js (ApiClient singleton with Axios)
+ * - endpoints.js (ApiEndpoints centralized configuration)
  * - Bootstrap 5 (for Modal)
  */
+
+import { apiClient } from './restclient.js';
+import { ApiEndpoints } from './endpoints.js';
 
 /**
  * Open a modal by ID
@@ -33,55 +37,21 @@ function openModal(modalId) {
 window.openModal = openModal;
 
 /**
- * Wait for ApiClient and ApiEndpoints to be ready before initializing buttons
- * Ensures axios, base URL detection, and endpoints configuration have completed
+ * Initialize additional buttons and search functionality
  */
-function ensureApiClientReady(callback, timeout = 5000) {
-    const startTime = Date.now();
-    const checkInterval = setInterval(() => {
-        // Check if ApiClient, ApiEndpoints and required methods are available
-        if (typeof window.ApiClient !== 'undefined' &&
-            typeof window.ApiClient.get === 'function' &&
-            typeof window.ApiClient.post === 'function' &&
-            typeof window.ApiEndpoints !== 'undefined' &&
-            typeof window.ApiEndpoints._buildPath === 'function') {
-            clearInterval(checkInterval);
-            console.log('[AdditionalButtons] ApiClient and ApiEndpoints are ready');
-            callback();
-        } else if (Date.now() - startTime > timeout) {
-            clearInterval(checkInterval);
-            console.warn('[AdditionalButtons] TIMEOUT: ApiClient or ApiEndpoints did not initialize within ' + timeout + 'ms - proceeding anyway');
-            // Still try to proceed
-            callback();
-        }
-    }, 50); // Check every 50ms
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('[AdditionalButtons] DOM loaded, waiting for ApiClient...');
-    // Initialize when ApiClient is ready
-    ensureApiClientReady(initializeAdditionalButtons);
-});
-
 function initializeAdditionalButtons() {
-    // Verify ApiEndpoints is available
-    if (typeof window.ApiEndpoints === 'undefined') {
-        console.error('[AdditionalButtons] ApiEndpoints is not available - initialization skipped');
-        return;
-    }
-
     // Endpoints for buttons - first button opens modal, rest load via API
     // Using centralized ApiEndpoints for all API references
     const additionalPages = {
         'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
-        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.akaradiSuchi() },
-        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.lekanSuchi() },
-        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.gadeSuchi() },
-        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.arhaKosha() },
-        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.vishayaParividi() },
-        'ಗಮಕ': { type: 'api', endpoint: () => window.ApiEndpoints.GAMAKA.list() },
-        'ಅನುಬಂಧ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.anubanch() },
-        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: () => window.ApiEndpoints.ADDITIONAL.tippani() }
+        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.akaradiSuchi() },
+        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.lekanSuchi() },
+        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.gadeSuchi() },
+        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.arhaKosha() },
+        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.vishayaParividi() },
+        'ಗಮಕ': { type: 'api', endpoint: () => ApiEndpoints.GAMAKA.list() },
+        'ಅನುಬಂಧ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.anubanch() },
+        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.tippani() }
     };
 
     let searchWord = "";
@@ -90,25 +60,20 @@ function initializeAdditionalButtons() {
     
     /**
      * Search for a word and display results
-     * Uses ApiClient.get with centralized ApiEndpoints for padya search
+     * Uses apiClient.get with centralized ApiEndpoints for padya search
      */
     async function searchByWord(word) {
         try {
             console.log(`[AdditionalButtons] Searching for: ${word}`);
 
-            // Verify ApiClient and ApiEndpoints available
-            if (typeof window.ApiClient === 'undefined' || typeof window.ApiEndpoints === 'undefined') {
-                throw new Error('ApiClient or ApiEndpoints not available');
-            }
-
-            // Use ApiClient.get with ApiEndpoints - properly constructed with query params
-            const searchEndpoint = window.ApiEndpoints.PADYA.search() + 
-                window.ApiEndpoints.formatQueryParams({ keyword: word });
+            // Use apiClient.get with ApiEndpoints - properly constructed with query params
+            const searchEndpoint = ApiEndpoints.PADYA.search() + 
+                ApiEndpoints.formatQueryParams({ keyword: word });
             
             console.log(`[AdditionalButtons] Calling endpoint: ${searchEndpoint}`);
-            const data = await window.ApiClient.get(searchEndpoint);
+            const data = await apiClient.get(searchEndpoint);
 
-            // Data is already parsed JSON from ApiClient interceptor
+            // Data is already parsed JSON from apiClient interceptor
             displaySearchResults(data);
         } catch (error) {
             const errorMessage = error.userMessage || error.message || 'Error fetching search results';
@@ -195,15 +160,10 @@ function initializeAdditionalButtons() {
 
     /**
      * Load additional content via API and display in modal
-     * Uses ApiClient with centralized ApiEndpoints
+     * Uses apiClient with centralized ApiEndpoints
      */
     async function loadAdditionalContent(buttonText, config) {
         try {
-            // Verify ApiClient is available
-            if (typeof window.ApiClient === 'undefined') {
-                throw new Error('ApiClient is not available');
-            }
-
             // Check if content is already cached
             if (modalContentCache[buttonText]) {
                 console.log(`[AdditionalButtons] Using cached content for: ${buttonText}`);
@@ -217,8 +177,8 @@ function initializeAdditionalButtons() {
             const endpoint = config.endpoint();
             console.log(`[AdditionalButtons] API endpoint: ${endpoint}`);
 
-            // Use ApiClient.get with the endpoint
-            const response = await window.ApiClient.get(endpoint);
+            // Use apiClient.get with the endpoint
+            const response = await apiClient.get(endpoint);
             
             // Store in cache for future use
             modalContentCache[buttonText] = response;
@@ -408,3 +368,12 @@ function initializeAdditionalButtons() {
 
     console.log('[AdditionalButtons] ✓ Initialized - listening for button clicks');
 }
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('[AdditionalButtons] ✓ DOM loaded, initializing additional buttons');
+    initializeAdditionalButtons();
+});
+
+// Export for module usage
+export { openModal, initializeAdditionalButtons };

@@ -1,12 +1,15 @@
-// Use global ApiClient from restclient.js instead of ES6 import
-// This allows restclient.js to work both as a module and a regular script
-const apiClient = window.ApiClient;
+/**
+ * Dashboard Admin - Modern ES6 Module
+ * Complete CRUD operations for Parva, Sandhi, Padya, and Users
+ * 
+ * Usage: import into admin/dashboard.html via ES6 module
+ */
 
-if (!apiClient) {
-    console.error('[Dashboard] ApiClient not initialized. Ensure restclient.js is loaded first.');
-}
+import { apiClient } from './restclient.js';
 
-// ================= CONFIG =================
+console.log('[Dashboard] ✓ Module initialized with apiClient');
+
+// Set API base URL if needed
 apiClient.setBaseUrl("/api/v1");
 apiClient.setDebugMode(false);
 

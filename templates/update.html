@@ -13,15 +13,18 @@
     <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
     <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <!-- Axios library (MUST be loaded before restclient.js) -->
+    <!-- Axios library (MUST load before ES6 modules) -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- API Client (Axios-based REST client) -->
-    <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
-    <!-- API Endpoints configuration -->
-    <script src="{{ url_for('static', filename='js/endpoints.js') }}"></script>
-    <!-- Application scripts -->
-    <script src="{{ url_for('static', filename='js/kavya_process.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/additional-buttons.js') }}"></script>
+    
+    <!-- Load application modules -->
+    <script type="module">
+        import { apiClient } from '{{ url_for("static", filename="js/restclient.js") }}';
+        import '{{ url_for("static", filename="js/endpoints.js") }}';
+        import '{{ url_for("static", filename="js/kavya_process.js") }}';
+        import '{{ url_for("static", filename="js/additional-buttons.js") }}';
+        
+        console.log('[update.html] ✓ All ES6 modules loaded successfully');
+    </script>
 
 </head>
 

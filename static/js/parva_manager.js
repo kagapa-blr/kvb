@@ -1,16 +1,20 @@
-// Use global ApiClient from restclient.js instead of ES6 import
-const ApiClient = window.ApiClient;
+/**
+ * Parva Manager - Modern ES6 Module
+ * Manages Parva (book/section) operations
+ * 
+ * Usage: import into HTML pages via ES6 module
+ */
 
-if (!ApiClient) {
-    console.error('[ParvaManager] ApiClient not initialized. Ensure restclient.js is loaded first.');
-}
+import { apiClient } from './restclient.js';
+
+console.log('[ParvaManager] ✓ Module initialized with apiClient');
 
 // API ENDPOINTS
 const ENDPOINTS = {
-    LIST: "/api/v1/parva",
-    CREATE: "/api/v1/parva",
-    UPDATE: (id) => `/api/v1/parva/${id}`,
-    DELETE_BY_NUMBER: (number) => `/api/v1/parva/by_number/${number}`,
+    LIST: "/parva",
+    CREATE: "/parva",
+    UPDATE: (id) => `/parva/${id}`,
+    DELETE_BY_NUMBER: (number) => `/parva/${number}`,
 };
 
 // Global state
@@ -114,7 +118,7 @@ async function fetchParvas() {
     
     setLoading(true);
     try {
-        const data = await ApiClient.get(ENDPOINTS.LIST);
+        const data = await apiClient.get(ENDPOINTS.LIST);
         renderTable(data);
     } catch (error) {
         console.error("Fetch error:", error);
@@ -204,7 +208,7 @@ window.confirmDelete = async function() {
 
     setLoading(true);
     try {
-        const result = await ApiClient.delete(ENDPOINTS.DELETE_BY_NUMBER(deleteNumber));
+        const result = await apiClient.delete(ENDPOINTS.DELETE_BY_NUMBER(deleteNumber));
         deleteModal?.hide();
         deleteNumber = null;
         showMessage(result?.message || "Deleted successfully");
@@ -235,7 +239,7 @@ function deleteParva(number) {
 }
 
 async function createParva(name) {
-    return await ApiClient.post(ENDPOINTS.CREATE, { name: name.trim() });
+    return await apiClient.post(ENDPOINTS.CREATE, { name: name.trim() });
 }
 
 async function updateParva(id, name, number) {
@@ -243,7 +247,7 @@ async function updateParva(id, name, number) {
     if (number && number.trim()) {
         payload.parva_number = parseInt(number.trim(), 10);
     }
-    return await ApiClient.put(ENDPOINTS.UPDATE(id), payload);
+    return await apiClient.put(ENDPOINTS.UPDATE(id), payload);
 }
 
 function setModalTitle(title) {

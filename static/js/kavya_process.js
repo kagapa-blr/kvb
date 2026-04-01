@@ -1,20 +1,13 @@
-// Simplified Kavya Process - Clean version
-// Core functionality only: Load padya data, display with gamaka metadata
+/**
+ * Kavya Process - Modern ES6 Module
+ * Loads and displays padya data with gamaka metadata
+ * 
+ * Usage: import into test.html via ES6 module
+ */
 
-// ============================================
-// GLOBAL API CLIENT CHECK
-// ============================================
+import { apiClient } from './restclient.js';
 
-const apiClient = window.ApiClient;
-
-if (!apiClient) {
-    console.error('[Kavya Process] ApiClient not initialized. Ensure restclient.js is loaded first.');
-}
-
-// Set API base URL
-if (apiClient && !apiClient.defaults?.baseURL) {
-  apiClient.setBaseUrl("/api/v1");
-}
+console.log('[KavyaProcess] ✓ Module initialized with apiClient');
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -25,34 +18,68 @@ if (apiClient && !apiClient.defaults?.baseURL) {
  */
 function normalizePath(filePath) {
   if (!filePath || typeof filePath !== 'string') {
+    console.warn('[KavyaProcess] Invalid path:', filePath);
     return null;
   }
 
   const normalizedPath = filePath.replace(/\\/g, '/'); // Convert backslashes to forward slashes
   
-  // Extract relative path starting from 'photos/' or 'audio/' if absolute path exists
-  const photoMatch = normalizedPath.match(/photos\/gamakaPhotos\/.+/);
-  if (photoMatch) {
-    return photoMatch[0];
-  }
-  
-  const audioMatch = normalizedPath.match(/audio\/gamakaAudio\/.+/);
-  if (audioMatch) {
-    return audioMatch[0];
-  }
-  
-  // If already relative, return as is
+  // If already relative (starts with photos/ or audio/), return as is
   if (normalizedPath.startsWith('photos/') || normalizedPath.startsWith('audio/')) {
+    console.log('[KavyaProcess] Path already relative:', normalizedPath);
     return normalizedPath;
   }
   
-  return normalizedPath; // Return original if can't normalize
+  // Extract relative path from absolute paths
+  // Match patterns like: C:\path\to\photos\gamakaPhotos\file.jpg or similar
+  const photoMatch = normalizedPath.match(/photos\/gamakaPhotos\/.+/i);
+  if (photoMatch) {
+    console.log('[KavyaProcess] Photo path extracted:', photoMatch[0]);
+    return photoMatch[0];
+  }
+  
+  const audioMatch = normalizedPath.match(/audio\/gamakaAudio\/.+/i);
+  if (audioMatch) {
+    console.log('[KavyaProcess] Audio path extracted:', audioMatch[0]);
+    return audioMatch[0];
+  }
+  
+  // If it looks like a filename or relative path, use it as is
+  if (!normalizedPath.includes(':\\') && !normalizedPath.startsWith('/')) {
+    console.log('[KavyaProcess] Path treated as relative:', normalizedPath);
+    return normalizedPath;
+  }
+  
+  console.warn('[KavyaProcess] Could not normalize path:', filePath);
+  return null;
 }
 
 function getStaticUrl(path) {
+  if (!path) {
+    console.warn('[KavyaProcess] getStaticUrl called with empty path');
+    return '';
+  }
+  
+  // If path is already a complete URL, return it
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    console.log('[KavyaProcess] Path is complete URL:', path);
+    return path;
+  }
+  
+  // Detect base path from current location
   const basePath = window.location.pathname.includes('/kvb/') ? '/kvb' : '';
+  
+  // If path already includes /static/, don't add it again
+  if (path.includes('/static/')) {
+    console.log('[KavyaProcess] Path already has /static/ prefix');
+    return basePath + path;
+  }
+  
+  // Build the full URL
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${basePath}/static/${cleanPath}`;
+  const fullUrl = `${basePath}/static${cleanPath}`;
+  console.log('[KavyaProcess] Built static URL - base:', basePath, 'path:', cleanPath, 'full:', fullUrl);
+  return fullUrl;
 }
 
 function extractData(response) {
@@ -81,7 +108,7 @@ function hideLoading() {
 function getallcharsByline(line) {
   var k = line;
   var parts = k.split("");
-  arr = [];
+  var arr = [];
   for (var i = 0; i < parts.length; i++) {
     var s = k.charAt(i);
 
@@ -163,6 +190,29 @@ $(document).ready(function () {
   const $padyaNumberDropdown = $("#padyaNumberDropdown");
   const $audioElement = $("#audio")[0];
   const $audioSource = $("#audio source");
+  const $singerPhoto = $("#singerPhoto");
+
+  // Add error handlers for debugging
+  if ($audioElement) {
+    $audioElement.addEventListener('error', function(e) {
+      console.error('[KavyaProcess] Audio loading error:', e);
+    });
+    $audioElement.addEventListener('loadstart', function() {
+      console.log('[KavyaProcess] Audio loading started');
+    });
+    $audioElement.addEventListener('loadedmetadata', function() {
+      console.log('[KavyaProcess] Audio metadata loaded');
+    });
+  }
+  
+  if ($singerPhoto.length) {
+    $singerPhoto.on('error', function() {
+      console.error('[KavyaProcess] Photo loading error:', this.src);
+    });
+    $singerPhoto.on('load', function() {
+      console.log('[KavyaProcess] Photo loaded successfully:', this.src);
+    });
+  }
 
   // Populate Dropdown
   function populateDropdown(selector, data, valueKey, textKey) {
@@ -253,9 +303,9 @@ $(document).ready(function () {
       if (padyaNumbers.length > 0) {
         populateDropdown(
           "#padyaNumberDropdown",
-          padyaNumbers.map(num => ({ padya_number: num, padya_number: num })),
+          padyaNumbers.map(num => ({ padya_number: num, display: num })),
           "padya_number",
-          "padya_number"
+          "display"
         );
         $padyaNumberDropdown.prop("disabled", false);
         $padyaNumberDropdown.val(padyaNumbers[0]).change();
@@ -310,9 +360,12 @@ $(document).ready(function () {
       $(".tippani").html(formatText(data.tippani));
       
       // Update gamaka metadata (photo, singer, raga, audio)
+      console.log('[KavyaProcess] Padya response data:', data);
       if (data.gamaka_vachana && data.gamaka_vachana.length > 0) {
+        console.log('[KavyaProcess] Found gamaka_vachana data, updating metadata');
         updateGamakaMetadata(data.gamaka_vachana);
       } else {
+        console.warn('[KavyaProcess] No gamaka_vachana data in response');
         clearGamakaMetadata();
       }
     } catch (e) {
@@ -325,38 +378,61 @@ $(document).ready(function () {
 
   // Update gamaka metadata - singer photo, name, raga, audio
   function updateGamakaMetadata(gamakaArray) {
+    console.log('[KavyaProcess] Updating gamaka metadata:', gamakaArray);
+    
     if (!gamakaArray || gamakaArray.length === 0) {
+      console.warn('[KavyaProcess] No gamaka data provided');
       clearGamakaMetadata();
       return;
     }
 
     const gamaka = gamakaArray[0];
+    console.log('[KavyaProcess] Processing gamaka:', gamaka);
 
     // Set photo
     if (gamaka.gamaka_vachakar_photo_path) {
+      console.log('[KavyaProcess] Photo path from DB:', gamaka.gamaka_vachakar_photo_path);
       const photoPath = normalizePath(gamaka.gamaka_vachakar_photo_path);
       if (photoPath) {
-        $('#singerPhoto').attr('src', getStaticUrl(photoPath));
+        const fullUrl = getStaticUrl(photoPath);
+        console.log('[KavyaProcess] Setting photo URL:', fullUrl);
+        $('#singerPhoto').attr('src', fullUrl);
+      } else {
+        console.warn('[KavyaProcess] Could not normalize photo path');
       }
+    } else {
+      console.warn('[KavyaProcess] No photo path provided');
     }
 
     // Set singer name
     if (gamaka.gamaka_vachakara_name) {
+      console.log('[KavyaProcess] Singer name:', gamaka.gamaka_vachakara_name);
       $('#singerName').text(gamaka.gamaka_vachakara_name);
     }
 
     // Set raga
     if (gamaka.raga) {
+      console.log('[KavyaProcess] Raga:', gamaka.raga);
       $('#ragaName').html(`${gamaka.raga} <span style="font-size: 0.9em;">ರಾಗ</span>`);
     }
 
     // Set audio
     if (gamaka.gamaka_vachakar_audio_path) {
+      console.log('[KavyaProcess] Audio path from DB:', gamaka.gamaka_vachakar_audio_path);
       const audioPath = normalizePath(gamaka.gamaka_vachakar_audio_path);
       if (audioPath) {
-        $audioSource.attr('src', getStaticUrl(audioPath));
-        if ($audioElement) $audioElement.load();
+        const fullUrl = getStaticUrl(audioPath);
+        console.log('[KavyaProcess] Setting audio URL:', fullUrl);
+        $audioSource.attr('src', fullUrl);
+        if ($audioElement) {
+          $audioElement.load();
+          console.log('[KavyaProcess] Audio element reloaded');
+        }
+      } else {
+        console.warn('[KavyaProcess] Could not normalize audio path');
       }
+    } else {
+      console.warn('[KavyaProcess] No audio path provided');
     }
   }
 
@@ -391,17 +467,7 @@ $(document).ready(function () {
     }
   });
 
-  // Initialize - Wait for ApiClient and ApiEndpoints
-  const initCheck = setInterval(() => {
-    if (typeof window.ApiClient !== 'undefined' && 
-        typeof window.ApiClient.get === 'function' &&
-        typeof window.ApiEndpoints !== 'undefined' &&
-        typeof window.ApiEndpoints.PARVA !== 'undefined') {
-      clearInterval(initCheck);
-      loadParva();
-    }
-  }, 100);
-
-  // Timeout after 10 seconds
-  setTimeout(() => clearInterval(initCheck), 10000);
+  // Initialize - loadParva immediately since apiClient is already imported as ES6 module
+  console.log('[KavyaProcess] Starting initialization - loading Parva data');
+  loadParva();
 });

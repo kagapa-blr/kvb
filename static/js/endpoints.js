@@ -398,6 +398,7 @@ const ApiEndpoints = {
  * =============================================================================
  */
 
-// Export globally for access across all pages
-window.ApiEndpoints = ApiEndpoints;
+// Export as ES6 module for import in other modules
+export { ApiEndpoints };
+
 console.log('[Endpoints] ✓ ApiEndpoints initialized with centralized configuration');
