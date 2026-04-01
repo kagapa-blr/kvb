@@ -294,6 +294,32 @@ def search_padya():
     )
 
 
+@parvya_bp.route("/padya/numbers/by_sandhi/<int:sandhi_id>", methods=["GET"])
+def get_padya_numbers_by_sandhi(sandhi_id):
+    """
+    Get list of padya numbers for a specific sandhi.
+    
+    This endpoint is optimized for populating dropdown menus.
+    Returns ONLY padya numbers without full padya data.
+    
+    Examples:
+    /padya/numbers/by_sandhi/1     (returns all padya numbers in sandhi with id 1)
+    
+    Response:
+    {
+      "sandhi_id": 1,
+      "padya_numbers": [1, 2, 3, ..., n]
+    }
+    """
+    try:
+        return handle_response(
+            padya_service.get_numbers_by_sandhi(sandhi_id)
+        )
+    except Exception as e:
+        logger.exception(f"Error in get_padya_numbers_by_sandhi: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @parvya_bp.route(
     "/padya/<int:parva_number>/<int:sandhi_number>/<int:padya_number>",
     methods=["GET"],

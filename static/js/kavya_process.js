@@ -2,13 +2,57 @@
 // Core functionality only: Load padya data, display with gamaka metadata
 
 // ============================================
+// GLOBAL API CLIENT CHECK
+// ============================================
+
+const apiClient = window.ApiClient;
+
+if (!apiClient) {
+    console.error('[Kavya Process] ApiClient not initialized. Ensure restclient.js is loaded first.');
+}
+
+// Set API base URL
+if (apiClient && !apiClient.defaults?.baseURL) {
+  apiClient.setBaseUrl("/api/v1");
+}
+
+// ============================================
 // UTILITY FUNCTIONS
 // ============================================
+
+/**
+ * Normalize file paths - convert absolute paths to relative paths
+ */
+function normalizePath(filePath) {
+  if (!filePath || typeof filePath !== 'string') {
+    return null;
+  }
+
+  const normalizedPath = filePath.replace(/\\/g, '/'); // Convert backslashes to forward slashes
+  
+  // Extract relative path starting from 'photos/' or 'audio/' if absolute path exists
+  const photoMatch = normalizedPath.match(/photos\/gamakaPhotos\/.+/);
+  if (photoMatch) {
+    return photoMatch[0];
+  }
+  
+  const audioMatch = normalizedPath.match(/audio\/gamakaAudio\/.+/);
+  if (audioMatch) {
+    return audioMatch[0];
+  }
+  
+  // If already relative, return as is
+  if (normalizedPath.startsWith('photos/') || normalizedPath.startsWith('audio/')) {
+    return normalizedPath;
+  }
+  
+  return normalizedPath; // Return original if can't normalize
+}
 
 function getStaticUrl(path) {
   const basePath = window.location.pathname.includes('/kvb/') ? '/kvb' : '';
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  return `${basePath}${cleanPath}`;
+  return `${basePath}/static/${cleanPath}`;
 }
 
 function extractData(response) {
@@ -33,7 +77,7 @@ function hideLoading() {
   if (el) el.style.display = "none";
 }
 
-// Get all characters from a line (groups combining marks with base consonants)
+// Get all characters from a line
 function getallcharsByline(line) {
   var k = line;
   var parts = k.split("");
@@ -66,6 +110,46 @@ function highlightFirstOccurrence(inputString, charToHighlight) {
   return inputString.replace(regex, match => {
     return `<span style="color: #f03c3c; font-weight: bold;">${match}</span>`;
   });
+}
+
+// ============================================
+// API WRAPPER
+// ============================================
+
+async function apiRequest(endpoint, options = {}) {
+  try {
+    const config = {
+      url: endpoint,
+      method: (options.method || "GET").toLowerCase(),
+    };
+
+    if (options.body) config.data = options.body;
+    if (options.params) config.params = options.params;
+
+    const result = await apiClient.request(config);
+
+    let data = [];
+    let count = 0;
+
+    if (Array.isArray(result)) {
+      data = result;
+      count = result.length;
+    } else if (result && typeof result === 'object') {
+      if (result.hasOwnProperty('data')) {
+        data = result.data ?? [];
+        count = result.count ?? (Array.isArray(result.data) ? result.data.length : 0);
+      } else {
+        data = result;
+        count = 1;
+      }
+    }
+
+    return { data, count };
+  } catch (error) {
+    console.error("API Error:", error);
+    const message = error.response?.data?.message || error.message || "API request failed";
+    throw new Error(message);
+  }
 }
 
 // ============================================
@@ -112,8 +196,8 @@ $(document).ready(function () {
   async function loadParva() {
     showLoading();
     try {
-      const response = await ApiClient.get(ApiEndpoints.PARVA.list());
-      const data = extractData(response);
+      const response = await apiRequest("/parva");
+      const data = extractData(response.data);
       populateDropdown("#parvaDropdown", data, "id", "name");
       
       parvaDataCache = data.reduce((acc, p) => {
@@ -126,6 +210,7 @@ $(document).ready(function () {
       }
     } catch (e) {
       console.error("Error loading Parva:", e);
+      $("#parvaDropdown").html("<option>Error loading Parva data</option>");
     } finally {
       hideLoading();
     }
@@ -134,8 +219,8 @@ $(document).ready(function () {
   // Fetch Sandhi data for selected Parva
   async function loadSandhi(parvaNumber) {
     try {
-      const response = await ApiClient.get(ApiEndpoints.PARVA.sandhisByParva(parvaNumber));
-      const data = extractData(response);
+      const response = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
+      const data = extractData(response.data);
       populateDropdown("#sandhiDropdown", data, "id", "name");
       $("#sandhiDropdown").prop("disabled", false);
       $padyaNumberDropdown.prop("disabled", true).empty();
@@ -150,6 +235,36 @@ $(document).ready(function () {
       }
     } catch (e) {
       console.error("Error loading Sandhi:", e);
+      $("#sandhiDropdown").prop("disabled", true).html("<option>Error loading Sandhi data</option>");
+    }
+  }
+
+  // Fetch Padya numbers for selected Sandhi
+  async function loadPadyas(sandhiId) {
+    try {
+      const sandhi = sandhiDataCache[sandhiId];
+      if (!sandhi) return;
+
+      // Fetch padya numbers for this sandhi (optimized endpoint - returns only numbers)
+      const response = await apiRequest(`/padya/numbers/by_sandhi/${sandhiId}`);
+      
+      const padyaNumbers = response.data.padya_numbers || [];
+      
+      if (padyaNumbers.length > 0) {
+        populateDropdown(
+          "#padyaNumberDropdown",
+          padyaNumbers.map(num => ({ padya_number: num, padya_number: num })),
+          "padya_number",
+          "padya_number"
+        );
+        $padyaNumberDropdown.prop("disabled", false);
+        $padyaNumberDropdown.val(padyaNumbers[0]).change();
+      } else {
+        $padyaNumberDropdown.prop("disabled", true).empty();
+      }
+    } catch (e) {
+      console.error("Error loading Padyas:", e);
+      $padyaNumberDropdown.prop("disabled", true).html("<option>Error loading Padya data</option>");
     }
   }
 
@@ -163,18 +278,9 @@ $(document).ready(function () {
 
   // Sandhi dropdown change handler
   $("#sandhiDropdown").change(debounce(async function () {
-    const sandhi = sandhiDataCache[$(this).val()];
-    if (sandhi && sandhi.padya_numbers) {
-      populateDropdown(
-        "#padyaNumberDropdown",
-        sandhi.padya_numbers.map(num => ({ padya_number: num, padya_number: num })),
-        "padya_number",
-        "padya_number"
-      );
-      $padyaNumberDropdown.prop("disabled", false);
-      if (sandhi.padya_numbers.length > 0) {
-        $padyaNumberDropdown.val(sandhi.padya_numbers[0]).change();
-      }
+    const sandhiId = $(this).val();
+    if (sandhiId) {
+      await loadPadyas(sandhiId);
     }
   }, 300));
 
@@ -190,21 +296,28 @@ $(document).ready(function () {
 
     showLoading();
     try {
-      const response = await ApiClient.get(
-        ApiEndpoints.PADYA.get(parva.parva_number, sandhi.sandhi_number, padyaNumber)
+      const response = await apiRequest(
+        `/padya/${parva.parva_number}/${sandhi.sandhi_number}/${padyaNumber}`
       );
 
-      const data = response;
+      const data = response.data;
+      
+      // Update padya content
       $(".padya").html(formatPadyaText(data.padya));
       $(".pathantar").html(formatText(data.pathantar));
       $(".gadya").html(formatText(data.gadya));
       $(".artha").html(formatText(data.artha));
       $(".tippani").html(formatText(data.tippani));
       
-      // Update gamaka metadata (photo, singer, raga)
-      updateGamakaMetadata(data.gamaka_vachana);
+      // Update gamaka metadata (photo, singer, raga, audio)
+      if (data.gamaka_vachana && data.gamaka_vachana.length > 0) {
+        updateGamakaMetadata(data.gamaka_vachana);
+      } else {
+        clearGamakaMetadata();
+      }
     } catch (e) {
       console.error("Error loading Padya:", e);
+      clearGamakaMetadata();
     } finally {
       hideLoading();
     }
@@ -212,13 +325,8 @@ $(document).ready(function () {
 
   // Update gamaka metadata - singer photo, name, raga, audio
   function updateGamakaMetadata(gamakaArray) {
-    // Clear all if empty
     if (!gamakaArray || gamakaArray.length === 0) {
-      $('#singerPhoto').attr('src', '');
-      $('#singerName').text('');
-      $('#ragaName').text('');
-      $audioSource.attr('src', '');
-      if ($audioElement) $audioElement.load();
+      clearGamakaMetadata();
       return;
     }
 
@@ -226,7 +334,10 @@ $(document).ready(function () {
 
     // Set photo
     if (gamaka.gamaka_vachakar_photo_path) {
-      $('#singerPhoto').attr('src', getStaticUrl(`/static/${gamaka.gamaka_vachakar_photo_path}`));
+      const photoPath = normalizePath(gamaka.gamaka_vachakar_photo_path);
+      if (photoPath) {
+        $('#singerPhoto').attr('src', getStaticUrl(photoPath));
+      }
     }
 
     // Set singer name
@@ -241,9 +352,21 @@ $(document).ready(function () {
 
     // Set audio
     if (gamaka.gamaka_vachakar_audio_path) {
-      $audioSource.attr('src', getStaticUrl(`/static/${gamaka.gamaka_vachakar_audio_path}`));
-      if ($audioElement) $audioElement.load();
+      const audioPath = normalizePath(gamaka.gamaka_vachakar_audio_path);
+      if (audioPath) {
+        $audioSource.attr('src', getStaticUrl(audioPath));
+        if ($audioElement) $audioElement.load();
+      }
     }
+  }
+
+  // Clear gamaka metadata
+  function clearGamakaMetadata() {
+    $('#singerPhoto').attr('src', '');
+    $('#singerName').text('');
+    $('#ragaName').text('');
+    $audioSource.attr('src', '');
+    if ($audioElement) $audioElement.load();
   }
 
   // Navigation buttons
@@ -268,14 +391,13 @@ $(document).ready(function () {
     }
   });
 
-  // Initialize - Wait for ApiClient and ApiEndpoints, then start loading data
+  // Initialize - Wait for ApiClient and ApiEndpoints
   const initCheck = setInterval(() => {
     if (typeof window.ApiClient !== 'undefined' && 
         typeof window.ApiClient.get === 'function' &&
         typeof window.ApiEndpoints !== 'undefined' &&
         typeof window.ApiEndpoints.PARVA !== 'undefined') {
       clearInterval(initCheck);
-      window.__ApiClientRef = window.ApiClient;
       loadParva();
     }
   }, 100);

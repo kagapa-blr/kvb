@@ -788,6 +788,54 @@ class PadyaService:
             return {"error": "Search failed"}, 500
 
     # ---------------------------------------------
+    # GET PADYA NUMBERS BY SANDHI (FOR DROPDOWNS)
+    # ---------------------------------------------
+
+    def get_numbers_by_sandhi(self, sandhi_id, **kwargs):
+        """
+        Optimized endpoint for getting just padya numbers for a sandhi.
+        
+        Returns only padya_number for efficient dropdown population.
+        No pagination - returns ALL numbers for the sandhi.
+        
+        Args:
+            sandhi_id: ID of the sandhi
+            
+        Returns:
+            {
+              "sandhi_id": sandhi_id,
+              "padya_numbers": [1, 2, 3, ..., n]
+            }
+        """
+        try:
+            # Get sandhi to verify it exists
+            sandhi = Sandhi.query.filter_by(id=sandhi_id).first()
+            if not sandhi:
+                return {"error": "Sandhi not found"}, 404
+
+            # Get all padya numbers for this sandhi, sorted
+            padyas = (
+                Padya.query
+                .filter_by(sandhi_id=sandhi_id)
+                .order_by(Padya.padya_number.asc())
+                .all()
+            )
+
+            padya_numbers = [p.padya_number for p in padyas]
+
+            return {
+                "sandhi_id": sandhi_id,
+                "sandhi_number": sandhi.sandhi_number,
+                "parva_number": sandhi.parva.parva_number,
+                "padya_numbers": padya_numbers,
+                "total": len(padya_numbers),
+            }, 200
+
+        except Exception as e:
+            logger.error("Get padya numbers by sandhi failed: %s", e)
+            return {"error": "Failed to fetch padya numbers"}, 500
+
+    # ---------------------------------------------
     # FETCH UNIQUE PADYA
     # ---------------------------------------------
 
