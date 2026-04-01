@@ -358,3 +358,116 @@ def delete_user(username):
         db.session.rollback()
         logger.error(f"Failed to delete user: {e}")
         return False, f"Failed to delete user: {str(e)}"
+
+def request_password_reset(username):
+    """
+    Generate a password reset token for a user
+    
+    Args:
+        username: Username requesting password reset
+        
+    Returns:
+        Tuple (success: bool, result: str or token)
+    """
+    try:
+        user = User.query.filter_by(username=username).first()
+        
+        if not user:
+            return False, "User not found"
+        
+        # Import here to avoid circular imports
+        from services.jwt_service import JWTService
+        
+        reset_token = JWTService.generate_password_reset_token(user.id, user.username)
+        logger.info(f"Password reset token generated for user: {username}")
+        
+        return True, reset_token
+    
+    except Exception as e:
+        logger.error(f"Failed to generate password reset token: {e}")
+        return False, f"Failed to generate reset token: {str(e)}"
+
+
+def reset_password_with_token(reset_token, new_password):
+    """
+    Reset user password using reset token
+    
+    Args:
+        reset_token: Password reset token
+        new_password: New password
+        
+    Returns:
+        Tuple (success: bool, message: str)
+    """
+    try:
+        # Import here to avoid circular imports
+        from services.jwt_service import JWTService
+        
+        # Verify token
+        payload = JWTService.verify_password_reset_token(reset_token)
+        if not payload:
+            return False, "Invalid or expired reset token"
+        
+        user_id = payload.get('user_id')
+        
+        # Validate new password
+        is_valid, error_msg = validate_password(new_password)
+        if not is_valid:
+            return False, error_msg
+        
+        # Get user
+        user = User.query.get(user_id)
+        if not user:
+            return False, "User not found"
+        
+        # Update password
+        user.set_password(new_password)
+        db.session.commit()
+        
+        logger.info(f"Password reset successful for user: {user.username}")
+        return True, "Password reset successfully"
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to reset password: {e}")
+        return False, f"Failed to reset password: {str(e)}"
+
+
+def change_password(username, old_password, new_password):
+    """
+    Change password for authenticated user
+    
+    Args:
+        username: Username
+        old_password: Current password
+        new_password: New password
+        
+    Returns:
+        Tuple (success: bool, message: str)
+    """
+    try:
+        user = User.query.filter_by(username=username).first()
+        
+        if not user:
+            return False, "User not found"
+        
+        # Verify old password
+        if not user.check_password(old_password):
+            return False, "Current password is incorrect"
+        
+        # Validate new password
+        is_valid, error_msg = validate_password(new_password)
+        if not is_valid:
+            return False, error_msg
+        
+        # Update password
+        user.set_password(new_password)
+        db.session.commit()
+        
+        logger.info(f"Password changed successfully for user: {username}")
+        return True, "Password changed successfully"
+    
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to change password: {e}")
+        return False, f"Failed to change password: {str(e)}"

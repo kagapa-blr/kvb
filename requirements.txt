@@ -8,3 +8,4 @@ python-docx
 alembic
 pymysql
 cryptography
+PyJWT

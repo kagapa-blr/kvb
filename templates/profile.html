@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ಪ್ರೋಫೈಲ್</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-control {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-control:focus {
+            border-color: #8B4513;
+            box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
+        }
+        .btn-primary {
+            background-color: #8B4513;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #6B3410;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 10px;
+            color: #333;
+        }
+        .info-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="container">
+        <div class="profile-container">
+            <h1 style="text-align: center; color: #8B4513; margin-bottom: 30px;">
+                <i class="fa fa-user-circle"></i> ಪ್ರೋಫೈಲ್ ಸಂಪಾದನೆ
+            </h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('profile') }}">
+                
+                <!-- Personal Information Section -->
+                <div class="section-title">
+                    <i class="fa fa-info-circle"></i> ವ್यక्तिगत ಮಾಹಿತಿ
+                </div>
+
+                <!-- Username (Read-only) -->
+                <div class="form-group">
+                    <label for="username" class="form-label fw-bold">ಬಳಕೆದಾರ ಹೆಸರು</label>
+                    <input type="text" class="form-control" id="username" value="{{ user.username }}" disabled>
+                    <span class="info-text">ಬಳಕೆದಾರ ಹೆಸರನ್ನು ಬದಲಾಯಿಸಲಾಗುವುದಿಲ್ಲ</span>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email" class="form-label fw-bold">ಇಮೇಲ್</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" placeholder="ಇಮೇಲ್ ವಿಳಾಸ">
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    <label for="phone_number" class="form-label fw-bold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ">
+                </div>
+
+                <!-- Password Change Section -->
+                <div class="section-title">
+                    <i class="fa fa-lock"></i> ಗುಪ್ತಪದ ಬದಲಾವಣೆ
+                </div>
+
+                <!-- Current Password -->
+                <div class="form-group">
+                    <label for="old_password" class="form-label fw-bold">ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ</label>
+                    <input type="password" class="form-control" id="old_password" name="old_password" placeholder="ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ (ಲೋಪನೀಯ ಹೊರತು ಗುಪ್ತಪದ ಬದಲಾಯಿಸಲು)">
+                    <span class="info-text">ಗುಪ್ತಪದ ಬದಲಾಯಿಸಲು ಪ್ರಸ್ತುತ ಗುಪ್ತಪದ ಬೇಕಾಗುತ್ತದೆ</span>
+                </div>
+
+                <!-- New Password -->
+                <div class="form-group">
+                    <label for="new_password" class="form-label fw-bold">ಹೊಸ ಗುಪ್ತಪದ</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" placeholder="ಹೊಸ ಗುಪ್ತಪದ (ಐಚ್ಛಿಕ)">
+                    <span class="info-text">ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳು ತಿಳಿ ಮತ್ತು ದೊಡ್ಡ ಅಕ್ಷರ ಹೊಂದಿರಬೇಕು</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="margin-top: 30px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fa fa-save"></i> ಸಂರಕ್ಷಿಸಿ
+                    </button>
+                    <a href="{{ url_for('admin') }}" class="btn btn-secondary" style="flex: 1;">
+                        <i class="fa fa-times"></i> ರದ್ದುಮಾಡಿ
+                    </a>
+                </div>
+            </form>
+
+            <!-- Password Reset Link -->
+            <div style="margin-top: 30px; padding: 20px; background: #e8f4f8; border-radius: 5px; border-left: 4px solid #0097a7;">
+                <p style="margin: 0; color: #333;">
+                    <i class="fa fa-question-circle" style="color: #0097a7;"></i>
+                    <strong>ಗುಪ್ತಪದ ಮರೆತುಕೊಂಡೆ?</strong>
+                </p>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 12px;">
+                    <a href="#" onclick="showPasswordResetModal()" style="color: #0097a7; text-decoration: none;">
+                        ಗುಪ್ತಪದ ಮರುಹೊೆತ್ತುವಿಕೆ ಅನುರೋಧ ಮಾಡಿ
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px;">
+            <h2 style="color: #8B4513; margin-bottom: 20px;">ಗುಪ್ತಪದ ಮರುಹೊೆತ್ತುವಿಕೆ</h2>
+            <form id="resetForm">
+                <div class="form-group">
+                    <label class="form-label">ಒಂದು ರಿಸೆಟ್ ಲಿಂಕ್ ಅನುರೋಧ ಮಾಡಿ</label>
+                    <p style="color: #666; font-size: 12px;">ನಿಮ್ಮ ಇಮೇಲಿಗೆ ಗುಪ್ತಪದ ಮರುಹೊೆತ್ತುವಿಕೆ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.</p>
+                    <input type="hidden" value="{{ user.username }}">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-primary" style="flex: 1;" onclick="requestPasswordReset()">
+                        <i class="fa fa-envelope"></i> ಆಮಂತ್ರಣ ಕಳುಹಿಸಿ
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="closePasswordResetModal()">
+                        ರದ್ದುಮಾಡಿ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        function showPasswordResetModal() {
+            document.getElementById('passwordResetModal').style.display = 'flex';
+        }
+
+        function closePasswordResetModal() {
+            document.getElementById('passwordResetModal').style.display = 'none';
+        }
+
+        function requestPasswordReset() {
+            const username = '{{ user.username }}';
+            
+            fetch('/api/v1/auth/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: username })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.reset_token) {
+                    alert('ಗುಪ್ತಪದ ಮರುಹೊೆತ್ತುವಿಕೆ ಲಿಂಕ್ ಉತ್ಪನ್ನವಾಗಿದೆ: ' + data.reset_token);
+                    closePasswordResetModal();
+                } else {
+                    alert('ದೋಷ: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('ಲಿಂಕ್ ರಿಕ್ವೆಸ್ಟ್ ವಿಫಲ ಆಗಿದೆ');
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('passwordResetModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePasswordResetModal();
+            }
+        });
+    </script>
+
+    {% include 'footer.html' %}
+</body>
+</html>

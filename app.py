@@ -4,8 +4,9 @@ import logging
 from datetime import timedelta
 from dotenv import load_dotenv
 
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import check_password_hash
+from sqlalchemy import or_
 
 from config import db_config
 from config.db_config import get_config
@@ -16,7 +17,13 @@ from routers.parvya import parvya_bp
 from routers.users import users_bp
 from routers.web_routes.admin_routes import admin_ui_routes
 from services.additional_service import AkaradiSuchiService
-from services.user_management import create_or_update_default_user
+from services.user_management import (
+    create_or_update_default_user, 
+    request_password_reset,
+    reset_password_with_token,
+    change_password
+)
+from services.jwt_service import JWTService, require_jwt
 from utils.auth_decorator import login_required
 
 # Configure logging
@@ -140,18 +147,18 @@ def login():
     Login Route
     
     GET: Display login form
-    POST: Process login credentials
+    POST: Process login credentials & generate JWT token
     
     FEATURES:
     - Redirect to admin if already logged in
     - Validate username and password
+    - Generate JWT token (1 hour expiration)
     - Create persistent session for 30 minutes
     - Log authentication attempts
-    - Display user-friendly error messages
     
-    ERRORS:
-    - Invalid credentials: Display error message
-    - Database error: Display generic error message
+    RESPONSES:
+    - Success: JWT token + session
+    - Failure: Error message
     """
 
     # Redirect if already logged in
@@ -159,33 +166,37 @@ def login():
         return redirect(url_for('admin'))
 
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        credential = request.form.get('username', '').strip()  # Can be username or email
         password = request.form.get('password', '')
 
         # Validate input
-        if not username or not password:
+        if not credential or not password:
             logger.warning(f'Login attempt with missing credentials from {request.remote_addr}')
             return render_template('login.html', error='ಬಳಕೆದಾರ ಹೆಸರು ಮತ್ತು ಗುಪ್ತಪದ ಎರಡೂ ಅಗತ್ಯ')
 
         try:
-            # Query user from database
-            user = User.query.filter_by(username=username).first()
+            # Query user by username OR email
+            user = User.query.filter(or_(User.username == credential, User.email == credential)).first()
 
             # Verify credentials
             if user and user.check_password(password):
+                # Generate JWT token
+                jwt_token = JWTService.generate_token(user.id, user.username)
+                
                 # Set session
                 session['user_id'] = user.id
                 session['username'] = user.username
+                session['jwt_token'] = jwt_token
                 session.permanent = True
 
-                logger.info(f'User {username} logged in successfully')
+                logger.info(f'User {user.username} logged in successfully with JWT token')
 
                 # Redirect to admin dashboard
                 return redirect(url_for('admin'))
             else:
                 # Log failed attempt
-                logger.warning(f'Failed login attempt for user {username} from {request.remote_addr}')
-                return render_template('login.html', error='ತಪ್ಪು ಬಳಕೆದಾರ ಹೆಸರು ಅಥವಾ ಗುಪ್ತಪದ')
+                logger.warning(f'Failed login attempt for credential {credential} from {request.remote_addr}')
+                return render_template('login.html', error='ತಪ್ಪು ಬಳಕೆದಾರ ಹೆಸರು/ಇಮೇಲ್ ಅಥವಾ ಗುಪ್ತಪದ')
 
         except Exception as e:
             logger.error(f'Database error during login: {str(e)}')
@@ -200,7 +211,7 @@ def logout():
     Logout Route
     
     FEATURES:
-    - Clear session data
+    - Clear session data including JWT token
     - Log logout event
     - Redirect to home page
     """
@@ -210,10 +221,200 @@ def logout():
     # Clear session
     session.pop('user_id', None)
     session.pop('username', None)
+    session.pop('jwt_token', None)
 
     logger.info(f'User {username} logged out')
 
     return redirect(url_for('index'))
+
+
+@app.route('/api/v1/auth/forgot-password', methods=['POST'])
+def forgot_password():
+    """
+    Password Reset Request
+    
+    POST: Request password reset token
+    
+    JSON Body:
+    {
+        "username": "username"
+    }
+    
+    Returns:
+    - Success: Password reset token
+    - Failure: Error message
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        username = data.get('username', '').strip()
+        if not username:
+            return jsonify({'error': 'Username required'}), 400
+        
+        success, result = request_password_reset(username)
+        
+        if success:
+            return jsonify({
+                'message': 'Password reset token generated',
+                'reset_token': result
+            }), 200
+        else:
+            return jsonify({'error': result}), 400
+    
+    except Exception as e:
+        logger.error(f'Error in forgot_password: {str(e)}')
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@app.route('/api/v1/auth/reset-password', methods=['POST'])
+def reset_password():
+    """
+    Password Reset Confirmation
+    
+    POST: Reset password using reset token
+    
+    JSON Body:
+    {
+        "reset_token": "token",
+        "new_password": "new_password"
+    }
+    
+    Returns:
+    - Success: Password reset confirmation
+    - Failure: Error message
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        reset_token = data.get('reset_token', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        if not reset_token or not new_password:
+            return jsonify({'error': 'Reset token and new password required'}), 400
+        
+        success, result = reset_password_with_token(reset_token, new_password)
+        
+        if success:
+            return jsonify({'message': result}), 200
+        else:
+            return jsonify({'error': result}), 400
+    
+    except Exception as e:
+        logger.error(f'Error in reset_password: {str(e)}')
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@app.route('/api/v1/auth/change-password', methods=['POST'])
+@require_jwt
+def change_password_route():
+    """
+    Change Password (Authenticated User)
+    
+    POST: Change password for currently logged in user
+    Requires: Valid JWT token
+    
+    JSON Body:
+    {
+        "old_password": "current_password",
+        "new_password": "new_password"
+    }
+    
+    Returns:
+    - Success: Password change confirmation
+    - Failure: Error message
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body required'}), 400
+        
+        username = request.username
+        old_password = data.get('old_password', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        if not old_password or not new_password:
+            return jsonify({'error': 'Old and new passwords required'}), 400
+        
+        success, result = change_password(username, old_password, new_password)
+        
+        if success:
+            return jsonify({'message': result}), 200
+        else:
+            return jsonify({'error': result}), 400
+    
+    except Exception as e:
+        logger.error(f'Error in change_password: {str(e)}')
+        return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """
+    User Profile Edit Route
+    
+    GET: Display user profile with existing details
+    POST: Update user profile (email, phone, password)
+    
+    PROTECTED: Requires user login
+    """
+    try:
+        user_id = session.get('user_id')
+        user = User.query.get(user_id)
+        
+        if not user:
+            flash('User not found', 'error')
+            return redirect(url_for('logout'))
+        
+        if request.method == 'GET':
+            # Display profile with existing data
+            return render_template(
+                'profile.html',
+                user={
+                    'username': user.username,
+                    'email': user.email or '',
+                    'phone_number': user.phone_number or ''
+                }
+            )
+        
+        elif request.method == 'POST':
+            # Update profile
+            email = request.form.get('email', '').strip() or None
+            phone = request.form.get('phone_number', '').strip() or None
+            new_password = request.form.get('new_password', '').strip()
+            old_password = request.form.get('old_password', '').strip()
+            
+            # Update email and phone
+            if email:
+                user.email = email
+            if phone:
+                user.phone_number = phone
+            
+            # Update password if provided
+            if new_password:
+                if not old_password:
+                    flash('Current password required to change password', 'error')
+                    return redirect(url_for('profile'))
+                
+                if not user.check_password(old_password):
+                    flash('Current password is incorrect', 'error')
+                    return redirect(url_for('profile'))
+                
+                user.set_password(new_password)
+            
+            db.session.commit()
+            logger.info(f'User {user.username} profile updated')
+            flash('Profile updated successfully', 'success')
+            return redirect(url_for('admin'))
+        
+    except Exception as e:
+        logger.error(f'Error in profile route: {str(e)}')
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('admin'))
 
 
 if __name__ == '__main__':
