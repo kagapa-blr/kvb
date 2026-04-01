@@ -6,8 +6,9 @@
  */
 
 import { apiClient } from './restclient.js';
+import { ApiEndpoints } from './endpoints.js';
 
-console.log('[Dashboard] ✓ Module initialized with apiClient');
+console.log('[Dashboard] ✓ Module initialized with apiClient and ApiEndpoints');
 
 // Set API base URL if needed
 apiClient.setBaseUrl("/api/v1");
