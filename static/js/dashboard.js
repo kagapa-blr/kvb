@@ -10,8 +10,7 @@ import { ApiEndpoints } from './endpoints.js';
 
 console.log('[Dashboard] ✓ Module initialized with apiClient and ApiEndpoints');
 
-// Set API base URL if needed
-apiClient.setBaseUrl("/api/v1");
+// API base URL is configured in restclient.js (BASE_PATH = "/kvb")
 apiClient.setDebugMode(false);
 
 // ================= STATE =================
@@ -186,7 +185,7 @@ function initializeEventListeners() {
     
     if (parvaNumber) {
       try {
-        const sandhiResult = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
+    const sandhiResult = await apiRequest(ApiEndpoints.SANDHI.byParva(parvaNumber));
         const sandhis = (sandhiResult && sandhiResult.data) ? sandhiResult.data : [];
         
         if (Array.isArray(sandhis)) {
@@ -247,7 +246,7 @@ function initializeEventListeners() {
         
         // Enable parva dropdown and load parvas for new sandhis
         parvaDropdown.disabled = false;
-        const parvaResult = await apiRequest("/parva", { params: { offset: 0, limit: 100 } });
+    const parvaResult = await apiRequest(ApiEndpoints.PARVA.list, { params: { offset: 0, limit: 100 } });
         parvaDropdown.innerHTML = `<option value="">ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
         parvaResult.data.forEach(p => {
           const pNum = p.parva_number || p.id || '';
@@ -460,7 +459,7 @@ async function apiRequest(endpoint, options = {}) {
 
 async function editParva(parvaNumber) {
   try {
-    const result = await apiRequest(`/parva/${parvaNumber}`);
+    const result = await apiRequest(ApiEndpoints.PARVA.get(parvaNumber));
     const parva = result.data;
 
     // Populate form fields
@@ -486,7 +485,7 @@ async function deleteParva(parvaNumber) {
   }
 
   try {
-    await apiRequest(`/parva/${parvaNumber}`, { method: "DELETE" });
+    await apiRequest(ApiEndpoints.PARVA.delete(parvaNumber), { method: "DELETE" });
     showAlert("ಪರ್ವ ಅಳಿಸಲಾಗಿದೆ", "success");
     loadParvas();
   } catch (error) {
@@ -499,7 +498,7 @@ async function loadParvas() {
   try {
     showLoading("parva_table");
 
-    const result = await apiRequest("/parva", {
+    const result = await apiRequest(ApiEndpoints.PARVA.list, {
       params: { offset: 0, limit: 100 },
     });
 
@@ -580,14 +579,14 @@ async function createParva() {
   try {
     if (isEdit) {
       // Update existing parva
-      await apiRequest(`/parva/${parvaNumber}`, {
+      await apiRequest(ApiEndpoints.PARVA.update(parvaNumber), {
         method: "PUT",
         body: { name },
       });
       showAlert("ಪರ್ವ ನವೀಕರಿಸಲಾಗಿದೆ", "success");
     } else {
       // Create new parva
-      await apiRequest("/parva", {
+      await apiRequest(ApiEndpoints.PARVA.create, {
         method: "POST",
         body: { name },
       });
@@ -616,7 +615,7 @@ async function searchParva() {
     showLoading("parva_table");
     
     // Load all parvas
-    const result = await apiRequest("/parva", {
+    const result = await apiRequest(ApiEndpoints.PARVA.list, {
       params: { offset: 0, limit: 100 },
     });
 
@@ -683,7 +682,7 @@ function fillPadyaParvaDropdown(parvas) {
 
 async function editSandhi(parvaNumber, sandhiNumber) {
   try {
-    const result = await apiRequest(`/sandhi/${parvaNumber}/${sandhiNumber}`);
+    const result = await apiRequest(ApiEndpoints.SANDHI.get(parvaNumber, sandhiNumber));
     const sandhi = result.data;
 
     // Populate modal for edit
@@ -692,7 +691,7 @@ async function editSandhi(parvaNumber, sandhiNumber) {
     document.getElementById("sandhi_name").dataset.sandhiNumber = sandhiNumber;
     
     // Populate parva dropdown (for display only in edit mode)
-    const parvaResult = await apiRequest("/parva", { params: { offset: 0, limit: 100 } });
+    const parvaResult = await apiRequest(ApiEndpoints.PARVA.list, { params: { offset: 0, limit: 100 } });
     const parvaDropdown = document.getElementById("sandhi_parva_select_modal");
     parvaDropdown.innerHTML = `<option value="">ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
     parvaResult.data.forEach(p => {
@@ -723,7 +722,7 @@ async function deleteSandhi(parvaNumber, sandhiNumber) {
   }
 
   try {
-    await apiRequest(`/sandhi/${parvaNumber}/${sandhiNumber}`, { 
+    await apiRequest(ApiEndpoints.SANDHI.delete(parvaNumber, sandhiNumber), { 
       method: "DELETE" 
     });
     showAlert("ಸಂಧಿ ಅಳಿಸಲಾಗಿದೆ", "success");
@@ -745,7 +744,7 @@ async function loadSandhisByParva() {
   try {
     showLoading("sandhi_table");
 
-    const result = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
+    const result = await apiRequest(ApiEndpoints.SANDHI.byParva(parvaNumber));
     state.currentData.sandhis = result.data;
 
     if (!result.data.length) {
@@ -830,14 +829,14 @@ async function createSandhi() {
   try {
     if (isEdit) {
       // Update existing sandhi
-      await apiRequest(`/sandhi/${parvaNumber}/${sandhiNumber}`, {
+      await apiRequest(ApiEndpoints.SANDHI.update(parvaNumber, sandhiNumber), {
         method: "PUT",
         body: { name },
       });
       showAlert("ಸಂಧಿ ನವೀಕರಿಸಲಾಗಿದೆ", "success");
     } else {
       // Create new sandhi
-      await apiRequest("/sandhi", {
+      await apiRequest(ApiEndpoints.SANDHI.create, {
         method: "POST",
         body: { parva_number: parseInt(parvaNumber), name },
       });
@@ -876,7 +875,7 @@ async function searchSandhi() {
     const params = { offset: 0, limit: 100 };
     
     // Load sandhi by parva
-    const result = await apiRequest(`/sandhi/by_parva/${parvaNumber}`, { params });
+    const result = await apiRequest(ApiEndpoints.SANDHI.byParva(parvaNumber), { params });
 
     // Filter on client-side - support both name and number search
     let filtered = result.data;
@@ -916,7 +915,7 @@ async function loadSandhiOptions() {
   }
 
   try {
-    const result = await apiRequest(`/sandhi/by_parva/${parvaNumber}`);
+    const result = await apiRequest(ApiEndpoints.SANDHI.byParva(parvaNumber));
     fillPadyaSandhiDropdown(result.data);
     
     // Clear sandhi selection and table when parva changes
@@ -964,7 +963,7 @@ async function loadPadyaList() {
     };
     if (searchTerm) params.keyword = searchTerm;
 
-    const result = await apiRequest("/padya/search", { params });
+    const result = await apiRequest(ApiEndpoints.PADYA.search, { params });
 
     if (!result.data.length) {
       showEmpty("padya_table", searchTerm ? "ಪದ್ಯಗಳು ಕಂಡುಬಂದಿಲ್ಲ" : "ಪದ್ಯಗಳು ಇಲ್ಲ", 3);
@@ -1051,7 +1050,7 @@ function renderPadyaTable(padyas) {
 async function populateSandhiModalDropdowns() {
   try {
     // Load parvas for sandhi modal
-    const parvaResult = await apiRequest("/parva", { params: { offset: 0, limit: 100 } });
+    const parvaResult = await apiRequest(ApiEndpoints.PARVA.list, { params: { offset: 0, limit: 100 } });
     const parvaDropdown = document.getElementById("sandhi_parva_select_modal");
     parvaDropdown.innerHTML = `<option value="">ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>`;
     
@@ -1077,7 +1076,7 @@ async function populateSandhiModalDropdowns() {
 async function populatePadyaModalDropdowns() {
   try {
     // Load parvas for modal
-    const parvaResult = await apiRequest("/parva", { params: { offset: 0, limit: 100 } });
+    const parvaResult = await apiRequest(ApiEndpoints.PARVA.list, { params: { offset: 0, limit: 100 } });
     const parvaDropdown = document.getElementById("padya_parva_select_modal");
     
     if (!parvaDropdown) {
@@ -1133,11 +1132,11 @@ async function savePadya() {
 
   try {
     const method = padyaNumber ? "PUT" : "POST";
-    let endpoint = "/padya";
+    let endpoint = ApiEndpoints.PADYA.create;
     
     if (padyaNumber) {
       // Update existing - need parva_number, sandhi_number, padya_number
-      endpoint = `/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`;
+      endpoint = ApiEndpoints.PADYA.update(parvaNumber, sandhiNumber, padyaNumber);
     }
 
     // Get GamakaVachana data
@@ -1264,7 +1263,7 @@ function resetPadyaModal() {
 async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
   try {
     // Fetch the full padya record with complete details
-    let result = await apiRequest(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`);
+    let result = await apiRequest(ApiEndpoints.PADYA.get(parvaNumber, sandhiNumber, padyaNumber));
     let padya = result.data;
 
     // Show display mode (for editing)
@@ -1320,8 +1319,12 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
       
       // Re-fetch with author and raga filter to ensure we get the correct record
       if (authorName || ragaName) {
-        let filterUrl = `/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}?author_name=${encodeURIComponent(authorName)}&raga=${encodeURIComponent(ragaName)}`;
-        let filteredResult = await apiRequest(filterUrl);
+        let filteredResult = await apiRequest(ApiEndpoints.PADYA.get(parvaNumber, sandhiNumber, padyaNumber), {
+          params: {
+            author_name: authorName,
+            raga: ragaName
+          }
+        });
         let filteredPadya = filteredResult.data;
         
         if (filteredPadya.gamaka_vachana && filteredPadya.gamaka_vachana.length > 0) {
@@ -1412,7 +1415,7 @@ async function deletePadya(parvaNumber, sandhiNumber, padyaNumber) {
   }
 
   try {
-    await apiRequest(`/padya/${parvaNumber}/${sandhiNumber}/${padyaNumber}`, { 
+    await apiRequest(ApiEndpoints.PADYA.delete(parvaNumber, sandhiNumber, padyaNumber), { 
       method: "DELETE" 
     });
 
@@ -1613,18 +1616,8 @@ async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     formData.append('raga', ragaName);
     formData.append('author_name', authorName);
 
-    const response = await fetch('/api/v1/padya/upload-photo', {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || 'ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ');
-    }
-
-    const result = await response.json();
-    let photoPath = result.data.photo_path;
+    const result = await apiClient.post(ApiEndpoints.PADYA.uploadPhoto, formData);
+    let photoPath = result.photo_path;
     
     // Normalize the path in case backend returns absolute path
     photoPath = normalizePath(photoPath);
@@ -1789,18 +1782,8 @@ async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     formData.append('raga', ragaName);
     formData.append('author_name', authorName);
 
-    const response = await fetch('/api/v1/padya/upload-audio', {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || 'ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ');
-    }
-
-    const result = await response.json();
-    let audioPath = result.data.audio_path;
+    const result = await apiClient.post(ApiEndpoints.PADYA.uploadAudio, formData);
+    let audioPath = result.audio_path;
     
     // Normalize the path in case backend returns absolute path
     audioPath = normalizePath(audioPath);
@@ -1859,13 +1842,11 @@ function displayGamakaAudioPreview(audioPath, authorName) {
 async function downloadPadyaTemplate() {
   try {
     // Create a temporary link and trigger download
-    const response = await fetch("/api/v1/padya/template/download");
+    const response = await apiClient.get(ApiEndpoints.PADYA.downloadTemplate, {
+      responseType: 'blob'
+    });
     
-    if (!response.ok) {
-      throw new Error("Template download failed");
-    }
-    
-    const blob = await response.blob();
+    const blob = response;
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -1887,34 +1868,22 @@ async function exportPadyaCSV() {
     showAlert("ನಿರ್ಯಾತ ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...", "info");
     
     // Fetch export from backend
-    const response = await fetch("/api/v1/padya/export");
+    const response = await apiClient.get(ApiEndpoints.PADYA.exportCsv, {
+      responseType: 'blob'
+    });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || "Export failed");
-    }
-    
-    // Get the filename from Content-Disposition header
-    const contentDisposition = response.headers.get('content-disposition');
-    let filename = 'padya_export.csv';
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-      if (filenameMatch) {
-        filename = filenameMatch[1];
-      }
-    }
-    
-    const blob = await response.blob();
+    // Use default filename
+    const blob = response;
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename;
+    link.download = 'padya_export.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     
-    showAlert(`ಪದ್ಯ ನಿರ್ಯಾತಿ ಪೂರ್ಣವಾಗಿದೆ: ${filename}`, "success");
+    showAlert("ಪದ್ಯ ನಿರ್ಯಾತಿ ಪೂರ್ಣವಾಗಿದೆ", "success");
   } catch (error) {
     showAlert("ಪದ್ಯ ನಿರ್ಯಾತಿ ವಿಫಲವಾಗಿದೆ: " + error.message, "danger");
     console.error("Export padya error:", error);
@@ -1945,16 +1914,7 @@ async function uploadPadyaBulk(event) {
     formData.append('file', file);
     
     // Send file to backend
-    const response = await fetch("/api/v1/padya/bulk/upload", {
-      method: "POST",
-      body: formData
-    });
-    
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || "Upload failed");
-    }
+    const result = await apiClient.post(ApiEndpoints.PADYA.uploadBulk, formData);
     
     // Show results
     const message = `ಪದ್ಯ ಸೇರಿಸಲಾಗಿದೆ: ${result.records_created}, ವಿಫಲ: ${result.records_failed}`;
@@ -2032,29 +1992,10 @@ async function startBulkUpload() {
     statusText.textContent = 'ಸರ್ವರಕ್ಕೆ ಫೈಲ್ ನಿರೀಕ್ಷೆ...';
     
     // Send file to backend
-    const response = await fetch("/api/v1/padya/bulk/upload", {
-      method: "POST",
-      body: formData
-    });
-    
-    const result = await response.json();
+    const result = await apiClient.post(ApiEndpoints.PADYA.uploadBulk, formData);
     clearInterval(progressInterval);
     progressBar.style.width = '100%';
     progressBar.textContent = '100%';
-    
-    // Check for validation errors (400 status)
-    if (!response.ok) {
-      if (result.validation_errors) {
-        // Validation errors - show them in modal
-        displayValidationErrors(result);
-        // Show processing step with errors visible
-        return;
-      } else {
-        // Other errors - show in modal
-        displayApiError(result);
-        return;
-      }
-    }
     
     // Update results
     displayBulkUploadResults(result);

@@ -10,7 +10,8 @@
  * const client = new ApiClient('/api/v1');
  */
 
-const BASE_PATH = "";  // Empty by default, set to your API base path (e.g., '/api/v1' or '/kvb/api/v1')
+const BASE_PATH = "";  // Set to your API base path - leave empty if API is at root (/api/v1)
+// For subpath deployment (e.g., /kvb/api/v1), set BASE_PATH = "/kvb"
 
 class ApiClient {
     constructor(baseUrl = BASE_PATH) {
@@ -195,10 +196,6 @@ class ApiClient {
 // Create singleton instance
 const apiClient = new ApiClient(BASE_PATH);
 
-// Backward compatibility: Expose on window for templates that haven't been migrated to ES6 modules
-if (typeof window !== 'undefined') {
-    window.ApiClient = apiClient;
-}
 
 // ES6 Module exports
 export { ApiClient, apiClient };
