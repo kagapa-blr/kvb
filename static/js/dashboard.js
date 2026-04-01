@@ -2303,7 +2303,7 @@ async function loadUsers() {
   try {
 
     const response = await apiRequest(
-      ApiEndpoints.USERS.list(),
+      ApiEndpoints.USERS.list,
       { method: 'GET' }
     );
 
@@ -2535,7 +2535,7 @@ async function saveUser() {
     saveBtn.disabled = true;
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ಸೇರಿಸುತ್ತಿದೆ...';
     
-    const response = await apiRequest(ApiEndpoints.USERS.create(), {
+    const response = await apiRequest(ApiEndpoints.USERS.create, {
       method: 'POST',
       body: {
         username,

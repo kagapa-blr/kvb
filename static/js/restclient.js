@@ -66,8 +66,9 @@ class ApiClient {
             baseURL: baseUrl || this.baseUrl,
             timeout: this.timeout,
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
+                // Don't set Content-Type - let axios handle it based on data type
+                // FormData needs multipart/form-data, JSON needs application/json
             }
         });
 

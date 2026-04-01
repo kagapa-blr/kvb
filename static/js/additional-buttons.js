@@ -44,14 +44,14 @@ function initializeAdditionalButtons() {
     // Using centralized ApiEndpoints for all API references
     const additionalPages = {
         'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
-        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.akaradiSuchi() },
-        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.lekanSuchi() },
-        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.gadeSuchi() },
-        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.arhaKosha() },
-        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.vishayaParividi() },
-        'ಗಮಕ': { type: 'api', endpoint: () => ApiEndpoints.GAMAKA.list() },
-        'ಅನುಬಂಧ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.anubanch() },
-        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: () => ApiEndpoints.ADDITIONAL.tippani() }
+        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.akaradiSuchi },
+        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.lekanSuchi },
+        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.gadeSuchi },
+        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.arhaKosha },
+        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.vishayaParividi },
+        'ಗಮಕ': { type: 'api', endpoint: ApiEndpoints.GAMAKA.list },
+        'ಅನುಬಂಧ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.anubanch },
+        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.tippani }
     };
 
     let searchWord = "";
@@ -66,12 +66,11 @@ function initializeAdditionalButtons() {
         try {
             console.log(`[AdditionalButtons] Searching for: ${word}`);
 
-            // Use apiClient.get with ApiEndpoints - properly constructed with query params
-            const searchEndpoint = ApiEndpoints.PADYA.search() + 
-                ApiEndpoints.formatQueryParams({ keyword: word });
-            
-            console.log(`[AdditionalButtons] Calling endpoint: ${searchEndpoint}`);
-            const data = await apiClient.get(searchEndpoint);
+            // Use apiClient.get with ApiEndpoints - with query params
+            console.log(`[AdditionalButtons] Calling endpoint: ${ApiEndpoints.PADYA.search}`);
+            const data = await apiClient.get(ApiEndpoints.PADYA.search, {
+                params: { keyword: word }
+            });
 
             // Data is already parsed JSON from apiClient interceptor
             displaySearchResults(data);
