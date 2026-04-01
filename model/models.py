@@ -129,8 +129,8 @@ class Padya(db.Model):
     padya = db.Column(db.Text)
     
     # Timestamp and audit fields
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.now(), onupdate=datetime.utcnow)
     updated_by = db.Column(db.String(255), nullable=True)  # Optional: username or user ID
 
     def __repr__(self):

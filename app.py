@@ -15,6 +15,7 @@ from routers.gamaka_vachana import gamaka_bp
 from routers.parvya import parvya_bp
 from routers.users import users_bp
 from routers.web_routes.admin_routes import admin_ui_routes
+from services.additional_service import AkaradiSuchiService
 from services.user_management import create_or_update_default_user
 from utils.auth_decorator import login_required
 
@@ -49,6 +50,8 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 db.init_app(app)
 with app.app_context():
     create_or_update_default_user()
+    AkaradiSuchiService().refresh_akaradi_suchi()
+
 # Register Blueprints
 app.register_blueprint(parvya_bp, url_prefix='/api/v1')
 app.register_blueprint(additonal_bp)
@@ -113,7 +116,7 @@ def admin():
         total_padyas = Padya.query.count()
         total_parvas = Parva.query.count()
         total_sandhis = Sandhi.query.count()
-        
+
         return render_template(
             'admin/dashboard.html',
             total_users=total_users,
@@ -129,21 +132,6 @@ def admin():
 @app.route('/stats')
 def new_admin():
     return render_template('statistics.html')
-
-
-@app.route('/update')
-@login_required
-def update():
-    """
-    Update/Upload Content Route
-    
-    FUNCTIONALITY:
-    - Upload and manage additional content
-    - Update database with new data
-    
-    PROTECTED: Requires user login
-    """
-    return render_template('update.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -165,7 +153,7 @@ def login():
     - Invalid credentials: Display error message
     - Database error: Display generic error message
     """
-    
+
     # Redirect if already logged in
     if 'user_id' in session:
         return redirect(url_for('admin'))
@@ -189,9 +177,9 @@ def login():
                 session['user_id'] = user.id
                 session['username'] = user.username
                 session.permanent = True
-                
+
                 logger.info(f'User {username} logged in successfully')
-                
+
                 # Redirect to admin dashboard
                 return redirect(url_for('admin'))
             else:
@@ -216,45 +204,19 @@ def logout():
     - Log logout event
     - Redirect to home page
     """
-    
+
     username = session.get('username', 'Unknown')
-    
+
     # Clear session
     session.pop('user_id', None)
     session.pop('username', None)
-    
+
     logger.info(f'User {username} logged out')
-    
+
     return redirect(url_for('index'))
 
 
-@app.route('/videos')
-def play_videos():
-
-    video_dir = os.path.join(app.static_folder, 'videos')
-
-    videos = [
-        f for f in os.listdir(video_dir)
-        if os.path.isfile(os.path.join(video_dir, f))
-    ]
-
-    return render_template(
-        'additional/video-player.html',
-        videos=videos
-    )
-
-
-@app.route('/static/videos/<filename>')
-def get_video(filename):
-
-    return send_from_directory(
-        os.path.join(app.static_folder, 'videos'),
-        filename
-    )
-
-
 if __name__ == '__main__':
-
     app.run(
         debug=False,
         host='0.0.0.0',
