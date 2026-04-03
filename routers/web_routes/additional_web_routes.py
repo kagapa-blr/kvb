@@ -14,3 +14,8 @@ def akaradi_suchi():
 @additonal_web_routes.route('/gade-suchi', methods=["GET"])
 def gade_suchi():
     return render_template('additional/gadegala-suchi.html')
+
+
+@additonal_web_routes.route('/tippani', methods=["GET"])
+def tippani():
+    return render_template('additional/tippani.html')

@@ -127,10 +127,10 @@ class Padya(db.Model):
     artha = db.Column(db.Text)
     suchane = db.Column(db.Text)
     padya = db.Column(db.Text)
-    
+
     # Timestamp and audit fields
     created = db.Column(db.DateTime, nullable=False, default=datetime.now())
-    updated = db.Column(db.DateTime, nullable=False, default=datetime.now(), onupdate=datetime.utcnow)
+    updated = db.Column(db.DateTime, nullable=False, default=datetime.now(), onupdate=datetime.now())
     updated_by = db.Column(db.String(255), nullable=True)  # Optional: username or user ID
 
     def __repr__(self):
@@ -275,6 +275,7 @@ class GadeSuchigalu(db.Model):
     def __repr__(self):
         return f"<GadeSuchigalu {self.gade_suchi[:30]}>"
 
+
 # -------------------------------------------------------
 # TIPPANI
 # -------------------------------------------------------
@@ -308,7 +309,6 @@ class Tippani(db.Model):
     )
 
     padya_number = db.Column(db.Integer, nullable=False)
-
     parva = db.relationship("Parva", backref="tippani_entries")
     sandhi = db.relationship("Sandhi", backref="tippani_entries")
 

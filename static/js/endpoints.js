@@ -88,6 +88,7 @@ const ApiEndpoints = {
 
   ADDITIONAL_API: {
     akaradiSuchiApi: "/api/v1/additional/akaradi-suchi",
+    tippaniApi: "/api/v1/additional/tippani",
   },
 
   GADESUCHI_API:{

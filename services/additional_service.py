@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 
-from model.models import AkaradiSuchi, Padya, Sandhi, db, Parva, GadeSuchigalu
+from model.models import AkaradiSuchi, Padya, Sandhi, db, Parva, GadeSuchigalu, Tippani
 
 
 class AkaradiSuchiService:
@@ -95,7 +95,12 @@ class AkaradiSuchiService:
 
         except SQLAlchemyError as e:
             db.session.rollback()
-            raise e
+            return {
+                "status": "Failed",
+                "records_inserted": 0,
+                "timestamp": datetime.now(),
+                "error": str(e)
+            }
 
     # -------------------------------------------------------
     # FETCH WITH SEARCH + PAGINATION + OPTIONAL PARVA FILTER
@@ -237,6 +242,7 @@ class AkaradiSuchiService:
 class LekhanaSuchiService:
     def __init__(self):
         pass
+
 
 class GadeSuchigaluService:
 
@@ -551,5 +557,159 @@ class AnubandhaService:
 
 
 class TippaniService:
+    """
+    Service layer for managing Tippani data.
+    """
+
     def __init__(self):
         pass
+
+    @staticmethod
+    def _extract_tippani(text: str) -> str:
+        """
+        Safely extract tippani text from Padya.
+        """
+        if not text:
+            return ""
+        return text.strip()
+
+    # -------------------------------------------------------
+    # REFRESH TIPPNI TABLE
+    # -------------------------------------------------------
+    def refresh_tippani(self):
+        """
+        Rebuild Tippani table from Padya table.
+        Skips empty or '-' tippani.
+        """
+        try:
+            # 1. Clear existing entries
+            db.session.query(Tippani).delete()
+            db.session.commit()  # commit deletion first
+
+            # 2. Fetch all Padya rows with Sandhi info
+            padyas = (
+                db.session.query(
+                    Sandhi.parva_id,
+                    Padya.sandhi_id,
+                    Padya.padya_number,
+                    Padya.tippani
+                )
+                .join(Sandhi, Padya.sandhi_id == Sandhi.id)
+                .all()
+            )
+
+            records_to_insert = []
+
+            for parva_id, sandhi_id, padya_number, tippani_text in padyas:
+                tippani_value = self._extract_tippani(tippani_text)
+
+                # Skip empty or '-' tippani
+                if not tippani_value or tippani_value == "-":
+                    continue
+
+                record = Tippani(
+                    tippani=tippani_value,
+                    parva_id=parva_id,
+                    sandhi_id=sandhi_id,
+                    padya_number=padya_number
+                )
+                records_to_insert.append(record)
+
+            # 3. Bulk insert
+            if records_to_insert:
+                db.session.bulk_save_objects(records_to_insert)
+                db.session.commit()
+
+            return {
+                "status": "success",
+                "records_inserted": len(records_to_insert),
+                "timestamp": datetime.now()
+            }
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return {
+                "status": "Failed",
+                "records_inserted": 0,
+                "timestamp": datetime.now(),
+                "error": str(e)
+            }
+
+    # -------------------------------------------------------
+    # FETCH TIPPNI WITH SEARCH + PAGINATION + PARVA FILTER
+    # -------------------------------------------------------
+    def get_tippani(self, offset: int = 0, limit: int = 10, search: str = None, parva_number: int = None):
+        """
+        Fetch Tippani records.
+        Filters out empty or '-' tippani.
+        """
+        try:
+            # Validate pagination
+            if limit is None or limit <= 0:
+                limit = 10
+            if limit > 100:
+                limit = 100
+            if offset is None or offset < 0:
+                offset = 0
+
+            # Base query with joins
+            query = (
+                db.session.query(
+                    Tippani,
+                    Parva.parva_number,
+                    Sandhi.sandhi_number
+                )
+                .join(Parva, Tippani.parva_id == Parva.id)
+                .join(Sandhi, Tippani.sandhi_id == Sandhi.id)
+            )
+
+            # Filter out empty or '-' tippani
+            query = query.filter(Tippani.tippani.isnot(None))
+            query = query.filter(Tippani.tippani != "-")
+
+            # Optional parva filter
+            if parva_number is not None and isinstance(parva_number, int):
+                query = query.filter(Parva.parva_number == parva_number)
+
+            # Search by starting text
+            if search:
+                search = search.strip()
+                if search:
+                    query = query.filter(Tippani.tippani.ilike(f"{search}%"))
+
+            # Total count
+            total = query.order_by(None).count()
+
+            # Order by Parva > Sandhi > Padya
+            query = query.order_by(
+                Parva.parva_number.asc(),
+                Sandhi.sandhi_number.asc(),
+                Tippani.padya_number.asc()
+            )
+
+            # Pagination
+            results = query.offset(offset).limit(limit).all()
+
+            # Format response
+            data = []
+            for record, parva_number_val, sandhi_number in results:
+                data.append({
+                    "id": record.id,
+                    "tippani": record.tippani,
+                    "parva_id": record.parva_id,
+                    "parva_number": parva_number_val,
+                    "sandhi_id": record.sandhi_id,
+                    "sandhi_number": sandhi_number,
+                    "padya_number": record.padya_number
+                })
+
+            return {
+                "status": "success",
+                "data": data,
+                "total": total,
+                "limit": limit,
+                "offset": offset
+            }
+
+        except SQLAlchemyError as e:
+            return {"status": "error", "message": str(e), "data": []}

@@ -18,7 +18,7 @@ from routers.parvya import parvya_bp
 from routers.users import users_bp
 from routers.web_routes.additional_web_routes import additonal_web_routes
 from routers.web_routes.admin_routes import admin_ui_routes
-from services.additional_service import AkaradiSuchiService
+from services.additional_service import AkaradiSuchiService, TippaniService
 from services.jwt_service import JWTService, require_jwt
 from services.user_management import (
     create_or_update_default_user,
@@ -60,6 +60,7 @@ db.init_app(app)
 with app.app_context():
     create_or_update_default_user()
     AkaradiSuchiService().refresh_akaradi_suchi()
+    TippaniService().refresh_tippani()
 
 # Register Blueprints
 app.register_blueprint(parvya_bp, url_prefix='/api/v1')

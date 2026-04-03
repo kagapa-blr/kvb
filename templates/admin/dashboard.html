@@ -439,7 +439,7 @@
       <!-- OTHERS TAB BUTTON -->
       <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#otherstab" type="button">
-          <i class="bi bi-gear me-1"></i> ಇತರೆ 
+          <i class="bi bi-gear me-1"></i> ಇತರೆ
         </button>
       </li>
     </ul>
@@ -639,13 +639,63 @@
           <p>This section is reserved for future features and miscellaneous settings. Stay tuned for updates!</p>
         </div>
 
-        <div class="mt-3">
+        <div class="mt-3 mb-3">
           <a href="{{ url_for('admin_routes.gadesuchigalu') }}" class="btn btn-primary" target="_blank"
             rel="noopener noreferrer">
             ಗಾದೆ ಸೂಚಿ
           </a>
         </div>
+
+        <!-- Refresh Buttons -->
+        <div class="mt-3">
+          <button id="refreshAkaradiBtn" class="btn btn-success me-2">Refresh ಅಕರಡಿ ಸೂಚಿ</button>
+          <button id="refreshTippaniBtn" class="btn btn-success">Refresh ಟಿಪ್ಪಣಿ</button>
+        </div>
+
+        <div id="refreshAlert" class="alert mt-3 d-none" role="alert"></div>
       </div>
+
+      <script>
+        const akaradiRefreshUrl = "{{ url_for('additional_api.refresh_akaradi_suchi') }}";
+        const tippaniRefreshUrl = "{{ url_for('additional_api.refresh_tippani') }}";
+
+        function showAlert(message, type = 'success') {
+          const alertDiv = document.getElementById('refreshAlert');
+          alertDiv.textContent = message;
+          alertDiv.className = `alert mt-3 alert-${type}`;
+          alertDiv.classList.remove('d-none');
+          setTimeout(() => alertDiv.classList.add('d-none'), 5000);
+        }
+
+document.getElementById('refreshAkaradiBtn').addEventListener('click', () => {
+  fetch(akaradiRefreshUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Show full JSON response
+        showAlert('ಅಕರಡಿ ಸೂಚಿ refreshed successfully! ' + JSON.stringify(data));
+      } else {
+        showAlert('Error refreshing ಅಕರಡಿ ಸೂಚಿ: ' + data.message, 'danger');
+      }
+    })
+    .catch(err => showAlert('Error refreshing ಅಕರಡಿ ಸೂಚಿ: ' + err.message, 'danger'));
+});
+
+document.getElementById('refreshTippaniBtn').addEventListener('click', () => {
+  fetch(tippaniRefreshUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Show full JSON response
+        showAlert('ಟಿಪ್ಪಣಿ refreshed successfully! ' + JSON.stringify(data));
+      } else {
+        showAlert('Error refreshing ಟಿಪ್ಪಣಿ: ' + data.message, 'danger');
+      }
+    })
+    .catch(err => showAlert('Error refreshing ಟಿಪ್ಪಣಿ: ' + err.message, 'danger'));
+});
+      
+      </script>
 
 
 
