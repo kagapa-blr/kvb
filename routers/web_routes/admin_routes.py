@@ -28,5 +28,4 @@ def dashboard():
 @admin_ui_routes.route('/admin/gadesuchigalu')
 @login_required
 def gadesuchigalu():
-
     return render_template('admin/gadesuchigalu.html')

@@ -1,9 +1,7 @@
 import { apiClient } from "../restclient.js";
 import { ApiEndpoints } from "../endpoints.js";
 
-
-$(document).ready(function () {
-  
+$(document).ready(async function () {
     let table;
 
     // Search handler (called only on button click or Enter)
@@ -30,27 +28,26 @@ $(document).ready(function () {
         $("#saveBtn").text("ಸೇರಿಸಿ");
     }
 
-    function loadParva(selectedParva = null) {
-        return $.get(ApiEndpoints.PARVA.list)
-            .done(function (res) {
-                const data = res.data || [];
-                const select = $("#parvaSelect");
+    async function loadParva(selectedParva = null) {
+        try {
+            const res = await apiClient.get(ApiEndpoints.PARVA.list);
+            const data = res.data || [];
+            const select = $("#parvaSelect");
 
-                select.html('<option value="">ಆಯ್ಕೆಮಾಡಿ...</option>');
-                data.forEach((p) => {
-                    select.append(`<option value="${p.parva_number}">${p.name}</option>`);
-                });
-
-                if (selectedParva) {
-                    select.val(String(selectedParva));
-                }
-            })
-            .fail(function () {
-                alert("ಪರ್ವ ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ");
+            select.html('<option value="">ಆಯ್ಕೆಮಾಡಿ...</option>');
+            data.forEach((p) => {
+                select.append(`<option value="${p.parva_number}">${p.name}</option>`);
             });
+
+            if (selectedParva) {
+                select.val(String(selectedParva));
+            }
+        } catch (error) {
+            alert("ಪರ್ವ ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ\n" + (error.userMessage || error.message));
+        }
     }
 
-    function loadSandhi(parvaNum, selectedSandhi = null) {
+    async function loadSandhi(parvaNum, selectedSandhi = null) {
         const sandhiSelect = $("#sandhiSelect");
         const padyaSelect = $("#padyaSelect");
 
@@ -58,29 +55,28 @@ $(document).ready(function () {
         padyaSelect.html('<option value="">ಮೊದಲು ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>').prop("disabled", true);
 
         if (!parvaNum) {
-            return $.Deferred().resolve().promise();
+            return;
         }
 
-        return $.get(ApiEndpoints.SANDHI.byParva(parvaNum))
-            .done(function (res) {
-                const data = res.data || [];
-                sandhiSelect.html('<option value="">ಆಯ್ಕೆಮಾಡಿ...</option>');
+        try {
+            const res = await apiClient.get(ApiEndpoints.SANDHI.byParva(parvaNum));
+            const data = res.data || [];
+            sandhiSelect.html('<option value="">ಆಯ್ಕೆಮಾಡಿ...</option>');
 
-                data.forEach((s) => {
-                    sandhiSelect.append(
-                        `<option value="${s.sandhi_number}" data-padyas='${JSON.stringify(s.padya_numbers || [])}'>${s.name}</option>`
-                    );
-                });
-
-                sandhiSelect.prop("disabled", false);
-
-                if (selectedSandhi) {
-                    sandhiSelect.val(String(selectedSandhi));
-                }
-            })
-            .fail(function () {
-                alert("ಸಂಧಿ ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ");
+            data.forEach((s) => {
+                sandhiSelect.append(
+                    `<option value="${s.sandhi_number}" data-padyas='${JSON.stringify(s.padya_numbers || [])}'>${s.name}</option>`
+                );
             });
+
+            sandhiSelect.prop("disabled", false);
+
+            if (selectedSandhi) {
+                sandhiSelect.val(String(selectedSandhi));
+            }
+        } catch (error) {
+            alert("ಸಂಧಿ ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ\n" + (error.userMessage || error.message));
+        }
     }
 
     function loadPadyaFromSelectedSandhi(selectedPadya = null) {
@@ -137,15 +133,15 @@ $(document).ready(function () {
                     width: "120px",
                     render: function (data) {
                         return `
-              <div class="btn-group btn-group-sm" role="group">
-                <button class="btn btn-outline-info edit-btn" data-id="${data.id}" title="ಸಂಪಾದಿಸಿ">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-outline-danger delete-btn" data-id="${data.id}" title="ಅಳಿಸಿ">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            `;
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-info edit-btn" data-id="${data.id}" title="ಸಂಪಾದಿಸಿ">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger delete-btn" data-id="${data.id}" title="ಅಳಿಸಿ">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                `;
                     }
                 }
             ],
@@ -172,7 +168,7 @@ $(document).ready(function () {
         });
     }
 
-    function saveGade() {
+    async function saveGade() {
         const id = $("#gadeId").val();
 
         const payload = {
@@ -196,98 +192,81 @@ $(document).ready(function () {
         const method = id ? "PUT" : "POST";
         const url = id ? `${ApiEndpoints.GADESUCHI_API.get(id)}` : `${ApiEndpoints.GADESUCHI_API.create}`;
 
-        $.ajax({
-            url: url,
-            method: method,
-            contentType: "application/json",
-            data: JSON.stringify(payload),
-            success: function () {
-                const modalEl = document.getElementById("gadeModal");
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                modalInstance.hide();
+        try {
+            await apiClient[method.toLowerCase()](url, payload);
+            const modalEl = document.getElementById("gadeModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            modalInstance.hide();
 
-                table.ajax.reload(null, false);
-                resetForm();
-            },
-            error: function (xhr) {
-                alert(xhr.responseJSON?.message || "ಓಪರೇಶನ್ ವಿಫಲವಾಯಿತು");
-            }
-        });
+            table.ajax.reload(null, false);
+            resetForm();
+        } catch (error) {
+            alert("ಓಪರೇಶನ್ ವಿಫಲವಾಯಿತು\n" + (error.userMessage || error.message));
+        }
     }
 
-    function editGade() {
+    async function editGade() {
         const id = $(this).data("id");
 
-        $.get(`${ApiEndpoints.GADESUCHI_API.get(id)}`)
-            .done(function (res) {
-                if (res.status !== "success") {
-                    alert(res.message || "ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ");
-                    return;
-                }
+        try {
+            const res = await apiClient.get(`${ApiEndpoints.GADESUCHI_API.get(id)}`);
+            if (res.status !== "success") {
+                alert(res.message || "ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ");
+                return;
+            }
 
-                const g = res.data;
+            const g = res.data;
 
-                $("#gadeId").val(g.id);
-                $("#gadeName").val(g.gade_suchi || "");
-                $("#description").val(g.description || "");
-                $("#modalTitle").text("ಗಾದೆ ಸಂಪಾದಿಸಿ");
-                $("#saveBtn").text("ನವೀಕರಿಸಿ");
+            $("#gadeId").val(g.id);
+            $("#gadeName").val(g.gade_suchi || "");
+            $("#description").val(g.description || "");
+            $("#modalTitle").text("ಗಾದೆ ಸಂಪಾದಿಸಿ");
+            $("#saveBtn").text("ನವೀಕರಿಸಿ");
 
-                loadParva(g.parva_number)
-                    .then(() => loadSandhi(g.parva_number, g.sandhi_number))
-                    .then(() => {
-                        loadPadyaFromSelectedSandhi(g.padya_number);
-                        const modal = new bootstrap.Modal(document.getElementById("gadeModal"));
-                        modal.show();
-                    });
-            })
-            .fail(function () {
-                alert("ದಾಖಲೆ ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ");
-            });
+            await loadParva(g.parva_number);
+            await loadSandhi(g.parva_number, g.sandhi_number);
+            loadPadyaFromSelectedSandhi(g.padya_number);
+            
+            const modal = new bootstrap.Modal(document.getElementById("gadeModal"));
+            modal.show();
+        } catch (error) {
+            alert("ದಾಖಲೆ ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ\n" + (error.userMessage || error.message));
+        }
     }
 
-    function deleteGade() {
+    async function deleteGade() {
         const id = $(this).data("id");
 
         if (!confirm("ಈ ದಾಖಲೆಯನ್ನು ಅಳಿಸಲು ಖಂಡಿತವಾಗಿ ಬಯಸುವಿರಾ?")) {
             return;
         }
 
-        $.ajax({
-            url: `${ApiEndpoints.GADESUCHI_API.delete(id)}`,
-            type: "DELETE",
-            success: function () {
-                table.ajax.reload(null, false);
-            },
-            error: function (xhr) {
-                alert(xhr.responseJSON?.message || "ಅಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ");
-            }
-        });
+        try {
+            await apiClient.delete(`${ApiEndpoints.GADESUCHI_API.delete(id)}`);
+            table.ajax.reload(null, false);
+        } catch (error) {
+            alert("ಅಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ\n" + (error.userMessage || error.message));
+        }
     }
 
-    function handleCsvUpload(e) {
+    async function handleCsvUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         const formData = new FormData();
         formData.append("file", file);
 
-        $.ajax({
-            url: `${ApiEndpoints.GADESUCHI_API.bulkUpload}`,
-            type: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                alert(res.message || "CSV ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಯಿತು");
-                table.ajax.reload(null, false);
-                $("#csvUpload").val("");
-            },
-            error: function (xhr) {
-                alert(xhr.responseJSON?.message || "CSV ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಯಿತು");
-                $("#csvUpload").val("");
-            }
-        });
+        try {
+            await apiClient.post(`${ApiEndpoints.GADESUCHI_API.bulkUpload}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert("CSV ಯಶಸ್ವಿಯಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಯಿತು");
+            table.ajax.reload(null, false);
+            $("#csvUpload").val("");
+        } catch (error) {
+            alert("CSV ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಯಿತು\n" + (error.userMessage || error.message));
+            $("#csvUpload").val("");
+        }
     }
 
     function downloadTemplate() {
@@ -337,6 +316,7 @@ $(document).ready(function () {
         resetForm();
     });
 
-    loadParva();
+    // Initialize
+    await loadParva();
     initTable();
 });

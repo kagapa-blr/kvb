@@ -435,11 +435,11 @@
           <i class="bi bi-people me-1"></i>ಬಳಕೆದಾರರು
         </button>
       </li>
-      <!-- OTHERS TAB -->
+
+      <!-- OTHERS TAB BUTTON -->
       <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#others_tab">
-          <i class="bi bi-gear me-1"></i>
-         ಇತರೆ
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#otherstab" type="button">
+          <i class="bi bi-gear me-1"></i> ಇತರೆ 
         </button>
       </li>
     </ul>
@@ -631,574 +631,596 @@
           </table>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- PARVA MODAL -->
-  <div class="modal fade" id="parvaModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="parvaModalTitle">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <!-- OTHERS TAB -->
+      <div class="tab-pane fade" id="otherstab">
+        <div class="alert alert-info">
+          <h5 class="alert-heading">Welcome to the Others Tab!</h5>
+          <p>This section is reserved for future features and miscellaneous settings. Stay tuned for updates!</p>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">ಪರ್ವ ಹೆಸರು</label>
-            <input id="parva_name" class="form-control" placeholder="ಪರ್ವ ಹೆಸರು ನಮೂದಿಸಿ" />
+
+        <div class="mt-3">
+          <a href="{{ url_for('admin_routes.gadesuchigalu') }}" class="btn btn-primary" target="_blank"
+            rel="noopener noreferrer">
+            ಗಾದೆ ಸೂಚಿ
+          </a>
+        </div>
+      </div>
+
+
+
+    </div>
+
+    <!-- PARVA MODAL -->
+    <div class="modal fade" id="parvaModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="parvaModalTitle">ಹೊಸ ಪರ್ವ ಸೇರಿಸಿ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            ರದ್ದು
-          </button>
-          <button type="button" class="btn btn-success" id="save-parva-btn">
-            ಸೇರಿಸಿ
-          </button>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">ಪರ್ವ ಹೆಸರು</label>
+              <input id="parva_name" class="form-control" placeholder="ಪರ್ವ ಹೆಸರು ನಮೂದಿಸಿ" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              ರದ್ದು
+            </button>
+            <button type="button" class="btn btn-success" id="save-parva-btn">
+              ಸೇರಿಸಿ
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- SANDHI MODAL -->
-  <div class="modal fade" id="sandhiModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="sandhiModalTitle">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">ಪರ್ವ</label>
-            <select id="sandhi_parva_select_modal" class="form-select"></select>
+    <!-- SANDHI MODAL -->
+    <div class="modal fade" id="sandhiModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="sandhiModalTitle">ಹೊಸ ಸಂಧಿ ಸೇರಿಸಿ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="mb-3">
-            <label class="form-label">ಸಂಧಿ ಹೆಸರು</label>
-            <input id="sandhi_name" class="form-control" placeholder="ಸಂಧಿ ಹೆಸರು ನಮೂದಿಸಿ" />
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">ಪರ್ವ</label>
+              <select id="sandhi_parva_select_modal" class="form-select"></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">ಸಂಧಿ ಹೆಸರು</label>
+              <input id="sandhi_name" class="form-control" placeholder="ಸಂಧಿ ಹೆಸರು ನಮೂದಿಸಿ" />
+            </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            ರದ್ದು
-          </button>
-          <button type="button" class="btn btn-success" id="save-sandhi-btn">
-            ಸೇರಿಸಿ
-          </button>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              ರದ್ದು
+            </button>
+            <button type="button" class="btn btn-success" id="save-sandhi-btn">
+              ಸೇರಿಸಿ
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- PADYA MODAL -->
-  <div class="modal fade" id="padyaModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="padyaModalTitle">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="modal_padya_id" />
-          <input type="hidden" id="modal_padya_parva_number" />
-          <input type="hidden" id="modal_padya_sandhi_number" />
-
-          <!-- For new padya: dropdowns -->
-          <div id="padya_select_mode" style="display: none">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">ಪರ್ವ</label>
-                <select id="padya_parva_select_modal" class="form-select"></select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">ಸಂಧಿ</label>
-                <select id="padya_sandhi_select_modal" class="form-select"></select>
-              </div>
-            </div>
+    <!-- PADYA MODAL -->
+    <div class="modal fade" id="padyaModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="padyaModalTitle">ಹೊಸ ಪದ್ಯ ಸೇರಿಸಿ</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
+          <div class="modal-body">
+            <input type="hidden" id="modal_padya_id" />
+            <input type="hidden" id="modal_padya_parva_number" />
+            <input type="hidden" id="modal_padya_sandhi_number" />
 
-          <!-- For editing: display fields -->
-          <div id="padya_display_mode" style="display: none">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">ಪರ್ವ</label>
-                <div class="input-group">
-                  <input type="text" id="modal_padya_parva_display" class="form-control" readonly
-                    placeholder="ಪರ್ವ ಹೆಸರು" />
+            <!-- For new padya: dropdowns -->
+            <div id="padya_select_mode" style="display: none">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">ಪರ್ವ</label>
+                  <select id="padya_parva_select_modal" class="form-select"></select>
                 </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">ಸಂಧಿ</label>
-                <div class="input-group">
-                  <input type="text" id="modal_padya_sandhi_display" class="form-control" readonly
-                    placeholder="ಸಂಧಿ ಹೆಸರು" />
+                <div class="col-md-6">
+                  <label class="form-label">ಸಂಧಿ</label>
+                  <select id="padya_sandhi_select_modal" class="form-select"></select>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Timestamp and Audit Fields (Read-Only) -->
-          <div id="padya_audit_info" style="display: none" class="row g-3 mt-3 p-3 bg-light rounded">
-            <div class="col-md-4">
-              <label class="form-label small text-muted">ರಚನೆ ಸಮಯ</label>
-              <input type="text" id="modal_padya_created" class="form-control form-control-sm" readonly
-                style="background-color: #f8f9fa;" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label small text-muted">ಕೊನೆಯ ನವೀಕರಣ ಸಮಯ</label>
-              <input type="text" id="modal_padya_updated" class="form-control form-control-sm" readonly
-                style="background-color: #f8f9fa;" />
-            </div>
-            <div class="col-md-4">
-              <label class="form-label small text-muted">ನವೀಕರಿಸಿದ್ದು ಯಾರು</label>
-              <input type="text" id="modal_padya_updated_by" class="form-control form-control-sm"
-                placeholder="(ಭವಿಷ್ಯತ್ತಿನ ಮಹತ್ವ ನಿರ್ಧಾರ)" />
-            </div>
-          </div>
-
-          <div class="mt-3">
-            <label class="form-label">ಪದ್ಯ (ಅಗತ್ಯ)</label>
-            <textarea id="modal_padya_text" class="form-control" rows="5" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಅರ್ಥ</label>
-            <textarea id="modal_padya_artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಟಿಪ್ಪಣಿ</label>
-            <textarea id="modal_padya_tippani" class="form-control" rows="3"
-              placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಗದ್ಯ</label>
-            <textarea id="modal_padya_gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಸುಚನೆ</label>
-            <textarea id="modal_padya_suchane" class="form-control" rows="2" placeholder="ಸುಚನೆ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಪಠಾಂತರ</label>
-            <textarea id="modal_padya_pathantar" class="form-control" rows="2"
-              placeholder="ಪಠಾಂತರ ನಮೂದಿಸಿ..."></textarea>
-          </div>
-
-          <!-- GamakaVachana Section -->
-          <div class="mt-4 p-3 bg-light rounded border-start border-success border-5">
-            <h6 class="mb-3 text-success fw-bold">
-              <i class="bi bi-music me-2"></i>ಗಮಕ ವಾಚನ ವಿವರ
-            </h6>
-
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">ಗಮಕ ವಾಚಕರ ಹೆಸರು</label>
-                <input type="text" id="modal_padya_gamaka_vachakara_name" class="form-control"
-                  placeholder="ಪದ್ಯ ಪಾಡಿದವರ ಹೆಸರು ನಮೂದಿಸಿ..." />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">ರಾಗ</label>
-                <input type="text" id="modal_padya_gamaka_raga" class="form-control" placeholder="ರಾಗ ನಮೂದಿಸಿ..." />
-              </div>
-            </div>
-
-
-            <div class="row g-3 mt-2">
-              <div class="col-md-6">
-                <label class="form-label">ಗಮಕ ವಾಚಕರ ಫೋಟೋ</label>
-                <div class="card bg-light p-3">
-                  <!-- Photo Preview -->
-                  <div id="gamaka_photo_preview_container" class="text-center mb-3" style="display: none;">
-                    <img id="gamaka_photo_preview" src="" alt="Photo Preview"
-                      style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;" />
-                    <div class="mt-3">
-                      <small class="text-muted d-block fw-semibold">ಫೋಟೋ ಹೆಸರು:</small>
-                      <small id="gamaka_photo_filename" class="text-monospace bg-white p-2 d-inline-block rounded"
-                        style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;"></small>
-
-                      <small class="text-muted d-block fw-semibold mt-2">ಬ್ಯಾಕೆಂಡ್ ಪಥ:</small>
-                      <small id="gamaka_photo_path_display"
-                        class="text-monospace bg-white p-2 d-inline-block rounded text-success"
-                        style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;">
-                      </small>
-
-                      <div class="d-flex gap-2 justify-content-center mt-2">
-                        <button type="button" class="btn btn-sm btn-primary" id="replace_gamaka_photo_btn">
-                          <i class="bi bi-arrow-repeat me-1"></i>ಬದಲಾಯಿಸಿ
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" id="clear_gamaka_photo_btn">
-                          <i class="bi bi-trash me-1"></i>ತೆಗೆದುಹಾಕಿ
-                        </button>
-                      </div>
-                    </div>
+            <!-- For editing: display fields -->
+            <div id="padya_display_mode" style="display: none">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">ಪರ್ವ</label>
+                  <div class="input-group">
+                    <input type="text" id="modal_padya_parva_display" class="form-control" readonly
+                      placeholder="ಪರ್ವ ಹೆಸರು" />
                   </div>
-
-                  <!-- File Upload -->
-                  <div id="gamaka_photo_upload_area"
-                    class="bg-white border-2 border-dashed border-primary p-3 text-center"
-                    style="cursor: pointer; transition: all 0.3s; border-radius: 8px;">
-                    <i class="bi bi-image display-6 text-primary mb-2 d-block"></i>
-                    <p class="text-muted mb-2">
-                      <strong>ಫೋಟೋ ಅಪ್‌ಲೋಡ್</strong><br>
-                      <small>ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</small>
-                    </p>
-                    <input type="file" id="modal_padya_gamaka_photo_input" class="form-control d-none"
-                      accept=".jpg,.jpeg,.webp,image/jpeg,image/webp" />
-                  </div>
-
-                  <!-- Hidden field to store photo path -->
-                  <input type="hidden" id="modal_padya_gamaka_photo_path" />
                 </div>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label">ಗಮಕ ವಾಚಕರ ಆಡಿಯೊ</label>
-                <div class="card bg-light p-3">
-                  <!-- Audio Preview -->
-                  <div id="gamaka_audio_preview_container" class="text-center mb-3" style="display: none;">
-                    <div class="mb-3">
-                      <i class="bi bi-music-note display-6 text-info d-block mb-2"></i>
-                      <audio id="gamaka_audio_preview" controls
-                        style="width: 100%; max-width: 200px; border-radius: 8px;">
-                        <source src="" type="audio/mpeg" />
-                        ನಿಮ್ಮ ಬ್ರೌಜರ್ ಆಡಿಯೊ ಸಮರ್ಥನೀಯತೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ
-                      </audio>
-                    </div>
-                    <div class="mt-3">
-                      <small class="text-muted d-block fw-semibold">ಆಡಿಯೊ ಫೈಲ್:</small>
-                      <small id="gamaka_audio_filename" class="text-monospace bg-white p-2 d-inline-block rounded"
-                        style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;"></small>
-
-                      <small class="text-muted d-block fw-semibold mt-2">ಬ್ಯಾಕೆಂಡ್ ಪಥ:</small>
-                      <small id="gamaka_audio_path_display"
-                        class="text-monospace bg-white p-2 d-inline-block rounded text-success"
-                        style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;">
-                      </small>
-
-                      <div class="d-flex gap-2 justify-content-center mt-2">
-                        <button type="button" class="btn btn-sm btn-primary" id="replace_gamaka_audio_btn">
-                          <i class="bi bi-arrow-repeat me-1"></i>ಬದಲಾಯಿಸಿ
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" id="clear_gamaka_audio_btn">
-                          <i class="bi bi-trash me-1"></i>ತೆಗೆದುಹಾಕಿ
-                        </button>
-                      </div>
-                    </div>
+                <div class="col-md-6">
+                  <label class="form-label">ಸಂಧಿ</label>
+                  <div class="input-group">
+                    <input type="text" id="modal_padya_sandhi_display" class="form-control" readonly
+                      placeholder="ಸಂಧಿ ಹೆಸರು" />
                   </div>
-
-                  <!-- File Upload -->
-                  <div id="gamaka_audio_upload_area" class="bg-white border-2 border-dashed border-info p-3 text-center"
-                    style="cursor: pointer; transition: all 0.3s; border-radius: 8px;">
-                    <i class="bi bi-cloud-upload display-6 text-info mb-2 d-block"></i>
-                    <p class="text-muted mb-2">
-                      <strong>ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್</strong><br>
-                      <small>ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</small>
-                    </p>
-                    <input type="file" id="modal_padya_gamaka_audio_input" class="form-control d-none"
-                      accept="audio/*" />
-                  </div>
-
-                  <!-- Hidden field to store audio path -->
-                  <input type="hidden" id="modal_padya_gamaka_audio_path" />
-                  <!-- Hidden field to store gamaka entry ID -->
-                  <input type="hidden" id="modal_padya_gamaka_id" />
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            ರದ್ದು
-          </button>
-          <button type="button" class="btn btn-success" id="save-padya-btn">
-            ಸೇರಿಸಿ
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- DELETE CONFIRM MODAL -->
-  <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          ಈ ಐಟಂ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಇದನ್ನು ಮತ್ತೆ ತಿರಿಗಿ ತರಲು
-          ಸಾಧ್ಯವಿಲ್ಲ.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            ರದ್ದು
-          </button>
-          <button type="button" class="btn btn-danger" id="confirm-delete-btn">
-            ಅಳಿಸಿ
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- BULK UPLOAD MODAL -->
-  <div class="modal fade" id="bulkUploadModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header bg-info text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-cloud-upload me-2"></i>ಪದ್ಯ ಬಲ್ಕ್ ಅಪ್ಲೋಡ್
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="bulkUploadClose"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Step 1: Upload Confirmation -->
-          <div id="bulk-upload-step-1" class="bulk-upload-step">
-            <h6 class="mb-3"><i class="bi bi-file-arrow-up me-2"></i>ಫೈಲ್ ಆಯ್ಕೆ</h6>
-            <div class="card bg-light p-4 text-center" style="border: 2px dashed #0d6efd; cursor: pointer;"
-              id="dropZone">
-              <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
-              <p class="fw-semibold mb-2">CSV ಅಥವಾ Excel ಫೈಲ್ ಅನ್ನು ಇಲ್ಲಿ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</p>
-              <small class="text-muted">ಅಥವಾ ಕ್ಲಿಕ್ ಮಾಡಿ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು</small>
-              <input type="file" id="bulkUploadFile" accept=".csv,.xlsx,.xls" style="display: none;" />
+            <!-- Timestamp and Audit Fields (Read-Only) -->
+            <div id="padya_audit_info" style="display: none" class="row g-3 mt-3 p-3 bg-light rounded">
+              <div class="col-md-4">
+                <label class="form-label small text-muted">ರಚನೆ ಸಮಯ</label>
+                <input type="text" id="modal_padya_created" class="form-control form-control-sm" readonly
+                  style="background-color: #f8f9fa;" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted">ಕೊನೆಯ ನವೀಕರಣ ಸಮಯ</label>
+                <input type="text" id="modal_padya_updated" class="form-control form-control-sm" readonly
+                  style="background-color: #f8f9fa;" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted">ನವೀಕರಿಸಿದ್ದು ಯಾರು</label>
+                <input type="text" id="modal_padya_updated_by" class="form-control form-control-sm"
+                  placeholder="(ಭವಿಷ್ಯತ್ತಿನ ಮಹತ್ವ ನಿರ್ಧಾರ)" />
+              </div>
             </div>
-            <div id="fileInfo" class="mt-3 alert alert-info d-none">
-              <strong>ಆಯ್ಕೆಯಾದ ಫೈಲ್:</strong> <span id="fileName"></span>
+
+            <div class="mt-3">
+              <label class="form-label">ಪದ್ಯ (ಅಗತ್ಯ)</label>
+              <textarea id="modal_padya_text" class="form-control" rows="5" placeholder="ಪದ್ಯ ನಮೂದಿಸಿ..."></textarea>
             </div>
             <div class="mt-3">
-              <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>ಫೈಲ್ ವಿವರಣೆ</h6>
-              <small class="text-muted">
-                <p><strong>ಬೇಕಾದ ಕಾಲಮ್‌ಗಳು:</strong> parva_number, parva_name, sandhi_number, sandhi_name, padya_number,
-                  padya</p>
-                <p><strong>ಐಚ್ಛಿಕ ಕಾಲಮ್‌ಗಳು:</strong> artha, tippani, gadya, suchane, pathantar, raga,
-                  gamaka_vachanakara_name</p>
-                <p><strong>ಗಮನಿಸಿ:</strong> padya_number ಖಾಲಿ ಇದ್ದರೆ, ಅದನ್ನು ಸ್ವಯಂ ರಚಿಸಲಾಗುತ್ತದೆ</p>
-                <p><strong>ಗಮಕ ವಿವರ:</strong> raga ಮತ್ತು gamaka_vachanakara_name ಸರಬರಾಜು ಮಾಡಿದರೆ, ಗಮಕ ವಾಚನ ರೆಕಾರ್ಡ್‌ಗಳು
-                  ರಚಿಸಲಾಗುತ್ತವೆ</p>
-              </small>
+              <label class="form-label">ಅರ್ಥ</label>
+              <textarea id="modal_padya_artha" class="form-control" rows="3" placeholder="ಅರ್ಥ ನಮೂದಿಸಿ..."></textarea>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">ಟಿಪ್ಪಣಿ</label>
+              <textarea id="modal_padya_tippani" class="form-control" rows="3"
+                placeholder="ಟಿಪ್ಪಣಿ ನಮೂದಿಸಿ..."></textarea>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">ಗದ್ಯ</label>
+              <textarea id="modal_padya_gadya" class="form-control" rows="3" placeholder="ಗದ್ಯ ನಮೂದಿಸಿ..."></textarea>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">ಸುಚನೆ</label>
+              <textarea id="modal_padya_suchane" class="form-control" rows="2"
+                placeholder="ಸುಚನೆ ನಮೂದಿಸಿ..."></textarea>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">ಪಠಾಂತರ</label>
+              <textarea id="modal_padya_pathantar" class="form-control" rows="2"
+                placeholder="ಪಠಾಂತರ ನಮೂದಿಸಿ..."></textarea>
+            </div>
+
+            <!-- GamakaVachana Section -->
+            <div class="mt-4 p-3 bg-light rounded border-start border-success border-5">
+              <h6 class="mb-3 text-success fw-bold">
+                <i class="bi bi-music me-2"></i>ಗಮಕ ವಾಚನ ವಿವರ
+              </h6>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">ಗಮಕ ವಾಚಕರ ಹೆಸರು</label>
+                  <input type="text" id="modal_padya_gamaka_vachakara_name" class="form-control"
+                    placeholder="ಪದ್ಯ ಪಾಡಿದವರ ಹೆಸರು ನಮೂದಿಸಿ..." />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">ರಾಗ</label>
+                  <input type="text" id="modal_padya_gamaka_raga" class="form-control" placeholder="ರಾಗ ನಮೂದಿಸಿ..." />
+                </div>
+              </div>
+
+
+              <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                  <label class="form-label">ಗಮಕ ವಾಚಕರ ಫೋಟೋ</label>
+                  <div class="card bg-light p-3">
+                    <!-- Photo Preview -->
+                    <div id="gamaka_photo_preview_container" class="text-center mb-3" style="display: none;">
+                      <img id="gamaka_photo_preview" src="" alt="Photo Preview"
+                        style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;" />
+                      <div class="mt-3">
+                        <small class="text-muted d-block fw-semibold">ಫೋಟೋ ಹೆಸರು:</small>
+                        <small id="gamaka_photo_filename" class="text-monospace bg-white p-2 d-inline-block rounded"
+                          style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;"></small>
+
+                        <small class="text-muted d-block fw-semibold mt-2">ಬ್ಯಾಕೆಂಡ್ ಪಥ:</small>
+                        <small id="gamaka_photo_path_display"
+                          class="text-monospace bg-white p-2 d-inline-block rounded text-success"
+                          style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;">
+                        </small>
+
+                        <div class="d-flex gap-2 justify-content-center mt-2">
+                          <button type="button" class="btn btn-sm btn-primary" id="replace_gamaka_photo_btn">
+                            <i class="bi bi-arrow-repeat me-1"></i>ಬದಲಾಯಿಸಿ
+                          </button>
+                          <button type="button" class="btn btn-sm btn-danger" id="clear_gamaka_photo_btn">
+                            <i class="bi bi-trash me-1"></i>ತೆಗೆದುಹಾಕಿ
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div id="gamaka_photo_upload_area"
+                      class="bg-white border-2 border-dashed border-primary p-3 text-center"
+                      style="cursor: pointer; transition: all 0.3s; border-radius: 8px;">
+                      <i class="bi bi-image display-6 text-primary mb-2 d-block"></i>
+                      <p class="text-muted mb-2">
+                        <strong>ಫೋಟೋ ಅಪ್‌ಲೋಡ್</strong><br>
+                        <small>ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</small>
+                      </p>
+                      <input type="file" id="modal_padya_gamaka_photo_input" class="form-control d-none"
+                        accept=".jpg,.jpeg,.webp,image/jpeg,image/webp" />
+                    </div>
+
+                    <!-- Hidden field to store photo path -->
+                    <input type="hidden" id="modal_padya_gamaka_photo_path" />
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">ಗಮಕ ವಾಚಕರ ಆಡಿಯೊ</label>
+                  <div class="card bg-light p-3">
+                    <!-- Audio Preview -->
+                    <div id="gamaka_audio_preview_container" class="text-center mb-3" style="display: none;">
+                      <div class="mb-3">
+                        <i class="bi bi-music-note display-6 text-info d-block mb-2"></i>
+                        <audio id="gamaka_audio_preview" controls
+                          style="width: 100%; max-width: 200px; border-radius: 8px;">
+                          <source src="" type="audio/mpeg" />
+                          ನಿಮ್ಮ ಬ್ರೌಜರ್ ಆಡಿಯೊ ಸಮರ್ಥನೀಯತೆಯನ್ನು ಬೆಂಬಲಿಸುವುದಿಲ್ಲ
+                        </audio>
+                      </div>
+                      <div class="mt-3">
+                        <small class="text-muted d-block fw-semibold">ಆಡಿಯೊ ಫೈಲ್:</small>
+                        <small id="gamaka_audio_filename" class="text-monospace bg-white p-2 d-inline-block rounded"
+                          style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;"></small>
+
+                        <small class="text-muted d-block fw-semibold mt-2">ಬ್ಯಾಕೆಂಡ್ ಪಥ:</small>
+                        <small id="gamaka_audio_path_display"
+                          class="text-monospace bg-white p-2 d-inline-block rounded text-success"
+                          style="max-width: 100%; word-break: break-all; display: block; margin-bottom: 10px; font-size: 0.75rem;">
+                        </small>
+
+                        <div class="d-flex gap-2 justify-content-center mt-2">
+                          <button type="button" class="btn btn-sm btn-primary" id="replace_gamaka_audio_btn">
+                            <i class="bi bi-arrow-repeat me-1"></i>ಬದಲಾಯಿಸಿ
+                          </button>
+                          <button type="button" class="btn btn-sm btn-danger" id="clear_gamaka_audio_btn">
+                            <i class="bi bi-trash me-1"></i>ತೆಗೆದುಹಾಕಿ
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div id="gamaka_audio_upload_area"
+                      class="bg-white border-2 border-dashed border-info p-3 text-center"
+                      style="cursor: pointer; transition: all 0.3s; border-radius: 8px;">
+                      <i class="bi bi-cloud-upload display-6 text-info mb-2 d-block"></i>
+                      <p class="text-muted mb-2">
+                        <strong>ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್</strong><br>
+                        <small>ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</small>
+                      </p>
+                      <input type="file" id="modal_padya_gamaka_audio_input" class="form-control d-none"
+                        accept="audio/*" />
+                    </div>
+
+                    <!-- Hidden field to store audio path -->
+                    <input type="hidden" id="modal_padya_gamaka_audio_path" />
+                    <!-- Hidden field to store gamaka entry ID -->
+                    <input type="hidden" id="modal_padya_gamaka_id" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              ರದ್ದು
+            </button>
+            <button type="button" class="btn btn-success" id="save-padya-btn">
+              ಸೇರಿಸಿ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-          <!-- Step 2: Processing -->
-          <div id="bulk-upload-step-2" class="bulk-upload-step d-none">
-            <h6 class="mb-3"><i class="bi bi-hourglass-split me-2"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ</h6>
-            <div class="progress mb-3" style="height: 25px;">
-              <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
-                role="progressbar" style="width: 0%">0%</div>
+    <!-- DELETE CONFIRM MODAL -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            ಈ ಐಟಂ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಇದನ್ನು ಮತ್ತೆ ತಿರಿಗಿ ತರಲು
+            ಸಾಧ್ಯವಿಲ್ಲ.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              ರದ್ದು
+            </button>
+            <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+              ಅಳಿಸಿ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BULK UPLOAD MODAL -->
+    <div class="modal fade" id="bulkUploadModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-cloud-upload me-2"></i>ಪದ್ಯ ಬಲ್ಕ್ ಅಪ್ಲೋಡ್
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+              id="bulkUploadClose"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Step 1: Upload Confirmation -->
+            <div id="bulk-upload-step-1" class="bulk-upload-step">
+              <h6 class="mb-3"><i class="bi bi-file-arrow-up me-2"></i>ಫೈಲ್ ಆಯ್ಕೆ</h6>
+              <div class="card bg-light p-4 text-center" style="border: 2px dashed #0d6efd; cursor: pointer;"
+                id="dropZone">
+                <i class="bi bi-cloud-upload display-4 text-primary mb-2"></i>
+                <p class="fw-semibold mb-2">CSV ಅಥವಾ Excel ಫೈಲ್ ಅನ್ನು ಇಲ್ಲಿ ಡ್ರ್ಯಾಗ್ ಮಾಡಿ</p>
+                <small class="text-muted">ಅಥವಾ ಕ್ಲಿಕ್ ಮಾಡಿ ಫೈಲ್ ಆಯ್ಕೆ ಮಾಡಲು</small>
+                <input type="file" id="bulkUploadFile" accept=".csv,.xlsx,.xls" style="display: none;" />
+              </div>
+              <div id="fileInfo" class="mt-3 alert alert-info d-none">
+                <strong>ಆಯ್ಕೆಯಾದ ಫೈಲ್:</strong> <span id="fileName"></span>
+              </div>
+              <div class="mt-3">
+                <h6 class="mb-2"><i class="bi bi-info-circle me-2"></i>ಫೈಲ್ ವಿವರಣೆ</h6>
+                <small class="text-muted">
+                  <p><strong>ಬೇಕಾದ ಕಾಲಮ್‌ಗಳು:</strong> parva_number, parva_name, sandhi_number, sandhi_name,
+                    padya_number,
+                    padya</p>
+                  <p><strong>ಐಚ್ಛಿಕ ಕಾಲಮ್‌ಗಳು:</strong> artha, tippani, gadya, suchane, pathantar, raga,
+                    gamaka_vachanakara_name</p>
+                  <p><strong>ಗಮನಿಸಿ:</strong> padya_number ಖಾಲಿ ಇದ್ದರೆ, ಅದನ್ನು ಸ್ವಯಂ ರಚಿಸಲಾಗುತ್ತದೆ</p>
+                  <p><strong>ಗಮಕ ವಿವರ:</strong> raga ಮತ್ತು gamaka_vachanakara_name ಸರಬರಾಜು ಮಾಡಿದರೆ, ಗಮಕ ವಾಚನ
+                    ರೆಕಾರ್ಡ್‌ಗಳು
+                    ರಚಿಸಲಾಗುತ್ತವೆ</p>
+                </small>
+              </div>
             </div>
-            <div id="uploadStatus" class="alert alert-info">
-              <i class="bi bi-clock-history me-2"></i><span id="statusText">ಅಪ್ಲೋಡ್ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...</span>
-            </div>
-            <div id="processingDetails" class="card bg-light p-3 small">
-              <div class="row">
-                <div class="col-6">
-                  <p class="mb-1"><strong>ಸಂಸ್ಕರಿಸಿದ ಸಾಲುಗಳು:</strong> <span id="processedRows">0</span></p>
-                  <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="parvasCreated">0</span></p>
+
+            <!-- Step 2: Processing -->
+            <div id="bulk-upload-step-2" class="bulk-upload-step d-none">
+              <h6 class="mb-3"><i class="bi bi-hourglass-split me-2"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ</h6>
+              <div class="progress mb-3" style="height: 25px;">
+                <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                  role="progressbar" style="width: 0%">0%</div>
+              </div>
+              <div id="uploadStatus" class="alert alert-info">
+                <i class="bi bi-clock-history me-2"></i><span id="statusText">ಅಪ್ಲೋಡ್ ಪ್ರಾರಂಭವಾಗುತ್ತಿದೆ...</span>
+              </div>
+              <div id="processingDetails" class="card bg-light p-3 small">
+                <div class="row">
+                  <div class="col-6">
+                    <p class="mb-1"><strong>ಸಂಸ್ಕರಿಸಿದ ಸಾಲುಗಳು:</strong> <span id="processedRows">0</span></p>
+                    <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="parvasCreated">0</span></p>
+                  </div>
+                  <div class="col-6">
+                    <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="sandhisCreated">0</span></p>
+                    <p class="mb-1"><strong>ದೋಷಗಳು:</strong> <span id="errorCount" class="text-danger">0</span></p>
+                  </div>
                 </div>
-                <div class="col-6">
-                  <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="sandhisCreated">0</span></p>
-                  <p class="mb-1"><strong>ದೋಷಗಳು:</strong> <span id="errorCount" class="text-danger">0</span></p>
+              </div>
+            </div>
+
+            <!-- Step 3: Results -->
+            <div id="bulk-upload-step-3" class="bulk-upload-step d-none">
+              <h6 class="mb-3"><i class="bi bi-check-circle me-2"></i>ಫಲಿತಾಂಶಗಳು</h6>
+              <div id="resultAlert" class="alert alert-success">
+                <h6 id="resultTitle" class="alert-heading">
+                  <i class="bi bi-check-circle me-2"></i>ಅಪ್ಲೋಡ್ ಯಶಸ್ವಿ
+                </h6>
+              </div>
+              <div class="card bg-light p-3 small">
+                <div class="row">
+                  <div class="col-6">
+                    <p class="mb-1"><strong>ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultCreated"
+                        class="badge bg-success">0</span></p>
+                    <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultParvasCreated"
+                        class="badge bg-info">0</span></p>
+                  </div>
+                  <div class="col-6">
+                    <p class="mb-1"><strong>ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ:</strong> <span id="resultUpdated"
+                        class="badge bg-info">0</span></p>
+                    <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultSandhisCreated"
+                        class="badge bg-info">0</span></p>
+                  </div>
+                </div>
+                <hr class="my-2" />
+                <p class="mb-0"><strong>ವಿಫಲ:</strong> <span id="resultFailed" class="text-danger">0</span></p>
+              </div>
+
+              <!-- Error Details -->
+              <div id="errorDetails" class="mt-3 d-none">
+                <h6 class="mb-2">
+                  <i class="bi bi-exclamation-triangle me-2"></i>ದೋಷ ವಿವರಣೆಗಳು
+                </h6>
+                <div id="errorList" class="alert alert-warning small" style="max-height: 250px; overflow-y: auto;">
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Step 3: Results -->
-          <div id="bulk-upload-step-3" class="bulk-upload-step d-none">
-            <h6 class="mb-3"><i class="bi bi-check-circle me-2"></i>ಫಲಿತಾಂಶಗಳು</h6>
-            <div id="resultAlert" class="alert alert-success">
-              <h6 id="resultTitle" class="alert-heading">
-                <i class="bi bi-check-circle me-2"></i>ಅಪ್ಲೋಡ್ ಯಶಸ್ವಿ
-              </h6>
-            </div>
-            <div class="card bg-light p-3 small">
-              <div class="row">
-                <div class="col-6">
-                  <p class="mb-1"><strong>ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultCreated"
-                      class="badge bg-success">0</span></p>
-                  <p class="mb-1"><strong>ಪರ್ವಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultParvasCreated"
-                      class="badge bg-info">0</span></p>
-                </div>
-                <div class="col-6">
-                  <p class="mb-1"><strong>ಅಪ್‌ಡೇಟ್ ಮಾಡಲಾಗಿದೆ:</strong> <span id="resultUpdated"
-                      class="badge bg-info">0</span></p>
-                  <p class="mb-1"><strong>ಸಂಧಿಗಳು ರಚಿಸಲಾಗಿದೆ:</strong> <span id="resultSandhisCreated"
-                      class="badge bg-info">0</span></p>
-                </div>
-              </div>
-              <hr class="my-2" />
-              <p class="mb-0"><strong>ವಿಫಲ:</strong> <span id="resultFailed" class="text-danger">0</span></p>
+          <div class="modal-footer">
+            <!-- Step 1 Footer -->
+            <div id="footer-step-1" class="footer-step w-100">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+              <button type="button" class="btn btn-primary" id="confirmUploadBtn" disabled>
+                <i class="bi bi-check-circle me-1"></i>ಆರಂಭಿಸಿ
+              </button>
             </div>
 
-            <!-- Error Details -->
-            <div id="errorDetails" class="mt-3 d-none">
-              <h6 class="mb-2">
-                <i class="bi bi-exclamation-triangle me-2"></i>ದೋಷ ವಿವರಣೆಗಳು
-              </h6>
-              <div id="errorList" class="alert alert-warning small" style="max-height: 250px; overflow-y: auto;">
-              </div>
+            <!-- Step 2 Footer -->
+            <div id="footer-step-2" class="footer-step d-none w-100">
+              <button type="button" class="btn btn-secondary" disabled>
+                <i class="bi bi-pause-fill me-1"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...
+              </button>
+            </div>
+
+            <!-- Step 3 Footer -->
+            <div id="footer-step-3" class="footer-step d-none w-100">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
+              <button type="button" class="btn btn-primary" id="downloadResultsBtn">
+                <i class="bi bi-download me-1"></i>ಫಲಿತಾಂಶಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
+              </button>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <!-- Step 1 Footer -->
-          <div id="footer-step-1" class="footer-step w-100">
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT MODAL -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="userModalTitle">
+              <i class="bi bi-person-plus me-2"></i>ಹೊಸ ಬಳಕೆದಾರ ಸೇರಿಸಿ
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಬಳಕೆದಾರ ಹೆಸರು <span class="text-danger">*</span></label>
+              <input type="text" id="modal_user_username" class="form-control" placeholder="ಬಳಕೆದಾರ ಹೆಸರು ನಮೂದಿಸಿ" />
+              <small class="text-muted d-block mt-1">3-255 ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಡಾಟ್, ಹಲಗೆ ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್
+                ಮಾತ್ರ</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಇಮೇಲ್ <span class="text-danger">*</span></label>
+              <input type="email" id="modal_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+              <input type="tel" id="modal_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ (ಐಚ್ಛಿಕ)" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಪಾಸ್‌ವರ್ಡ್ <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input type="password" id="modal_user_password" class="form-control" placeholder="ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" />
+                <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <small class="text-muted d-block mt-1">ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳು</small>
+            </div>
+            <div id="userModalError" class="alert alert-danger d-none" role="alert"></div>
+          </div>
+          <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
-            <button type="button" class="btn btn-primary" id="confirmUploadBtn" disabled>
-              <i class="bi bi-check-circle me-1"></i>ಆರಂಭಿಸಿ
-            </button>
-          </div>
-
-          <!-- Step 2 Footer -->
-          <div id="footer-step-2" class="footer-step d-none w-100">
-            <button type="button" class="btn btn-secondary" disabled>
-              <i class="bi bi-pause-fill me-1"></i>ಪ್ರಕ್ರಿಯೆ ಚಾಲನೆಯಲ್ಲಿದೆ...
-            </button>
-          </div>
-
-          <!-- Step 3 Footer -->
-          <div id="footer-step-3" class="footer-step d-none w-100">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
-            <button type="button" class="btn btn-primary" id="downloadResultsBtn">
-              <i class="bi bi-download me-1"></i>ಫಲಿತಾಂಶಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
+            <button type="button" class="btn btn-primary" id="save-user-btn">
+              <i class="bi bi-check-circle me-1"></i>ಸೇರಿಸಿ
             </button>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- USER MANAGEMENT MODAL -->
-  <div class="modal fade" id="userModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="userModalTitle">
-            <i class="bi bi-person-plus me-2"></i>ಹೊಸ ಬಳಕೆದಾರ ಸೇರಿಸಿ
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಬಳಕೆದಾರ ಹೆಸರು <span class="text-danger">*</span></label>
-            <input type="text" id="modal_user_username" class="form-control" placeholder="ಬಳಕೆದಾರ ಹೆಸರು ನಮೂದಿಸಿ" />
-            <small class="text-muted d-block mt-1">3-255 ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು, ಡಾಟ್, ಹಲಗೆ ಮತ್ತು ಅಂಡರ್‌ಸ್ಕೋರ್
-              ಮಾತ್ರ</small>
+    <!-- USER EDIT MODAL -->
+    <div class="modal fade" id="userEditModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title" id="userEditModalTitle">
+              <i class="bi bi-pencil-square me-2"></i>ಬಳಕೆದಾರ ಸಂಪಾದಿಸಿ
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಇಮೇಲ್ <span class="text-danger">*</span></label>
-            <input type="email" id="modal_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
-            <input type="tel" id="modal_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ (ಐಚ್ಛಿಕ)" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಪಾಸ್‌ವರ್ಡ್ <span class="text-danger">*</span></label>
-            <div class="input-group">
-              <input type="password" id="modal_user_password" class="form-control" placeholder="ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ" />
-              <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
-                <i class="bi bi-eye"></i>
-              </button>
+          <div class="modal-body">
+            <input type="hidden" id="modal_edit_user_username" />
+            <div class="alert alert-info" role="alert">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>ಬಳಕೆದಾರ ಹೆಸರು:</strong> <span id="edit_user_display_name" class="fw-bold"></span>
             </div>
-            <small class="text-muted d-block mt-1">ಕನಿಷ್ಠ 6 ಅಕ್ಷರಗಳು</small>
-          </div>
-          <div id="userModalError" class="alert alert-danger d-none" role="alert"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
-          <button type="button" class="btn btn-primary" id="save-user-btn">
-            <i class="bi bi-check-circle me-1"></i>ಸೇರಿಸಿ
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- USER EDIT MODAL -->
-  <div class="modal fade" id="userEditModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-info text-white">
-          <h5 class="modal-title" id="userEditModalTitle">
-            <i class="bi bi-pencil-square me-2"></i>ಬಳಕೆದಾರ ಸಂಪಾದಿಸಿ
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="modal_edit_user_username" />
-          <div class="alert alert-info" role="alert">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>ಬಳಕೆದಾರ ಹೆಸರು:</strong> <span id="edit_user_display_name" class="fw-bold"></span>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಇಮೇಲ್</label>
-            <input type="email" id="modal_edit_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
-            <input type="tel" id="modal_edit_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ (ಐಚ್ಛಿಕ)</label>
-            <div class="input-group">
-              <input type="password" id="modal_edit_user_password" class="form-control"
-                placeholder="ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ನಮೂದಿಸಿ" />
-              <button class="btn btn-outline-secondary" type="button" id="toggleEditPasswordBtn">
-                <i class="bi bi-eye"></i>
-              </button>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಇಮೇಲ್</label>
+              <input type="email" id="modal_edit_user_email" class="form-control" placeholder="ಇಮೇಲ್ ನಮೂದಿಸಿ" />
             </div>
-            <small class="text-muted d-block mt-1">ಖಾಲಿ ಬಿಟ್ಟರೆ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗುವುದಿಲ್ಲ</small>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಫೋನ್ ಸಂಖ್ಯೆ</label>
+              <input type="tel" id="modal_edit_user_phone" class="form-control" placeholder="ಫೋನ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ (ಐಚ್ಛಿಕ)</label>
+              <div class="input-group">
+                <input type="password" id="modal_edit_user_password" class="form-control"
+                  placeholder="ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಯಿಸಲು ನಮೂದಿಸಿ" />
+                <button class="btn btn-outline-secondary" type="button" id="toggleEditPasswordBtn">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <small class="text-muted d-block mt-1">ಖಾಲಿ ಬಿಟ್ಟರೆ ಪಾಸ್‌ವರ್ಡ್ ಬದಲಾಗುವುದಿಲ್ಲ</small>
+            </div>
+            <div id="userEditModalError" class="alert alert-danger d-none" role="alert"></div>
           </div>
-          <div id="userEditModalError" class="alert alert-danger d-none" role="alert"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
-          <button type="button" class="btn btn-info" id="save-user-edit-btn">
-            <i class="bi bi-check-circle me-1"></i>ಅಪ್‌ಡೇಟ್ ಮಾಡಿ
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- USER DELETE CONFIRM MODAL -->
-  <div class="modal fade" id="userDeleteConfirmModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-exclamation-triangle me-2"></i>ಬಳಕೆದಾರ ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p><strong>ಬಳಕೆದಾರ:</strong> <span id="delete_user_display_name" class="fw-bold text-danger"></span></p>
-          <p class="text-muted">ಈ ಬಳಕೆದಾರ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಈ ಕ್ರಿಯೆಯನ್ನು ತಿರಿಗಿ ತರಲು ಸಾಧ್ಯವಿಲ್ಲ.</p>
-        </div>
-        <div class="modal-footer">
-          <input type="hidden" id="delete_user_username" />
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
-          <button type="button" class="btn btn-danger" id="confirm-user-delete-btn">
-            <i class="bi bi-trash me-1"></i>ಅಳಿಸಿ
-          </button>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+            <button type="button" class="btn btn-info" id="save-user-edit-btn">
+              <i class="bi bi-check-circle me-1"></i>ಅಪ್‌ಡೇಟ್ ಮಾಡಿ
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
+    <!-- USER DELETE CONFIRM MODAL -->
+    <div class="modal fade" id="userDeleteConfirmModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-exclamation-triangle me-2"></i>ಬಳಕೆದಾರ ಅಳಿಸುವುದು ಖಚಿತಪಡಿಸಿ
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p><strong>ಬಳಕೆದಾರ:</strong> <span id="delete_user_display_name" class="fw-bold text-danger"></span></p>
+            <p class="text-muted">ಈ ಬಳಕೆದಾರ ಅಳಿಸಲು ನಿಶ್ಚಿತವಾಗಿ ಬಯಸುವಿರಾ? ಈ ಕ್ರಿಯೆಯನ್ನು ತಿರಿಗಿ ತರಲು ಸಾಧ್ಯವಿಲ್ಲ.</p>
+          </div>
+          <div class="modal-footer">
+            <input type="hidden" id="delete_user_username" />
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
+            <button type="button" class="btn btn-danger" id="confirm-user-delete-btn">
+              <i class="bi bi-trash me-1"></i>ಅಳಿಸಿ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Load dashboard as ES6 module (imports all dependencies) -->
-  <script type="module">
-    import { apiClient } from '{{ url_for("static", filename="js/restclient.js") }}';
-    import '{{ url_for("static", filename="js/endpoints.js") }}';
-    import '{{ url_for("static", filename="js/dashboard.js") }}';
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
 
-    console.log('[dashboard.html] ✓ All ES6 modules loaded successfully');
-  </script>
+    <!-- Load dashboard as ES6 module (imports all dependencies) -->
+    <script type="module">
+      import { apiClient } from '{{ url_for("static", filename="js/restclient.js") }}';
+      import '{{ url_for("static", filename="js/endpoints.js") }}';
+      import '{{ url_for("static", filename="js/dashboard.js") }}';
+
+      console.log('[dashboard.html] ✓ All ES6 modules loaded successfully');
+    </script>
 </body>
 
 </html>
