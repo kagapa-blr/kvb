@@ -1,5 +1,9 @@
+import { apiClient } from "../restclient.js";
+import { ApiEndpoints } from "../endpoints.js";
+
+
 $(document).ready(function () {
-    const API_BASE = "/api/v1/additional/gadesuchi";
+  
     let table;
 
     // Search handler (called only on button click or Enter)
@@ -27,7 +31,7 @@ $(document).ready(function () {
     }
 
     function loadParva(selectedParva = null) {
-        return $.get("/api/v1/parva")
+        return $.get(ApiEndpoints.PARVA.list)
             .done(function (res) {
                 const data = res.data || [];
                 const select = $("#parvaSelect");
@@ -57,7 +61,7 @@ $(document).ready(function () {
             return $.Deferred().resolve().promise();
         }
 
-        return $.get(`/api/v1/sandhi/by_parva/${parvaNum}`)
+        return $.get(ApiEndpoints.SANDHI.byParva(parvaNum))
             .done(function (res) {
                 const data = res.data || [];
                 sandhiSelect.html('<option value="">ಆಯ್ಕೆಮಾಡಿ...</option>');
@@ -109,7 +113,7 @@ $(document).ready(function () {
             searching: true,        // Keep search functionality
             dom: 'ltipr',          // NO 'f' = NO default search box
             ajax: {
-                url: `${API_BASE}/`,
+                url: `${ApiEndpoints.GADESUCHI_API.list}/`,
                 type: "GET",
                 data: function (d) {
                     // Custom search value passed from performSearch()
@@ -190,7 +194,7 @@ $(document).ready(function () {
         }
 
         const method = id ? "PUT" : "POST";
-        const url = id ? `${API_BASE}/${id}` : `${API_BASE}/`;
+        const url = id ? `${ApiEndpoints.GADESUCHI_API.get(id)}` : `${ApiEndpoints.GADESUCHI_API.create}`;
 
         $.ajax({
             url: url,
@@ -214,7 +218,7 @@ $(document).ready(function () {
     function editGade() {
         const id = $(this).data("id");
 
-        $.get(`${API_BASE}/${id}`)
+        $.get(`${ApiEndpoints.GADESUCHI_API.get(id)}`)
             .done(function (res) {
                 if (res.status !== "success") {
                     alert(res.message || "ದಾಖಲೆ ಸಿಗಲಿಲ್ಲ");
@@ -250,7 +254,7 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: `${API_BASE}/${id}`,
+            url: `${ApiEndpoints.GADESUCHI_API.delete(id)}`,
             type: "DELETE",
             success: function () {
                 table.ajax.reload(null, false);
@@ -269,7 +273,7 @@ $(document).ready(function () {
         formData.append("file", file);
 
         $.ajax({
-            url: `${API_BASE}/bulk-upload`,
+            url: `${ApiEndpoints.GADESUCHI_API.bulkUpload}`,
             type: "POST",
             data: formData,
             processData: false,

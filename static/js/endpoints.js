@@ -89,6 +89,19 @@ const ApiEndpoints = {
   ADDITIONAL_API: {
     akaradiSuchiApi: "/api/v1/additional/akaradi-suchi",
   },
+
+  GADESUCHI_API:{
+    list: "/api/v1/additional/gadesuchi",
+    create: "/api/v1/additional/gadesuchi",
+    get: (id) => `/api/v1/additional/gadesuchi/${id}`,
+    update: (id) => `/api/v1/additional/gadesuchi/${id}`,
+    delete: (id) => `/api/v1/additional/gadesuchi/${id}`,
+    bulkUpload: "/api/v1/additional/gadesuchi/bulk-upload",
+    
+  }
+
+
+
 };
 
 export { ApiEndpoints };
