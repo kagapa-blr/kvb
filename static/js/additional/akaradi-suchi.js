@@ -1,3 +1,6 @@
+import { apiClient } from "../restclient.js";
+import { ApiEndpoints } from "../endpoints.js";
+
 // =========================
 // Akaradi Suchi JavaScript
 // =========================
@@ -95,16 +98,13 @@ $(document).ready(function () {
 
     if (!word) return safeText;
 
-    const safeWord = escapeHtml(word).replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
+    const safeWord = escapeHtml(word).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const regex = new RegExp(`(${safeWord})`, "gi");
 
     return safeText.replace(
       regex,
-      '<span style="background-color: yellow;">$1</span>'
+      '<span style="background-color: yellow;">$1</span>',
     );
   }
 
@@ -114,24 +114,19 @@ $(document).ready(function () {
 
   async function loadParvaList() {
     try {
-      const res = await fetch("/api/v1/parva?limit=50");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const response = await res.json();
+      const response = await apiClient.get(ApiEndpoints.PARVA.list);
 
       if (response && response.data && Array.isArray(response.data)) {
         const dropdown = $("#parvaDropdown");
         const currentValue = dropdown.val();
 
         dropdown.empty();
-        dropdown.append(
-          '<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>'
-        );
+        dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
 
         response.data.forEach((parva) => {
           parvaMap[parva.parva_number] = parva.name;
           dropdown.append(
-            `<option value="${parva.parva_number}">${escapeHtml(parva.name)} (${parva.parva_number})</option>`
+            `<option value="${parva.parva_number}">${escapeHtml(parva.name)} (${parva.parva_number})</option>`,
           );
         });
 
@@ -172,17 +167,13 @@ $(document).ready(function () {
       filteredRows = filteredRows.filter(
         (item) =>
           item.padyafirstline &&
-          item.padyafirstline
-            .trim()
-            .startsWith(selectedLetter)
+          item.padyafirstline.trim().startsWith(selectedLetter),
       );
     }
 
     if (selectedParva) {
       filteredRows = filteredRows.filter(
-        (item) =>
-          String(item.parva_number) ===
-          String(selectedParva)
+        (item) => String(item.parva_number) === String(selectedParva),
       );
     }
 
@@ -198,30 +189,25 @@ $(document).ready(function () {
 
     showLoading();
 
-    const params = new URLSearchParams();
-
-    params.append("offset", 0);
-    params.append("limit", 100);
-
-    if (search && search.trim() !== "") {
-      params.append("search", search.trim());
-    }
-
-    // Add parva_number parameter if a parva is selected
-    if (selectedParva && selectedParva !== "") {
-      params.append("parva_number", selectedParva);
-    }
-
     try {
-      const url =
-        `/api/v1/additional/akaradi-suchi?${params.toString()}`;
+      const paramsObj = {
+        offset: 0,
+        limit: 100,
+      };
 
-      const res = await fetch(url);
+      if (search && search.trim() !== "") {
+        paramsObj.search = search.trim();
+      }
 
-      if (!res.ok)
-        throw new Error(`HTTP ${res.status}`);
+      // Add parva_number parameter if a parva is selected
+      if (selectedParva && selectedParva !== "") {
+        paramsObj.parva_number = selectedParva;
+      }
 
-      const response = await res.json();
+      const response = await apiClient.get(
+        ApiEndpoints.ADDITIONAL_API.akaradiSuchiApi,
+        { params: paramsObj }
+      );
 
       if (
         response &&
@@ -234,20 +220,14 @@ $(document).ready(function () {
 
         applyClientFilters();
       } else {
-        console.error(
-          "Unexpected response:",
-          response
-        );
+        console.error("Unexpected response:", response);
 
         allRows = [];
 
         table.clear().draw();
       }
     } catch (err) {
-      console.error(
-        "Error fetching akaradi suchi:",
-        err
-      );
+      console.error("Error fetching akaradi suchi:", err);
 
       allRows = [];
 
@@ -263,100 +243,86 @@ $(document).ready(function () {
   // Alphabet Click
   // =========================
 
-  $(".alphabet-grid span").on(
-    "click",
-    function () {
-      const clickedLetter = $(this)
-        .text()
-        .trim();
+  $(".alphabet-grid span").on("click", function () {
+    const clickedLetter = $(this).text().trim();
 
-      if (selectedLetter === clickedLetter) {
-        selectedLetter = "";
+    if (selectedLetter === clickedLetter) {
+      selectedLetter = "";
 
-        $(".alphabet-grid span")
-          .removeClass("active");
+      $(".alphabet-grid span").removeClass("active");
 
-        loadAkaradiSuchi("");
+      loadAkaradiSuchi("");
 
-        return;
-      }
-
-      selectedLetter = clickedLetter;
-
-      $(".alphabet-grid span")
-        .removeClass("active");
-
-      $(this).addClass("active");
-
-      loadAkaradiSuchi(selectedLetter);
+      return;
     }
-  );
+
+    selectedLetter = clickedLetter;
+
+    $(".alphabet-grid span").removeClass("active");
+
+    $(this).addClass("active");
+
+    loadAkaradiSuchi(selectedLetter);
+  });
 
   // =========================
   // Parva Filter
   // =========================
 
-  $("#parvaDropdown").on(
-    "change",
-    function () {
-      selectedParva = $(this).val();
-      
-      // Reload data with the selected parva filter
-      selectedLetter = "";
-      $(".alphabet-grid span").removeClass("active");
-      loadAkaradiSuchi("");
-    }
-  );
+  $("#parvaDropdown").on("change", function () {
+    selectedParva = $(this).val();
+
+    // Reload data with the selected parva filter
+    selectedLetter = "";
+    $(".alphabet-grid span").removeClass("active");
+    loadAkaradiSuchi("");
+  });
 
   // =========================
   // Row Click → Load Padya
   // =========================
 
-  $("#dictionaryTable tbody").on(
-    "click",
-    "tr",
-    async function () {
-      const rowData =
-        table.row(this).data();
+  $("#dictionaryTable tbody").on("click", "tr", async function () {
+    const rowData = table.row(this).data();
 
-      if (!rowData) return;
+    if (!rowData) return;
 
-      showLoading();
+    showLoading();
 
-      $("#padyaModal .modal-body").html(`
+    $("#padyaModal .modal-body").html(`
         <div class="text-center">
           <div class="spinner-border"></div>
         </div>
       `);
 
-      $("#padyaModal").modal("show");
+    $("#padyaModal").modal("show");
 
-      const apiUrl =
-        `/api/v1/padya/${rowData.parva_number}/${rowData.sandhi_number}/${rowData.padya_number}`;
+    const apiUrl = `${ApiEndpoints.PADYA.list}/${rowData.parva_number}/${rowData.sandhi_number}/${rowData.padya_number}`;
 
-      try {
-        const res = await fetch(apiUrl);
+    try {
+      const data = await apiClient.get(apiUrl);
 
-        if (!res.ok)
-          throw new Error(
-            `HTTP ${res.status}`
-          );
+      // Format gamaka_vachana if present
+      let gamakaHtml = "-";
+      if (
+        data.gamaka_vachana &&
+        Array.isArray(data.gamaka_vachana) &&
+        data.gamaka_vachana.length > 0
+      ) {
+        gamakaHtml = data.gamaka_vachana
+          .map((item) => `<div class="badge bg-info">${escapeHtml(item)}</div>`)
+          .join(" ");
+      }
 
-        const data = await res.json();
+      // Format dates
+      const createdDate = data.created
+        ? new Date(data.created).toLocaleDateString("kn-IN")
+        : "-";
+      const updatedDate = data.updated
+        ? new Date(data.updated).toLocaleDateString("kn-IN")
+        : "-";
 
-        // Format gamaka_vachana if present
-        let gamakaHtml = "-";
-        if (data.gamaka_vachana && Array.isArray(data.gamaka_vachana) && data.gamaka_vachana.length > 0) {
-          gamakaHtml = data.gamaka_vachana
-            .map(item => `<div class="badge bg-info">${escapeHtml(item)}</div>`)
-            .join(" ");
-        }
-
-        // Format dates
-        const createdDate = data.created ? new Date(data.created).toLocaleDateString('kn-IN') : "-";
-        const updatedDate = data.updated ? new Date(data.updated).toLocaleDateString('kn-IN') : "-";
-
-        $("#padyaModal .modal-body").html(`
+      $("#padyaModal .modal-body").html(`
           <div style="max-height: 70vh; overflow-y: auto;">
             <!-- Header Information -->
             <div class="mb-3 pb-3 border-bottom">
@@ -378,10 +344,7 @@ $(document).ready(function () {
             <p class="mb-3">
               <strong>ಪದ್ಯ:</strong>
               <pre class="p-2 bg-light rounded mt-2">
-${highlightWord(
-  data.padya || "",
-  rowData.padyafirstline || ""
-)}
+${highlightWord(data.padya || "", rowData.padyafirstline || "")}
               </pre>
             </p>
 
@@ -412,10 +375,7 @@ ${highlightWord(
             <!-- Tippani (Notes) -->
             <p class="mb-3">
               <strong>ಟಿಪ್ಪಣಿ:</strong><br>
-              ${escapeHtml(
-                (data.tippani || "-")
-                  .replace("nan", "-")
-              )}
+              ${escapeHtml((data.tippani || "-").replace("nan", "-"))}
             </p>
 
             <!-- Pathantar (Textual Variations) -->
@@ -425,12 +385,16 @@ ${highlightWord(
             </p>
 
             <!-- Suchane (Suggestions/Notes) -->
-            ${data.suchane ? `
+            ${
+              data.suchane
+                ? `
             <p class="mb-3">
               <strong>ಸೂಚನೆ:</strong><br>
               ${escapeHtml(data.suchane)}
             </p>
-            ` : ""}
+            `
+                : ""
+            }
 
             <!-- Metadata -->
             <div class="mt-3 pt-3 border-top">
@@ -442,33 +406,26 @@ ${highlightWord(
             </div>
           </div>
         `);
-      } catch (err) {
-        console.error(
-          "Error loading padya:",
-          err
-        );
+    } catch (err) {
+      console.error("Error loading padya:", err);
 
-        $("#padyaModal .modal-body").html(`
+      $("#padyaModal .modal-body").html(`
           <div class="alert alert-danger">
             ಪದ್ಯದ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ
           </div>
         `);
-      } finally {
-        hideLoading();
-      }
+    } finally {
+      hideLoading();
     }
-  );
+  });
 
   // =========================
   // Back Button
   // =========================
 
-  $(".back-button").on(
-    "click",
-    function () {
-      window.history.back();
-    }
-  );
+  $(".back-button").on("click", function () {
+    window.history.back();
+  });
 
   // =========================
   // Initial Load
