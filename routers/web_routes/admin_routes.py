@@ -25,3 +25,8 @@ def dashboard():
     ACCESS: Only authenticated users can access this endpoint
     """
     return render_template('admin/dashboard.html')
+@admin_ui_routes.route('/admin/gadesuchigalu')
+@login_required
+def gadesuchigalu():
+
+    return render_template('admin/gadesuchigalu.html')

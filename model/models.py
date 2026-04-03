@@ -254,7 +254,6 @@ class AkaradiSuchi(db.Model):
 # -------------------------------------------------------
 # GADE SUCHIGALU
 # -------------------------------------------------------
-
 class GadeSuchigalu(db.Model):
     __tablename__ = "gade_suchigalu"
     __table_args__ = (
@@ -271,9 +270,10 @@ class GadeSuchigalu(db.Model):
     parva_number = db.Column(db.Integer, nullable=False, index=True)
     padya_number = db.Column(db.Integer, nullable=False, index=True)
 
+    description = db.Column(db.Text, nullable=True)  # Optional description
+
     def __repr__(self):
         return f"<GadeSuchigalu {self.gade_suchi[:30]}>"
-
 
 # -------------------------------------------------------
 # TIPPANI

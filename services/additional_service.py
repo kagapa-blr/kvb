@@ -1,6 +1,9 @@
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
-from model.models import AkaradiSuchi, Padya, Sandhi, db, Parva
+
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
+
+from model.models import AkaradiSuchi, Padya, Sandhi, db, Parva, GadeSuchigalu
 
 
 class AkaradiSuchiService:
@@ -230,16 +233,301 @@ class AkaradiSuchiService:
         except SQLAlchemyError as e:
             raise e
 
+
 class LekhanaSuchiService:
     def __init__(self):
         pass
 
+class GadeSuchigaluService:
 
-class GadegalaSuchiService:
-    def __init__(self):
-        pass
+    # =========================
+    # SERIALIZER
+    # =========================
+    @staticmethod
+    def _serialize(record):
+        if not record:
+            return None
 
+        return {
+            "id": record.id,
+            "gade_suchi": record.gade_suchi,
+            "description": record.description,
+            "parva_name": getattr(record, "parva_name", None),
+            "parva_number": record.parva_number,
+            "sandhi_name": getattr(record, "sandhi_name", None),
+            "sandhi_number": record.sandhi_number,
+            "padya_number": record.padya_number,
+        }
 
+    # =========================
+    # INTERNAL NORMALIZATION
+    # =========================
+    @staticmethod
+    def _normalize_string(value):
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            value = str(value)
+        value = value.strip()
+        return value if value != "" else None
+
+    @staticmethod
+    def _normalize_int(value, field_name):
+        if value is None or value == "":
+            return None, None
+
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            return None, f"{field_name} must be an integer"
+
+        if value <= 0:
+            return None, f"{field_name} must be greater than 0"
+
+        return value, None
+
+    # =========================
+    # INTERNAL VALIDATION
+    # =========================
+    @staticmethod
+    def _validate_required_text(gade_suchi):
+        if not gade_suchi:
+            return False, "gade_suchi is required"
+        return True, None
+
+    @staticmethod
+    def _validate_location_numbers(parva_number=None, sandhi_number=None, padya_number=None):
+        fields = {
+            "parva_number": parva_number,
+            "sandhi_number": sandhi_number,
+            "padya_number": padya_number,
+        }
+
+        for field_name, value in fields.items():
+            if value is None:
+                return False, f"{field_name} is required"
+            if not isinstance(value, int):
+                return False, f"{field_name} must be an integer"
+            if value <= 0:
+                return False, f"{field_name} must be greater than 0"
+
+        return True, None
+
+    # =========================
+    # CREATE
+    # =========================
+    @staticmethod
+    def create(**kwargs):
+        try:
+            kwargs["gade_suchi"] = GadeSuchigaluService._normalize_string(kwargs.get("gade_suchi"))
+            kwargs["description"] = GadeSuchigaluService._normalize_string(kwargs.get("description"))
+
+            kwargs["parva_number"], error = GadeSuchigaluService._normalize_int(
+                kwargs.get("parva_number"), "parva_number"
+            )
+            if error:
+                return {"status": "error", "message": error}
+
+            kwargs["sandhi_number"], error = GadeSuchigaluService._normalize_int(
+                kwargs.get("sandhi_number"), "sandhi_number"
+            )
+            if error:
+                return {"status": "error", "message": error}
+
+            kwargs["padya_number"], error = GadeSuchigaluService._normalize_int(
+                kwargs.get("padya_number"), "padya_number"
+            )
+            if error:
+                return {"status": "error", "message": error}
+
+            is_valid, error = GadeSuchigaluService._validate_required_text(kwargs.get("gade_suchi"))
+            if not is_valid:
+                return {"status": "error", "message": error}
+
+            is_valid, error = GadeSuchigaluService._validate_location_numbers(
+                kwargs.get("parva_number"),
+                kwargs.get("sandhi_number"),
+                kwargs.get("padya_number")
+            )
+            if not is_valid:
+                return {"status": "error", "message": error}
+
+            record = GadeSuchigalu(
+                gade_suchi=kwargs.get("gade_suchi"),
+                description=kwargs.get("description"),
+                parva_number=kwargs.get("parva_number"),
+                sandhi_number=kwargs.get("sandhi_number"),
+                padya_number=kwargs.get("padya_number"),
+            )
+
+            db.session.add(record)
+            db.session.commit()
+            db.session.refresh(record)
+
+            return {
+                "status": "success",
+                "message": "GadeSuchigalu created successfully",
+                "data": GadeSuchigaluService._serialize(record)
+            }
+
+        except IntegrityError:
+            db.session.rollback()
+            return {"status": "error", "message": "Duplicate entry detected"}
+        except Exception as e:
+            db.session.rollback()
+            return {"status": "error", "message": str(e)}
+
+    # =========================
+    # GET BY ID
+    # =========================
+    @staticmethod
+    def get_by_id(record_id: int):
+        try:
+            record = db.session.get(GadeSuchigalu, record_id)
+            if record is None:
+                return {"status": "error", "message": "Record not found", "data": None}
+
+            return {
+                "status": "success",
+                "data": GadeSuchigaluService._serialize(record)
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e), "data": None}
+
+    # =========================
+    # SEARCH + LIST
+    # =========================
+    @staticmethod
+    def get_gade_suchigalu(offset=0, limit=10, search=None, parva_number=None):
+        try:
+            if limit <= 0:
+                limit = 10
+            if limit > 100:
+                limit = 100
+            if offset < 0:
+                offset = 0
+
+            query = db.session.query(GadeSuchigalu)
+
+            if parva_number is not None:
+                query = query.filter(GadeSuchigalu.parva_number == parva_number)
+
+            if search:
+                search = search.strip()
+                query = query.filter(GadeSuchigalu.gade_suchi.ilike(f"{search}%"))
+
+            total = query.order_by(None).count()
+
+            results = query.order_by(
+                GadeSuchigalu.parva_number.asc(),
+                GadeSuchigalu.sandhi_number.asc(),
+                GadeSuchigalu.padya_number.asc(),
+                GadeSuchigalu.gade_suchi.asc()
+            ).offset(offset).limit(limit).all()
+
+            data = [GadeSuchigaluService._serialize(r) for r in results]
+
+            return {
+                "status": "success",
+                "data": data,
+                "total": total,
+                "limit": limit,
+                "offset": offset
+            }
+
+        except Exception as e:
+            return {"status": "error", "message": str(e), "data": []}
+
+    # =========================
+    # UPDATE
+    # =========================
+    @staticmethod
+    def update(record_id: int, **kwargs):
+        try:
+            record = db.session.get(GadeSuchigalu, record_id)
+            if not record:
+                return {"status": "error", "message": "Record not found"}
+
+            if "gade_suchi" in kwargs:
+                kwargs["gade_suchi"] = GadeSuchigaluService._normalize_string(kwargs.get("gade_suchi"))
+            if "description" in kwargs:
+                kwargs["description"] = GadeSuchigaluService._normalize_string(kwargs.get("description"))
+
+            if "parva_number" in kwargs:
+                kwargs["parva_number"], error = GadeSuchigaluService._normalize_int(
+                    kwargs.get("parva_number"), "parva_number"
+                )
+                if error:
+                    return {"status": "error", "message": error}
+
+            if "sandhi_number" in kwargs:
+                kwargs["sandhi_number"], error = GadeSuchigaluService._normalize_int(
+                    kwargs.get("sandhi_number"), "sandhi_number"
+                )
+                if error:
+                    return {"status": "error", "message": error}
+
+            if "padya_number" in kwargs:
+                kwargs["padya_number"], error = GadeSuchigaluService._normalize_int(
+                    kwargs.get("padya_number"), "padya_number"
+                )
+                if error:
+                    return {"status": "error", "message": error}
+
+            final_gade_suchi = kwargs.get("gade_suchi", record.gade_suchi)
+            final_parva_number = kwargs.get("parva_number", record.parva_number)
+            final_sandhi_number = kwargs.get("sandhi_number", record.sandhi_number)
+            final_padya_number = kwargs.get("padya_number", record.padya_number)
+
+            is_valid, error = GadeSuchigaluService._validate_required_text(final_gade_suchi)
+            if not is_valid:
+                return {"status": "error", "message": error}
+
+            is_valid, error = GadeSuchigaluService._validate_location_numbers(
+                final_parva_number,
+                final_sandhi_number,
+                final_padya_number
+            )
+            if not is_valid:
+                return {"status": "error", "message": error}
+
+            for key, value in kwargs.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+
+            db.session.commit()
+            db.session.refresh(record)
+
+            return {
+                "status": "success",
+                "message": "GadeSuchigalu updated successfully",
+                "data": GadeSuchigaluService._serialize(record)
+            }
+
+        except IntegrityError:
+            db.session.rollback()
+            return {"status": "error", "message": "Duplicate entry detected"}
+        except Exception as e:
+            db.session.rollback()
+            return {"status": "error", "message": str(e)}
+
+    # =========================
+    # DELETE
+    # =========================
+    @staticmethod
+    def delete(record_id: int):
+        try:
+            record = db.session.get(GadeSuchigalu, record_id)
+            if not record:
+                return {"status": "error", "message": "Record not found"}
+
+            db.session.delete(record)
+            db.session.commit()
+
+            return {"status": "success", "message": "GadeSuchigalu deleted successfully"}
+        except Exception as e:
+            db.session.rollback()
+            return {"status": "error", "message": str(e)}
 class ArthakoshaService:
     def __init__(self):
         pass

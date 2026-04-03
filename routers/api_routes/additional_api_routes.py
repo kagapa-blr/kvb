@@ -1,13 +1,16 @@
 import logging
+
 from flask import Blueprint
-from services.additional_service import AkaradiSuchiService
 from flask import request, jsonify
+
+from services.additional_service import AkaradiSuchiService, GadeSuchigaluService
 
 logger = logging.getLogger(__name__)
 additional_api_routes = Blueprint("additional_api", __name__)
 
 # ===========SERVICES Instances
 akaradi_suchi_service = AkaradiSuchiService()
+
 
 
 @additional_api_routes.route("/akaradi-suchi", methods=["GET"])
@@ -63,3 +66,4 @@ def get_akaradi_suchi():
             "status": "error",
             "message": str(e)
         }), 500
+

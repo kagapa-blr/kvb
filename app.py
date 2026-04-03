@@ -11,6 +11,7 @@ from config.db_config import get_config
 from model.models import db, User, Parva, Sandhi, Padya
 from routers.additional import additonal_bp
 from routers.api_routes.additional_api_routes import additional_api_routes
+from routers.api_routes.gadesuchi_api_routes import gadesuchi_api_routes
 
 from routers.gamaka_vachana import gamaka_bp
 from routers.parvya import parvya_bp
@@ -66,9 +67,10 @@ app.register_blueprint(additonal_bp)
 app.register_blueprint(users_bp, url_prefix='/api/v1/users')
 app.register_blueprint(gamaka_bp, url_prefix='/api')
 app.register_blueprint(admin_ui_routes)
+app.register_blueprint(additonal_web_routes, url_prefix='/additional')
 
-app.register_blueprint(additonal_web_routes,url_prefix='/additional')
-app.register_blueprint(additional_api_routes,url_prefix='/api/v1/additional')
+app.register_blueprint(additional_api_routes, url_prefix='/api/v1/additional')
+app.register_blueprint(gadesuchi_api_routes, url_prefix='/api/v1/additional/gadesuchi')
 
 
 @app.before_request
@@ -80,7 +82,6 @@ def make_session_permanent():
 @app.route('/')
 def index():
     return render_template('test.html')
-
 
 
 @app.route('/kavya')
@@ -167,7 +168,7 @@ def login():
             if user and user.check_password(password):
                 # Generate JWT token
                 jwt_token = JWTService.generate_token(user.id, user.username)
-                
+
                 # Set session
                 session['user_id'] = user.id
                 session['username'] = user.username
@@ -233,13 +234,13 @@ def forgot_password():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Request body required'}), 400
-        
+
         username = data.get('username', '').strip()
         if not username:
             return jsonify({'error': 'Username required'}), 400
-        
+
         success, result = request_password_reset(username)
-        
+
         if success:
             return jsonify({
                 'message': 'Password reset token generated',
@@ -247,7 +248,7 @@ def forgot_password():
             }), 200
         else:
             return jsonify({'error': result}), 400
-    
+
     except Exception as e:
         logger.error(f'Error in forgot_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
@@ -274,20 +275,20 @@ def reset_password():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Request body required'}), 400
-        
+
         reset_token = data.get('reset_token', '').strip()
         new_password = data.get('new_password', '').strip()
-        
+
         if not reset_token or not new_password:
             return jsonify({'error': 'Reset token and new password required'}), 400
-        
+
         success, result = reset_password_with_token(reset_token, new_password)
-        
+
         if success:
             return jsonify({'message': result}), 200
         else:
             return jsonify({'error': result}), 400
-    
+
     except Exception as e:
         logger.error(f'Error in reset_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
@@ -316,21 +317,21 @@ def change_password_route():
         data = request.get_json()
         if not data:
             return jsonify({'error': 'Request body required'}), 400
-        
+
         username = request.username
         old_password = data.get('old_password', '').strip()
         new_password = data.get('new_password', '').strip()
-        
+
         if not old_password or not new_password:
             return jsonify({'error': 'Old and new passwords required'}), 400
-        
+
         success, result = change_password(username, old_password, new_password)
-        
+
         if success:
             return jsonify({'message': result}), 200
         else:
             return jsonify({'error': result}), 400
-    
+
     except Exception as e:
         logger.error(f'Error in change_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
@@ -350,11 +351,11 @@ def profile():
     try:
         user_id = session.get('user_id')
         user = User.query.get(user_id)
-        
+
         if not user:
             flash('User not found', 'error')
             return redirect(url_for('logout'))
-        
+
         if request.method == 'GET':
             # Display profile with existing data
             return render_template(
@@ -365,37 +366,37 @@ def profile():
                     'phone_number': user.phone_number or ''
                 }
             )
-        
+
         elif request.method == 'POST':
             # Update profile
             email = request.form.get('email', '').strip() or None
             phone = request.form.get('phone_number', '').strip() or None
             new_password = request.form.get('new_password', '').strip()
             old_password = request.form.get('old_password', '').strip()
-            
+
             # Update email and phone
             if email:
                 user.email = email
             if phone:
                 user.phone_number = phone
-            
+
             # Update password if provided
             if new_password:
                 if not old_password:
                     flash('Current password required to change password', 'error')
                     return redirect(url_for('profile'))
-                
+
                 if not user.check_password(old_password):
                     flash('Current password is incorrect', 'error')
                     return redirect(url_for('profile'))
-                
+
                 user.set_password(new_password)
-            
+
             db.session.commit()
             logger.info(f'User {user.username} profile updated')
             flash('Profile updated successfully', 'success')
             return redirect(url_for('admin'))
-        
+
     except Exception as e:
         logger.error(f'Error in profile route: {str(e)}')
         flash(f'Error: {str(e)}', 'error')
