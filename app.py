@@ -81,12 +81,12 @@ def make_session_permanent():
 
 @app.route('/')
 def index():
-    return render_template('test.html')
+    return render_template('kavya.html')
 
 
 @app.route('/kavya')
 def kavya():
-    return render_template('test.html')
+    return render_template('kavya.html')
 
 
 @app.route('/admin')

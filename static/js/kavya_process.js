@@ -2,7 +2,7 @@
  * Kavya Process - Modern ES6 Module
  * Loads and displays padya data with gamaka metadata
  * 
- * Usage: import into test.html via ES6 module
+ * Usage: import into kavya.html via ES6 module
  */
 
 import { apiClient } from './restclient.js';
