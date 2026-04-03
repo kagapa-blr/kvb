@@ -1,320 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="kn">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ಗಾದೆಗಳ ಸೂಚಿ</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ಗಾದೆ ಸೂಚಿ - ನಿರ್ವಹಣೆ</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/noto-sans-kannada.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/noto-sans-kannada.css') }}" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
 
-  <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Kannada", sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
 
-  <style>
-    :root {
-      --bg-primary: #ffdab9;
-      --bg-secondary: #ffe4b5;
-      --shadow-light: rgba(0, 0, 0, 0.08);
-      --card-bg: #ffffff;
-      --border-soft: #e9ecef;
-      --hover-bg: #f8f9ff;
-      --active-bg: #e3f2fd;
-      --active-border: #2196f3;
-      --active-text: #2196f3;
-      --header-bg: linear-gradient(180deg, #f8f9fa 0%, #f1f3f4 100%);
-      --modal-header-bg: #667eea;
-    }
+        .main-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 2rem;
+        }
 
-    body {
-      background: var(--bg-primary);
-      font-family: 'NudiParijatha', 'Noto Sans Kannada', Arial, sans-serif;
-    }
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 14px;
+            margin-bottom: 2rem;
+        }
 
-    .container-main {
-      max-width: 1200px;
-      margin: 24px auto;
-      padding: 24px;
-      background: var(--bg-secondary);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px var(--shadow-light);
-    }
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
 
-    .title-box {
-      position: relative;
-      padding: 24px;
-      border-radius: 8px;
-      background: var(--bg-primary);
-      margin-bottom: 32px;
-      text-align: center;
-    }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
 
-    .back-button {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-    }
+        .modal-content {
+            border-radius: 12px;
+        }
 
-    .alphabet-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin: 32px 0;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px var(--shadow-light);
-    }
+        .btn-sm {
+            font-size: 0.8rem;
+        }
 
-    .alphabet-grid span {
-      font-size: 1.25rem;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 10px 16px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      background: #fff;
-      transition: all 0.2s ease;
-      user-select: none;
-    }
+        .empty-text {
+            font-style: italic;
+            color: #6c757d;
+        }
 
-    .alphabet-grid span:hover,
-    .alphabet-grid span.active {
-      background: var(--active-bg);
-      border-color: var(--active-border);
-      color: var(--active-text);
-    }
-
-    .dropdown-center {
-      text-align: center;
-      margin: 24px 0;
-    }
-
-    .dropdown-center .form-select {
-      display: inline-block;
-      width: 420px;
-      max-width: 90%;
-      border-radius: 8px;
-      border: 2px solid #e0e0e0;
-      font-size: 1rem;
-      padding: 10px 16px;
-      background-color: #fff;
-    }
-
-    .table-container {
-      background: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px var(--shadow-light);
-      margin: 24px 0;
-    }
-
-    .table-clean {
-      font-size: 0.95rem;
-      margin-bottom: 0 !important;
-    }
-
-    .table-clean thead th {
-      font-weight: 600;
-      color: #495057;
-      background: var(--header-bg);
-      border: none;
-      padding: 16px 12px;
-      border-bottom: 3px solid #dee2e6;
-      cursor: pointer;
-    }
-
-    .table-clean tbody td {
-      padding: 14px 12px;
-      border-color: #f1f3f4;
-      vertical-align: middle;
-      font-weight: 500;
-    }
-
-    .table-clean tbody tr:hover {
-      background: var(--hover-bg);
-      cursor: pointer;
-    }
-
-    .footer {
-      font-size: 0.9rem;
-      color: #6c757d;
-      margin: 24px 0;
-      text-align: center;
-      font-weight: 500;
-    }
-
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      backdrop-filter: blur(2px);
-    }
-
-    .loading-box {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px 24px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-      text-align: center;
-      min-width: 180px;
-    }
-
-    .modal-dialog {
-      max-width: 95vw;
-      margin: 2rem auto;
-    }
-
-    .modal-content {
-      border-radius: 12px;
-      border: none;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    }
-
-    .modal-header {
-      background: var(--modal-header-bg);
-      color: #fff;
-      border-radius: 12px 12px 0 0;
-      padding: 20px;
-    }
-
-    .modal-body {
-      padding: 24px;
-      background: #fff;
-      max-height: 75vh;
-      overflow-y: auto;
-    }
-
-    .first-line {
-      background: linear-gradient(90deg, #fff3cd 0%, #ffeaa7 100%);
-      padding: 16px !important;
-      border-left: 5px solid #f39c12;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 1.05em;
-      margin: 12px 0;
-      box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
-    }
-
-    pre.padya-block {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 10px;
-    }
-
-    .badge-wrap .badge {
-      margin-right: 6px;
-      margin-bottom: 6px;
-    }
-
-    @media (max-width: 768px) {
-      .container-main {
-        margin: 12px;
-        padding: 16px;
-      }
-
-      .title-box {
-        padding: 20px 16px 56px;
-      }
-
-      .back-button {
-        top: auto;
-        right: 50%;
-        bottom: 12px;
-        transform: translateX(50%);
-      }
-
-      .alphabet-grid span {
-        font-size: 1rem;
-        padding: 8px 12px;
-      }
-    }
-  </style>
-  <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/axios.min.js"></script>
-  <script type="module" src="{{ url_for('static', filename='js/additional/akaradi-suchi.js') }}"></script>
-  <script type="module" src="{{ url_for('static', filename='js/additional/gadesuchi.js') }}"></script>
+        .custom-search {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+    </style>
 </head>
 
 <body>
-  {% include 'navbar.html' %}
+    <div class="container-fluid">
+        <div class="main-container">
+            <div class="card header-card">
+                <h2>ಗಾದೆ ಸೂಚಿ ನಿರ್ವಹಣೆ</h2>
+                <small class="opacity-75">ಕನ್ನಡ ಸಾಹಿತ್ಯ - ಡೇಟಾಬೇಸ್ ನಿರ್ವಹಣೆ</small>
+            </div>
 
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-box">
-      <div class="spinner-border text-primary mb-2" role="status"></div>
-      <div>ಲೋಡ್ ಆಗುತ್ತಿದೆ...</div>
-    </div>
-  </div>
+            <!-- Action buttons row -->
+            <div class="row g-3 mb-4 align-items-end">
+                <div class="col-md-2">
+                    <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#gadeModal">
+                        <i class="bi bi-plus-circle me-1"></i> ಹೊಸ ಗಾದೆ
+                    </button>
+                </div>
 
-  <div class="container container-main">
-    <div class="title-box">
-      <h1 class="mb-0 fs-1 fw-bold">ಗಾದೆಗಳ ಸೂಚಿ</h1>
-      <button class="btn btn-outline-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
-    </div>
+                <div class="col-md-2">
+                    <button class="btn btn-info btn-sm w-100" id="downloadTemplate">
+                        <i class="bi bi-download me-1"></i> CSV Template
+                    </button>
+                </div>
 
-    <div class="alphabet-grid">
-      <span>ಅ</span><span>ಆ</span><span>ಇ</span><span>ಈ</span><span>ಉ</span><span>ಊ</span><span>ಋ</span><span>ಎ</span><span>ಏ</span><span>ಐ</span><span>ಒ</span>
-      <span>ಓ</span><span>ಔ</span><span>ಕ</span><span>ಖ</span><span>ಗ</span><span>ಘ</span><span>ಙ</span><span>ಚ</span><span>ಛ</span><span>ಜ</span><span>ಝ</span>
-      <span>ಞ</span><span>ಟ</span><span>ಠ</span><span>ಡ</span><span>ಢ</span><span>ಣ</span><span>ತ</span><span>ಥ</span><span>ದ</span><span>ಧ</span>
-      <span>ನ</span><span>ಪ</span><span>ಫ</span><span>ಬ</span><span>ಭ</span><span>ಮ</span><span>ಯ</span><span>ರ</span><span>ಲ</span><span>ವ</span>
-      <span>ಶ</span><span>ಷ</span>
-    </div>
+                <div class="col-md-3">
+                    <input type="file" id="csvUpload" class="form-control form-control-sm" accept=".csv" />
+                </div>
 
-    <div class="dropdown-center">
-      <select id="parvaDropdown" class="form-select">
-        <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>
-      </select>
-    </div>
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary btn-sm w-100" id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
 
-    <div class="table-container">
-      <table id="dictionaryTable" class="table table-clean mb-0">
-        <thead>
-          <tr>
-            <th>ಗಾದೆ</th>
-            <th>ಪರ್ವ ಸಂಖ್ಯೆ</th>
-            <th>ಸಂಧಿ ಸಂಖ್ಯೆ</th>
-            <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+                <div class="col-md-3"></div>
+            </div>
 
-    <div class="footer">
-      <strong>ಸೂಚನೆ:</strong> ಪದ್ಯದ ವಿವರಣೆ ಓದಲು ಗಾದೆಯನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
-    </div>
-  </div>
+            <!-- ✅ SINGLE Custom Search (DataTables default HIDDEN) -->
+            <div class="custom-search">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="search" id="searchInput" class="form-control"
+                                placeholder="ಗಾದೆ ಹೆಸರು, ಪರ್ವ, ಸಂಧಿ ಅಥವಾ ಪದ್ಯ ಹುಡುಕಿ..." />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" id="searchBtn" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i> ಹುಡುಕಿ
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-  <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel">
-    <div class="modal-dialog modal-xl">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title fw-bold mb-0" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="table-responsive">
+                <table id="gadeTable" class="table table-hover table-sm" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ಗಾದೆ ಹೆಸರು</th>
+                            <th>ಪರ್ವ</th>
+                            <th>ಸಂಧಿ</th>
+                            <th>ಪದ್ಯ</th>
+                            <th style="width:120px">ಕ್ರಿಯೆಗಳು</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
-        <div class="modal-body">
-          <div id="modalContent"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
-        </div>
-      </div>
     </div>
-  </div>
 
-  {% include 'footer.html' %}
+    <!-- Modal -->
+    <div class="modal fade" id="gadeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">ಹೊಸ ಗಾದೆ ಸೇರಿಸಿ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="gadeId" />
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಪರ್ವ <span class="text-danger">*</span></label>
+                            <select id="parvaSelect" class="form-select form-select-sm">
+                                <option value="">ಆಯ್ಕೆಮಾಡಿ...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಸಂಧಿ <span class="text-danger">*</span></label>
+                            <select id="sandhiSelect" class="form-select form-select-sm" disabled>
+                                <option value="">ಮೊದಲು ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಪದ್ಯ <span class="text-danger">*</span></label>
+                            <select id="padyaSelect" class="form-select form-select-sm" disabled>
+                                <option value="">ಮೊದಲು ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಗಾದೆ ಹೆಸರು <span class="text-danger">*</span></label>
+                            <input type="text" id="gadeName" class="form-control form-control-sm"
+                                placeholder="ಗಾದೆ ಹೆಸರು" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label class="form-label">ಟಿಪ್ಪಣಿ</label>
+                            <textarea id="description" class="form-control form-control-sm" rows="2"
+                                placeholder="ಸಂದರ್ಭ ಅಥವಾ ವಿವರಣೆ..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ರದ್ದು</button>
+                    <button type="button" class="btn btn-success btn-sm" id="saveBtn">ಸೇರಿಸಿ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+      <!-- Axios for HTTP requests (CDN) -->
+     <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/admin/gadesuchi.js') }}"></script>
 </body>
+
 </html>
