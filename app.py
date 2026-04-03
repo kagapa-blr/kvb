@@ -1,29 +1,30 @@
+import logging
 import os
 import secrets
-import logging
 from datetime import timedelta
-from dotenv import load_dotenv
 
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash, jsonify
-from werkzeug.security import check_password_hash
+from dotenv import load_dotenv
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from sqlalchemy import or_
 
-from config import db_config
 from config.db_config import get_config
 from model.models import db, User, Parva, Sandhi, Padya
 from routers.additional import additonal_bp
+from routers.api_routes.additional_api_routes import additional_api_routes
+
 from routers.gamaka_vachana import gamaka_bp
 from routers.parvya import parvya_bp
 from routers.users import users_bp
+from routers.web_routes.additional_web_routes import additonal_web_routes
 from routers.web_routes.admin_routes import admin_ui_routes
 from services.additional_service import AkaradiSuchiService
+from services.jwt_service import JWTService, require_jwt
 from services.user_management import (
-    create_or_update_default_user, 
+    create_or_update_default_user,
     request_password_reset,
     reset_password_with_token,
     change_password
 )
-from services.jwt_service import JWTService, require_jwt
 from utils.auth_decorator import login_required
 
 # Configure logging
@@ -66,6 +67,9 @@ app.register_blueprint(users_bp, url_prefix='/api/v1/users')
 app.register_blueprint(gamaka_bp, url_prefix='/api')
 app.register_blueprint(admin_ui_routes)
 
+app.register_blueprint(additonal_web_routes,url_prefix='/additional')
+app.register_blueprint(additional_api_routes,url_prefix='/api/v1/additional')
+
 
 @app.before_request
 def make_session_permanent():
@@ -77,25 +81,6 @@ def make_session_permanent():
 def index():
     return render_template('test.html')
 
-
-@app.route('/chitra-samputa')
-def chitra_samputa():
-    image_folder = os.path.join(app.static_folder, 'images', 'chitra_samputa')
-
-    image_files = [
-        f for f in os.listdir(image_folder)
-        if os.path.isfile(os.path.join(image_folder, f))
-    ]
-
-    return render_template('chitra_samputa.html', images=image_files)
-
-
-@app.route('/static/images/chitra_samputa/<filename>')
-def get_image(filename):
-    return send_from_directory(
-        os.path.join(app.static_folder, 'images', 'chitra_samputa'),
-        filename
-    )
 
 
 @app.route('/kavya')

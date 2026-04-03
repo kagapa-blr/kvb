@@ -73,13 +73,13 @@ const ApiEndpoints = {
 
     // Additional content endpoints
     ADDITIONAL: {
-        akaradiSuchi: '/api/additional/akaradi-suchi',
-        gadeSuchi: '/api/additional/gade-suchi',
-        lekanSuchi: '/api/additional/lekhan-suchi',
-        arhaKosha: '/api/additional/artha-kosha',
-        vishayaParividi: '/api/additional/vishaya-parividi',
-        anubanch: '/api/additional/anuband',
-        tippani: '/api/additional/tippani',
+        akaradiSuchi: '/additional/akaradi-suchi',
+        gadeSuchi: '/additional/gade-suchi',
+        lekanSuchi: '/additional/lekhan-suchi',
+        arhaKosha: '/additional/artha-kosha',
+        vishayaParividi: '/additional/vishaya-parividi',
+        anubanch: '/additional/anuband',
+        tippani: '/additional/tippani',
     },
 };
 

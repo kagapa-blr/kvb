@@ -5,16 +5,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ಅಕಾರಾದಿ ಸೂಚಿ</title>
+
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css' ) }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/font-awesome-6.6.0-all.min.css') }}" />
+  <link href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" rel="stylesheet" />
+
   <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.js') }}"></script>
   <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <link href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" rel="stylesheet" />
   <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
-  <!-- Axios for HTTP requests (CDN) - MUST load before restclient.js -->
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="{{ url_for('static', filename='js/restclient.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/additional/akaradi-suchi.js') }}"></script>
 
   <style>
     body {
@@ -60,10 +61,13 @@
       border-radius: 5px;
       background-color: #fff;
       border: 1px solid #ddd;
+      user-select: none;
     }
 
-    .alphabet-grid span:hover {
+    .alphabet-grid span:hover,
+    .alphabet-grid span.active {
       background-color: #f0f0f0;
+      border-color: #999;
     }
 
     .word-dropdown {
@@ -75,6 +79,7 @@
 
     .word-table {
       border: 1px solid #dee2e6;
+      background: #fff;
     }
 
     .footer {
@@ -95,7 +100,6 @@
       background-color: #f8f9fa;
     }
 
-    /* Modal styling */
     .modal-dialog {
       max-width: 90%;
       margin: 1.75rem auto;
@@ -117,43 +121,48 @@
       border-bottom: 1px solid #dee2e6;
     }
 
-    .modal-title {
-      font-size: 1.5rem;
-    }
-
     .modal-body {
       background-color: #f8f9fa;
       color: #495057;
-    }
-
-    .modal-footer {
-      border-top: 1px solid #dee2e6;
-      background-color: #f8f9fa;
-    }
-
-    .modal-footer .btn-secondary {
-      background-color: #6c757d;
-      border-color: #6c757d;
-    }
-
-    .modal-footer .btn-secondary:hover {
-      background-color: #5a6268;
-      border-color: #545b62;
     }
 
     .spinner-border {
       width: 3rem;
       height: 3rem;
     }
+
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
+      margin: 0;
+    }
   </style>
 </head>
 
 <body>
   {% include 'navbar.html' %}
+
+  <div id="loadingOverlay">
+    <div class="spinner-border text-dark" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
   <div class="container">
     <div class="title">
       <h1 class="text-center mb-0">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
-      <button class="btn btn-sm btn-secondary back-button">
+      <button class="btn btn-sm btn-secondary back-button" type="button">
         ಹಿಂದಿನ ಪುಟಕ್ಕೆ
       </button>
     </div>
@@ -168,304 +177,49 @@
 
     <div class="word-dropdown">
       <select id="parvaDropdown" class="form-select">
-        <!-- <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option> -->
+        <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>
       </select>
     </div>
 
     <div class="word-table">
-      <table id="dictionaryTable" class="table table-striped">
+      <table id="dictionaryTable" class="table table-striped mb-0">
         <thead>
           <tr>
             <th>ಪದ್ಯದ ಮೊದಲ ಸಾಲು</th>
-            <th>ಪರ್ವ</th>
-            <th>ಸಂಧಿಯ ಹೆಸರು</th>
+            <th>ಪರ್ವ ಸಂಖ್ಯೆ</th>
+            <th>ಸಂಧಿ ಸಂಖ್ಯೆ</th>
             <th>ಪದ್ಯದ ಸಂಖ್ಯೆ</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Data will be populated here -->
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
 
     <div class="footer text-center">
-      <strong>ಸೂಚನೆ: </strong>ಪದ್ಯದ ವಿವರಣೆ ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
+      <strong>ಸೂಚನೆ:</strong>
+      ಪದ್ಯದ ವಿವರಣೆ ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
     </div>
   </div>
 
-  <!-- Modal for displaying padya details -->
   <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>
-            <strong>Padyafirstline:</strong> <span id="padyafirstline"></span>
-          </p>
-          <p><strong>Pathantar:</strong> <span id="pathantar"></span></p>
-          <p><strong>Gadya:</strong> <span id="gadya"></span></p>
-          <p><strong>Tippani:</strong> <span id="tippani"></span></p>
-          <p><strong>Artha:</strong> <span id="artha"></span></p>
-          <p><strong>Suchane:</strong> <span id="suchane"></span></p>
-          <p><strong>Padya:</strong> <span id="padya"></span></p>
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-            Close
-          </button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-
-
-    $(document).ready(function () {
-      showLoading();
-      // Initialize DataTable
-      const table = $("#dictionaryTable").DataTable({
-        language: {
-          search: "ಹುಡುಕು:",
-          lengthMenu: "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
-          info: "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
-          paginate: {
-            first: "ಮೊದಲ",
-            last: "ಕೊನೆಯ",
-            next: "ಮುಂದಿನ",
-            previous: "ಹಿಂದಿನ",
-          },
-          sortAscending: ": ಆರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-          sortDescending: ": ಅವರೋಹಣ ಕ್ರಮದಲ್ಲಿ ವಿಂಗಡಿಸಲು ಸಕ್ರಿಯಗೊಳಿಸಿ",
-        },
-        pageLength: 5,
-        lengthMenu: [5, 10, 25, 50, 100, 500, 1000],
-        ordering: true,
-        order: [[0, "asc"]],
-        columns: [
-          { data: "padyafirstline", title: "ಪದ್ಯದ ಮೊದಲ ಸಾಲು" },
-          { data: "parva_name", title: "ಪರ್ವ" },
-          { data: "sandhi_name", title: "ಸಂಧಿಯ ಹೆಸರು" },
-          { data: "padya_number", title: "ಪದ್ಯದ ಸಂಖ್ಯೆ" },
-        ],
-      });
-
-      allParva = new Set();
-      // Fetch data from Flask API and populate the table
-      window.ApiClient.get("/akaradi-suchi/data")
-        .then((data) => {
-          if (Array.isArray(data)) {
-            table.clear().rows.add(data).draw();
-
-            // Extract unique parva names and remove extra spaces
-            data.forEach((item) => allParva.add(item.parva_name.trim()));
-
-            // Populate dropdown
-            const dropdown = $("#parvaDropdown");
-            dropdown.append('<option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>');
-            allParva.forEach((parva) => {
-              dropdown.append(`<option value="${parva}">${parva}</option>`);
-            });
-
-            hideLoading();
-          } else {
-            hideLoading();
-            console.error("Unexpected data format:", data);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-          hideLoading();
-        });
-
-
-      $("#parvaDropdown").on("change", function () {
-        const selectedType = $(this).val();
-        showLoading(); // Show loading indicator
-
-        // Perform filtering and then hide the loading indicator
-        table
-          .column(1)
-          .search(selectedType === "ಎಲ್ಲಾ ಪರ್ವಗಳು" ? "" : selectedType)
-          .draw();
-
-        // Use setTimeout to ensure hideLoading is called after drawing the table
-        setTimeout(() => {
-          hideLoading();
-        }, 100); // Adjust timeout as needed if there's still a delay
-      });
-
-      // // Filter by alphabet
-      // $(".alphabet-grid span").on("click", function () {
-      //   const letter = $(this).text();
-      //   table.search(letter).draw();
-      // });
-
-
-      // Event handler for alphabet click
-      $(".alphabet-grid span").on("click", function () {
-        const letter = $(this).text();  // Get the clicked Kannada letter
-
-        // Clear any previous search
-        table.search('').draw();
-
-        // Update the custom filter and redraw the table
-        updateFilter(letter);
-      });
-
-      // Function to update the custom filter
-      function updateFilter(letter) {
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-          const padyafirstline = data[0]; // Adjust this if the property name is different
-
-          if (!letter) {
-            return true; // If no letter is selected, show all rows
-          }
-
-          // Check if padyafirstline exists and starts with the letter
-          if (padyafirstline && padyafirstline.length > 0) {
-            const firstChar = padyafirstline.charAt(0);
-            console.log(firstChar)
-            if (letter == firstChar) {
-              console.log('match found', padyafirstline)
-            }
-            return firstChar === letter;
-          }
-          return false;
-        });
-
-        // Redraw the table with the new filter
-        table.search(letter).draw();
-
-        // Remove the custom filter function after use to avoid unintended filtering in future searches
-        $.fn.dataTable.ext.search.pop();
-      }
-
-
-
-
-      // Handle row click event to show modal
-      $("#dictionaryTable tbody").on("click", "tr", function () {
-        showLoading();
-        const rowData = table.row(this).data();
-        if (rowData) {
-          const parva = rowData.parva_number;
-          const sandhi = rowData.sandhi_number;
-          const padya = rowData.padya_number;
-
-          const parva_name = rowData.parva_name;
-
-          // Construct the URL for the API call
-          const apiUrl = `/api/padya/by_parva_sandhi_padya/${parva}/${sandhi}/${padya}`;
-
-          // Show loading spinner
-          $("#padyaModal .modal-body").html(
-            '<div class="spinner-border" role="status"><span class="sr-only">Loading...</span></div>'
-          );
-
-          // Fetch details from the API
-          window.ApiClient.get(apiUrl)
-            .then((data) => {
-              if (data) {
-                // Populate modal with data
-                $("#padyafirstline").text(data.padyafirstline || "N/A");
-                $("#pathantar").text(data.pathantar || "N/A");
-                $("#gadya").text(data.gadya || "N/A");
-                $("#tippani").text(data.tippani || "N/A");
-                $("#artha").text(data.artha || "N/A");
-                $("#suchane").text(data.suchane || "N/A");
-                $("#padya").text(data.padya || "N/A");
-
-                hideLoading();
-                // Hide loading spinner and show modal
-                $("#padyaModal .modal-body").html(`
-
-
-              <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${parva_name}</h5>
-              <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${sandhi}</p>
-              <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${padya}</p>
-              <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(
-                  data.padya,
-                  rowData.padyafirstline
-                )}</pre></p>
-              <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${data.artha}</p>
-              <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${data.tippani.replace(
-                  "nan",
-                  "-"
-                )}</p>
-              <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${data.pathantar}</p>
-              `);
-                $("#padyaModal").modal("show");
-              } else {
-                console.error("No data returned from API");
-                // Show error message in modal
-                $("#padyaModal .modal-body").html(
-                  "<p>Error: No data returned from the API.</p>"
-                );
-                $("#padyaModal").modal("show");
-              }
-            })
-            .catch((error) => {
-              console.error("Error fetching padya details:", error);
-              // Show error message in modal
-              $("#padyaModal .modal-body").html(
-                "<p>Error fetching padya details. Please try again later.</p>"
-              );
-              $("#padyaModal").modal("show");
-            });
-        }
-      });
-
-      // Function to escape HTML entities
-      function escapeHtml(text) {
-        const map = {
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#039;",
-        };
-        return text.replace(/[&<>"']/g, (m) => map[m]);
-      }
-
-      // Function to highlight the search word with a yellow background
-      function highlightWord(text, word) {
-        console.log("line", word);
-        const escapedWord = escapeHtml(word);
-        const regex = new RegExp(`(${escapedWord})`, "gi"); // Case-insensitive search
-        return escapeHtml(text).replace(
-          regex,
-          '<span style="background-color: yellow;">$1</span>'
-        );
-      }
-
-      // Back button functionality
-      $(".back-button").on("click", function () {
-        alert("Navigating to previous page");
-      });
-    });
-
-    // Function to show loading overlay
-    function showLoading() {
-      const loadingElement = document.getElementById("loadingOverlay");
-      if (loadingElement) {
-        loadingElement.style.display = "flex";
-      }
-    }
-
-    // Function to hide loading overlay
-    function hideLoading() {
-      const loadingElement = document.getElementById("loadingOverlay");
-      if (loadingElement) {
-        loadingElement.style.display = "none";
-      }
-    }
-  </script>
-
-  {% include 'footer.html' %}
 </body>
-
 </html>

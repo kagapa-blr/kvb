@@ -1,27 +1,8 @@
-/**
- * ADDITIONAL BUTTONS - ApiClient (Axios) Based Implementation
- * 
- * PURPOSE: Handle modal content loading and search functionality
- * Uses centralized ApiClient (restclient.js) for all API communications
- * 
- * BENEFITS:
- * - Base URL support (works with subdirectory deployments like /kvb/)
- * - Axios error handling and request/response interceptors
- * - Centralized timeout and header management
- * - Proper Promise-based error handling
- * 
- * DEPENDENCIES:
- * - restclient.js (ApiClient singleton with Axios)
- * - endpoints.js (ApiEndpoints centralized configuration)
- * - Bootstrap 5 (for Modal)
- */
-
 import { apiClient } from './restclient.js';
 import { ApiEndpoints } from './endpoints.js';
 
 /**
  * Open a modal by ID
- * @param {string} modalId - ID of the modal element
  */
 function openModal(modalId) {
     const modalElement = document.getElementById(modalId);
@@ -33,46 +14,36 @@ function openModal(modalId) {
     }
 }
 
-// Expose to window so inline onclick handlers can use it
 window.openModal = openModal;
 
-/**
- * Initialize additional buttons and search functionality
- */
 function initializeAdditionalButtons() {
-    // Endpoints for buttons - first button opens modal, rest load via API
-    // Using centralized ApiEndpoints for all API references
     const additionalPages = {
         'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
-        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.akaradiSuchi },
-        'ಲೇಖನ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.lekanSuchi },
-        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.gadeSuchi },
-        'ಅರ್ಥ ಕೋಶ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.arhaKosha },
-        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.vishayaParividi },
-        'ಗಮಕ': { type: 'api', endpoint: ApiEndpoints.GAMAKA.list },
-        'ಅನುಬಂಧ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.anubanch },
-        'ಟಿಪ್ಪಣಿ': { type: 'api', endpoint: ApiEndpoints.ADDITIONAL.tippani }
+
+        'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.akaradiSuchi },
+        'ಲೇಖನ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.lekanSuchi },
+        'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.gadeSuchi },
+        'ಅರ್ಥ ಕೋಶ': { type: 'page', url: ApiEndpoints.ADDITIONAL.arhaKosha },
+        'ವಿಷಯ ಪರಿವಿಡಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.vishayaParividi },
+        'ಗಮಕ': { type: 'page', url: ApiEndpoints.GAMAKA.list },
+        'ಅನುಬಂಧ': { type: 'page', url: ApiEndpoints.ADDITIONAL.anubanch },
+        'ಟಿಪ್ಪಣಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.tippani }
     };
 
-    let searchWord = "";
-    const modalInstances = {}; // Cache modal instances
-    const modalContentCache = {}; // Cache loaded modal content
-    
-    /**
-     * Search for a word and display results
-     * Uses apiClient.get with centralized ApiEndpoints for padya search
-     */
+    let searchWord = '';
+    const modalInstances = {};
+    const modalContentCache = {};
+
+    // Search for a word and show results
     async function searchByWord(word) {
         try {
             console.log(`[AdditionalButtons] Searching for: ${word}`);
-
-            // Use apiClient.get with ApiEndpoints - with query params
             console.log(`[AdditionalButtons] Calling endpoint: ${ApiEndpoints.PADYA.search}`);
+
             const data = await apiClient.get(ApiEndpoints.PADYA.search, {
                 params: { keyword: word }
             });
 
-            // Data is already parsed JSON from apiClient interceptor
             displaySearchResults(data);
         } catch (error) {
             const errorMessage = error.userMessage || error.message || 'Error fetching search results';
@@ -85,9 +56,7 @@ function initializeAdditionalButtons() {
         }
     }
 
-    /**
-     * Display search results with highlighting
-     */
+    // Format and display search results with highlighting
     function displaySearchResults(results) {
         const resultsContainer = document.getElementById('search-results');
         if (!resultsContainer) {
@@ -95,12 +64,11 @@ function initializeAdditionalButtons() {
             return;
         }
 
-        resultsContainer.innerHTML = ''; // Clear previous results
+        resultsContainer.innerHTML = '';
 
-        // Handle both array format and object with data property
-        let resultsArray = Array.isArray(results) ? results : (results.data || []);
+        const resultsArray = Array.isArray(results) ? results : (results.data || []);
         const totalResults = resultsArray.length;
-        
+
         const resultsSummary = document.createElement('div');
         resultsSummary.className = 'mb-3';
         resultsSummary.innerHTML = `
@@ -114,29 +82,30 @@ function initializeAdditionalButtons() {
                     No results found.
                 </li>
             `;
-        } else {
-            resultsArray.forEach(result => {
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item mb-3 p-3 border rounded shadow-sm';
-
-                listItem.innerHTML = `
-                    <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name || result.parva_number}</h5>
-                    <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_number}</p>
-                    <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number}</p>
-                    <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${highlightWord(result.padya || '', searchWord)}</pre></p>
-                    <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha || '-'}</p>
-                    <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${(result.tippani || '-').replace('nan', '-')}</p>
-                    <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar || '-'}</p>
-                `;
-
-                resultsContainer.appendChild(listItem);
-            });
+            return;
         }
+
+        resultsArray.forEach(result => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item mb-3 p-3 border rounded shadow-sm';
+
+            const padyaHtml = highlightWord(result.padya || '', searchWord);
+
+            listItem.innerHTML = `
+                <h5 class="mb-2"><strong>ಪರ್ವದ ಹೆಸರು:</strong> ${result.parva_name || result.parva_number || '-'}</h5>
+                <p class="mb-1"><strong>ಸಂಧಿ ಸಂಖ್ಯೆ:</strong> ${result.sandhi_number || '-'}</p>
+                <p class="mb-1"><strong>ಪದ್ಯ ಸಂಖ್ಯೆ:</strong> ${result.padya_number || '-'}</p>
+                <p class="mb-3"><strong>ಪದ್ಯ:</strong> <pre class="p-2 rounded">${padyaHtml}</pre></p>
+                <p class="mb-1"><strong>ಅರ್ಥ:</strong> ${result.artha || '-'}</p>
+                <p class="mb-1"><strong>ಟಿಪ್ಪಣಿ:</strong> ${(result.tippani || '-').replace('nan', '-')}</p>
+                <p class="mb-1"><strong>ಪಾಠಾಂತರ:</strong> ${result.pathantar || '-'}</p>
+            `;
+
+            resultsContainer.appendChild(listItem);
+        });
     }
 
-    /**
-     * Function to escape HTML entities
-     */
+    // Escape HTML entities for safe innerHTML rendering
     function escapeHtml(text) {
         const map = {
             '&': '&amp;',
@@ -145,25 +114,23 @@ function initializeAdditionalButtons() {
             '"': '&quot;',
             "'": '&#039;'
         };
-        return text.replace(/[&<>"']/g, (m) => map[m]);
+        return String(text).replace(/[&<>"']/g, m => map[m] || m);
     }
 
-    /**
-     * Function to highlight the search word with a yellow background
-     */
+    // Highlight search word in text with yellow background
     function highlightWord(text, word) {
-        const escapedWord = escapeHtml(word);
-        const regex = new RegExp(`(${escapedWord})`, 'gi'); // Case-insensitive search
-        return escapeHtml(text).replace(regex, '<span style="background-color: yellow;">$1</span>');
+        if (!word || word.trim() === '') return escapeHtml(text);
+
+        const escapedText = escapeHtml(text);
+        const escapedWord = escapeHtml(word.trim()).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedWord})`, 'gi');
+
+        return escapedText.replace(regex, '<span style="background-color: yellow;">$1</span>');
     }
 
-    /**
-     * Load additional content via API and display in modal
-     * Uses apiClient with centralized ApiEndpoints
-     */
+    // Load API content and show in modal (if you still need API modal)
     async function loadAdditionalContent(buttonText, config) {
         try {
-            // Check if content is already cached
             if (modalContentCache[buttonText]) {
                 console.log(`[AdditionalButtons] Using cached content for: ${buttonText}`);
                 displayAdditionalContentInModal(buttonText, modalContentCache[buttonText]);
@@ -171,145 +138,117 @@ function initializeAdditionalButtons() {
             }
 
             console.log(`[AdditionalButtons] Loading content for: ${buttonText}`);
-            
-            // Get the endpoint from config
-            const endpoint = config.endpoint();
+
+            const endpoint = config.endpoint; // endpoint is string, not a function
             console.log(`[AdditionalButtons] API endpoint: ${endpoint}`);
 
-            // Use apiClient.get with the endpoint
             const response = await apiClient.get(endpoint);
-            
-            // Store in cache for future use
+
             modalContentCache[buttonText] = response;
-            
-            // Display in appropriate modal
             displayAdditionalContentInModal(buttonText, response);
         } catch (error) {
             const errorMessage = error.userMessage || error.message || 'Error loading content';
             console.error(`[AdditionalButtons] ${errorMessage}:`, error);
-            
-            // Show error in modal
             showErrorModal(buttonText, errorMessage);
         }
     }
 
-    /**
-     * Display additional content in modal based on button text
-     */
+    // Common mapping from button text to modal ID
+    const buttonToModalMap = {
+        'ಅಕಾರಾದಿ ಸೂಚಿ': 'modal2',
+        'ಲೇಖನ ಸೂಚಿ': 'modal3',
+        'ಗಾದೆಗಳ ಸೂಚಿ': 'modal4',
+        'ಅರ್ಥ ಕೋಶ': 'modal5',
+        'ವಿಷಯ ಪರಿವಿಡಿ': 'modal6',
+        'ಗಮಕ': 'modal7',
+        'ಅನುಬಂಧ': 'modal8',
+        'ಟಿಪ್ಪಣಿ': 'modal9'
+    };
+
+    // Display API‑loaded content in the corresponding modal
     function displayAdditionalContentInModal(buttonText, response) {
-        let modalId = null;
-        let htmlContent = '';
-
-        // Map button text to modal ID
-        const buttonToModalMap = {
-            'ಅಕಾರಾದಿ ಸೂಚಿ': 'modal2',
-            'ಲೇಖನ ಸೂಚಿ': 'modal3',
-            'ಗಾದೆಗಳ ಸೂಚಿ': 'modal4',
-            'ಅರ್ಥ ಕೋಶ': 'modal5',
-            'ವಿಷಯ ಪರಿವಿಡಿ': 'modal6',
-            'ಗಮಕ': 'modal7',
-            'ಅನುಬಂಧ': 'modal8',
-            'ಟಿಪ್ಪಣಿ': 'modal9'
-        };
-
-        modalId = buttonToModalMap[buttonText];
+        const modalId = buttonToModalMap[buttonText];
         if (!modalId) {
             console.error(`[AdditionalButtons] No modal mapping for: ${buttonText}`);
             return;
         }
 
-        // Format response data into HTML
+        let htmlContent = '';
+
         try {
-            // Handle different response formats
-            let dataArray = Array.isArray(response) ? response : (response.data || response);
-            
+            const dataArray = Array.isArray(response) ? response : (response.data || response);
+
             if (Array.isArray(dataArray)) {
-                // List view for array responses
                 htmlContent = '<div class="content-list">';
                 dataArray.forEach((item, index) => {
                     htmlContent += `
                         <div class="content-item p-3 mb-3 border rounded" style="background: #f9f9f9;">
-                            <h6>${item.name || item.title || `Item ${index + 1}`}</h6>
-                            <p class="text-muted small">${item.description || item.content || ''}</p>
+                            <h6>${escapeHtml(item.name || item.title || `Item ${index + 1}`)}</h6>
+                            <p class="text-muted small">${escapeHtml(item.description || item.content || '')}</p>
                         </div>
                     `;
                 });
                 htmlContent += '</div>';
-            } else if (typeof dataArray === 'object') {
-                // Object view for single item responses
+            } else if (typeof dataArray === 'object' && dataArray !== null) {
                 htmlContent = `
                     <div class="content-item p-3">
-                        <h5>${dataArray.name || dataArray.title || 'Content'}</h5>
-                        <p>${dataArray.description || dataArray.content || 'No content available'}</p>
+                        <h5>${escapeHtml(dataArray.name || dataArray.title || 'Content')}</h5>
+                        <p>${escapeHtml(dataArray.description || dataArray.content || 'No content available')}</p>
                     </div>
                 `;
             } else {
-                // Plain text/HTML response
-                htmlContent = `<div class="p-3">${dataArray}</div>`;
+                htmlContent = `<div class="p-3">${escapeHtml(String(dataArray))}</div>`;
             }
 
-            // Update modal body with content
             const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                const modalBody = modalElement.querySelector('.modal-body');
-                if (modalBody) {
-                    modalBody.innerHTML = htmlContent;
+            if (!modalElement) return;
 
-                    // Show the modal
-                    if (!modalInstances[modalId]) {
-                        modalInstances[modalId] = new bootstrap.Modal(modalElement);
-                    }
-                    modalInstances[modalId].show();
-                    console.log(`[AdditionalButtons] Displayed content in modal: ${modalId}`);
-                }
+            const modalBody = modalElement.querySelector('.modal-body');
+            if (!modalBody) return;
+
+            modalBody.innerHTML = htmlContent;
+
+            if (!modalInstances[modalId]) {
+                modalInstances[modalId] = new bootstrap.Modal(modalElement);
             }
+
+            modalInstances[modalId].show();
+            console.log(`[AdditionalButtons] Displayed content in modal: ${modalId}`);
         } catch (error) {
             console.error('[AdditionalButtons] Error formatting content:', error);
             showErrorModal(buttonText, 'Error displaying content');
         }
     }
 
-    /**
-     * Show error message in modal
-     */
+    // Show error in modal when API fails
     function showErrorModal(buttonText, errorMessage) {
-        const modalMap = {
-            'ಅಕಾರಾದಿ ಸೂಚಿ': 'modal2',
-            'ಲೇಖನ ಸೂಚಿ': 'modal3',
-            'ಗಾದೆಗಳ ಸೂಚಿ': 'modal4',
-            'ಅರ್ಥ ಕೋಶ': 'modal5',
-            'ವಿಷಯ ಪರಿವಿಡಿ': 'modal6',
-            'ಗಮಕ': 'modal7',
-            'ಅನುಬಂಧ': 'modal8',
-            'ಟಿಪ್ಪಣಿ': 'modal9'
-        };
+        const modalId = buttonToModalMap[buttonText];
+        if (!modalId) return;
 
-        const modalId = modalMap[buttonText];
-        if (modalId) {
-            const modalElement = document.getElementById(modalId);
-            if (modalElement) {
-                const modalBody = modalElement.querySelector('.modal-body');
-                if (modalBody) {
-                    modalBody.innerHTML = `
-                        <div class="alert alert-danger" role="alert">
-                            <strong>ಲೋಡಿಂಗ್ ದೋಷ:</strong> ${errorMessage}
-                        </div>
-                    `;
+        const modalElement = document.getElementById(modalId);
+        if (!modalElement) return;
 
-                    if (!modalInstances[modalId]) {
-                        modalInstances[modalId] = new bootstrap.Modal(modalElement);
-                    }
-                    modalInstances[modalId].show();
-                }
-            }
+        const modalBody = modalElement.querySelector('.modal-body');
+        if (!modalBody) return;
+
+        modalBody.innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                <strong>ಲೋಡಿಂಗ್ ದೋಷ:</strong> ${escapeHtml(errorMessage)}
+            </div>
+        `;
+
+        if (!modalInstances[modalId]) {
+            modalInstances[modalId] = new bootstrap.Modal(modalElement);
         }
+
+        modalInstances[modalId].show();
     }
 
-    // Event listener for search form
+    // Handle search form submit
     const searchForm = document.getElementById('search-form');
     if (searchForm) {
         searchForm.addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent the default form submission
+            event.preventDefault();
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
                 searchWord = searchInput.value.trim();
@@ -320,7 +259,7 @@ function initializeAdditionalButtons() {
         });
     }
 
-    // Event listener for button clicks
+    // Handle button clicks: modal same‑tab, pages new‑tab
     document.querySelectorAll('.button-list button').forEach(function (button) {
         button.addEventListener('click', function (event) {
             event.stopPropagation();
@@ -335,22 +274,19 @@ function initializeAdditionalButtons() {
             }
 
             if (config.type === 'modal') {
-                // Open modal on same page
                 const modalElement = document.getElementById(config.id);
                 if (modalElement) {
-                    // Get or create cached modal instance
                     if (!modalInstances[config.id]) {
-                        const modal = new bootstrap.Modal(modalElement, { backdrop: true, keyboard: true });
+                        const modal = new bootstrap.Modal(modalElement, {
+                            backdrop: true,
+                            keyboard: true
+                        });
 
-                        // Add event listener to properly clean up when modal is hidden
                         modalElement.addEventListener('hidden.bs.modal', function () {
                             console.log(`[AdditionalButtons] Modal hidden: ${config.id}`);
-
-                            // Force cleanup of modal backdrop and body overflow
                             document.body.classList.remove('modal-open');
-                            const backdropElements = document.querySelectorAll('.modal-backdrop');
-                            backdropElements.forEach(backdrop => backdrop.remove());
-                        }, { once: false });
+                            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+                        });
 
                         modalInstances[config.id] = modal;
                     }
@@ -358,8 +294,11 @@ function initializeAdditionalButtons() {
                     modalInstances[config.id].show();
                     console.log(`[AdditionalButtons] Opening modal: ${config.id}`);
                 }
+            } else if (config.type === 'page' && config.url) {
+                // Open in new tab
+                window.open(config.url, '_blank').focus();
             } else if (config.type === 'api') {
-                // Load content via API and display in modal
+                // Load API content and show in modal
                 loadAdditionalContent(buttonText, config);
             }
         });
@@ -368,11 +307,10 @@ function initializeAdditionalButtons() {
     console.log('[AdditionalButtons] ✓ Initialized - listening for button clicks');
 }
 
-// Initialize when DOM is ready
+// Run after DOM is ready
 document.addEventListener('DOMContentLoaded', function () {
     console.log('[AdditionalButtons] ✓ DOM loaded, initializing additional buttons');
     initializeAdditionalButtons();
 });
 
-// Export for module usage
 export { openModal, initializeAdditionalButtons };
