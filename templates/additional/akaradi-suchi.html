@@ -5,166 +5,190 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ಅಕಾರಾದಿ ಸೂಚಿ</title>
-
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/font-awesome-6.6.0-all.min.css') }}" />
-  <link href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/noto-sans-kannada.css') }}" />
 
-  <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.js') }}"></script>
   <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
-  <script type="module" src="{{ url_for('static', filename='js/additional/akaradi-suchi.js') }}"></script>
+
+  <link href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" rel="stylesheet">
 
   <style>
+    :root {
+      --bg-primary: #ffdab9;
+      --bg-secondary: #ffe4b5;
+      --shadow-light: rgba(0, 0, 0, .08)
+    }
+
     body {
-      background-color: #ffdab9;
-      font-family: Arial, sans-serif;
+      background: var(--bg-primary);
+      font-family: 'NudiParijatha', Arial, sans-serif
     }
 
     .container {
-      background-color: #ffe4b5;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 24px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px var(--shadow-light)
     }
 
     .title {
-      background-color: #ffdab9;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 20px;
       position: relative;
+      padding: 24px;
+      border-radius: 8px;
+      background: var(--bg-primary);
+      margin-bottom: 32px;
+      text-align: center
     }
 
     .back-button {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px
     }
 
     .alphabet-grid {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
-      margin-bottom: 20px;
+      justify-content: center;
+      margin: 32px 0;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow-light)
     }
 
     .alphabet-grid span {
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 1.25rem;
+      font-weight: 600;
       cursor: pointer;
-      padding: 5px 10px;
-      border-radius: 5px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      user-select: none;
+      padding: 10px 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fff;
+      transition: all .2s
     }
 
     .alphabet-grid span:hover,
     .alphabet-grid span.active {
-      background-color: #f0f0f0;
-      border-color: #999;
+      background: #e3f2fd;
+      border-color: #2196f3;
+      color: #2196f3
     }
 
-    .word-dropdown {
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+.dropdown-center{
+  text-align:center;
+  margin:24px 0;
+}
 
-    .word-table {
-      border: 1px solid #dee2e6;
+.dropdown-center .form-select{
+  display:inline-block;
+  width:420px;
+  max-width:90%;
+  border-radius:8px;
+  border:2px solid #e0e0e0;
+  font-size:1rem;
+  padding:10px 16px;
+}
+
+    .table-container {
       background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px var(--shadow-light);
+      margin: 24px 0
+    }
+
+    .table-clean {
+      font-size: .95rem
+    }
+
+    .table-clean thead th {
+      font-weight: 600;
+      color: #495057;
+      background: linear-gradient(180deg, #f8f9fa 0%, #f1f3f4 100%);
+      border: none;
+      padding: 16px 12px;
+      border-bottom: 3px solid #dee2e6;
+      cursor: pointer
+    }
+
+    .table-clean tbody td {
+      padding: 14px 12px;
+      border-color: #f1f3f4;
+      vertical-align: middle;
+      font-weight: 500
+    }
+
+    .table-clean tbody tr:hover {
+      background: #f8f9ff
     }
 
     .footer {
-      font-size: 12px;
-      margin-top: 10px;
+      font-size: .9rem;
+      color: #6c757d;
+      margin: 24px 0;
+      text-align: center;
+      font-weight: 500
     }
 
-    .form-select {
-      background-color: #fff;
-      max-width: 300px;
-    }
-
-    #dictionaryTable thead th {
-      cursor: pointer;
-    }
-
-    #dictionaryTable thead th:hover {
-      background-color: #f8f9fa;
-    }
-
+    /* SIMPLIFIED MODAL - No JS needed */
     .modal-dialog {
-      max-width: 90%;
-      margin: 1.75rem auto;
+      max-width: 95vw;
+      margin: 2rem auto
     }
 
     .modal-content {
-      border-radius: 8px;
-    }
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-      padding: 20px;
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .15)
     }
 
     .modal-header {
-      background-color: #343a40;
+      background: #667eea;
       color: #fff;
-      border-bottom: 1px solid #dee2e6;
+      border-radius: 12px 12px 0 0;
+      padding: 20px
     }
 
     .modal-body {
-      background-color: #f8f9fa;
-      color: #495057;
+      padding: 24px;
+      background: #fff;
+      max-height: 75vh;
+      overflow-y: auto
     }
 
-    .spinner-border {
-      width: 3rem;
-      height: 3rem;
-    }
-
-    #loadingOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-family: inherit;
-      margin: 0;
+    /* SIMPLE FIRST LINE HIGHLIGHT - CSS only */
+    .first-line {
+      background: linear-gradient(90deg, #fff3cd 0%, #ffeaa7 100%);
+      padding: 16px !important;
+      border-left: 5px solid #f39c12;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1.05em;
+      margin: 12px 0;
+      box-shadow: 0 2px 8px rgba(243, 156, 18, .2)
     }
   </style>
+
+  <script src="{{ url_for('static', filename='jquery/jquery-3.7.1.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/axios.min.js"></script>
+  <script type="module" src="{{ url_for('static', filename='js/additional/akaradi-suchi.js') }}"></script>
 </head>
 
 <body>
   {% include 'navbar.html' %}
 
-  <div id="loadingOverlay">
-    <div class="spinner-border text-dark" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-
   <div class="container">
     <div class="title">
-      <h1 class="text-center mb-0">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
-      <button class="btn btn-sm btn-secondary back-button" type="button">
-        ಹಿಂದಿನ ಪುಟಕ್ಕೆ
-      </button>
+      <h1 class="mb-0 fs-1 fw-bold">ಅಕಾರಾದಿ ಸೂಚಿ</h1>
+      <button class="btn btn-outline-secondary back-button">ಹಿಂದಿನ ಪುಟಕ್ಕೆ</button>
     </div>
 
     <div class="alphabet-grid">
@@ -175,14 +199,14 @@
       <span>ಶ</span><span>ಷ</span>
     </div>
 
-    <div class="word-dropdown">
+    <div class="dropdown-center">
       <select id="parvaDropdown" class="form-select">
         <option value="">ಎಲ್ಲಾ ಪರ್ವಗಳು</option>
       </select>
     </div>
 
-    <div class="word-table">
-      <table id="dictionaryTable" class="table table-striped mb-0">
+    <div class="table-container">
+      <table id="dictionaryTable" class="table table-clean mb-0">
         <thead>
           <tr>
             <th>ಪದ್ಯದ ಮೊದಲ ಸಾಲು</th>
@@ -195,31 +219,29 @@
       </table>
     </div>
 
-    <div class="footer text-center">
-      <strong>ಸೂಚನೆ:</strong>
-      ಪದ್ಯದ ವಿವರಣೆ ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
+    <div class="footer">
+      <strong>ಸೂಚನೆ:</strong> ಪದ್ಯದ ವಿವರಣೆ ಓದಲು ಪದ್ಯವನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.
     </div>
   </div>
 
-  <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+  <!-- CLEAN SIMPLE MODAL -->
+  <div class="modal fade" id="padyaModal" tabindex="-1" aria-labelledby="padyaModalLabel">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <h5 class="modal-title fw-bold mb-0" id="padyaModalLabel">ಪದ್ಯದ ವಿವರಣೆ</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="text-center">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
+          <!-- FIRST LINE WILL APPEAR HERE - Just add class="first-line" in your JS -->
+          <div id="modalContent"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">ಮುಚ್ಚಿ</button>
         </div>
       </div>
     </div>
   </div>
 </body>
+
 </html>

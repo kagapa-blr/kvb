@@ -1,5 +1,11 @@
 /* Noto Sans Kannada - Local Font Definition */
-
+@font-face {
+  font-family: 'NudiParijatha';
+  src: url('../fonts/NudiParijatha.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
 @font-face {
   font-family: 'Noto Sans Kannada';
   src: url('../fonts/noto-sans-kannada/NotoSansKannada-Regular.ttf') format('truetype');
