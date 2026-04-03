@@ -528,6 +528,8 @@ class GadeSuchigaluService:
         except Exception as e:
             db.session.rollback()
             return {"status": "error", "message": str(e)}
+
+
 class ArthakoshaService:
     def __init__(self):
         pass

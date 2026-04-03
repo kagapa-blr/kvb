@@ -34,17 +34,34 @@ def _normalize_json_payload(data):
 @gadesuchi_api_routes.route("/", methods=["GET"])
 def get_gade_suchigalu():
     try:
-        offset = request.args.get("offset", default=0, type=int)
-        limit = request.args.get("limit", default=10, type=int)
-        search = request.args.get("search", default=None, type=str)
+        draw = request.args.get("draw", type=int)
+        start = request.args.get("start", default=0, type=int)
+        length = request.args.get("length", default=10, type=int)
+
+        search_value = request.args.get("search[value]", default=None, type=str)
+        if search_value is None:
+            search_value = request.args.get("search", default=None, type=str)
+
         parva_number = request.args.get("parva_number", default=None, type=int)
+
+        offset = start
+        limit = length
 
         result = gade_service.get_gade_suchigalu(
             offset=offset,
             limit=limit,
-            search=search,
+            search=search_value,
             parva_number=parva_number
         )
+
+        if draw is not None:
+            return jsonify({
+                "draw": draw,
+                "recordsTotal": result.get("total", 0),
+                "recordsFiltered": result.get("total", 0),
+                "data": result.get("data", [])
+            }), 200
+
         return jsonify(result), 200
 
     except Exception as e:

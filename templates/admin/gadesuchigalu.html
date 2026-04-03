@@ -1,415 +1,209 @@
 <!doctype html>
 <html lang="kn">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ಗಾದೆ ಸೂಚಿ - ನಿರ್ವಹಣೆ</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/noto-sans-kannada.css') }}" />
-  <style>
-    body { 
-      font-family: "Noto Sans Kannada", sans-serif; 
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-      min-height: 100vh; 
-      padding-bottom: 30px; 
-    }
-    .container-fluid { 
-      background: #f8f9fa; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-      padding: 2rem; 
-    }
-    .content-card { 
-      border-radius: 14px; 
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
-      border: 1px solid rgba(0, 0, 0, 0.05); 
-      transition: all 0.3s ease; 
-      margin-bottom: 2rem; 
-    }
-    .content-card:hover { 
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12); 
-    }
-    .content-card.bg-primary { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; 
-      border: none; 
-      color: white; 
-      text-align: center; 
-      padding: 1.5rem; 
-    }
-    .table thead.table-dark { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-      font-weight: 600; 
-      text-transform: capitalize; 
-      color: white; 
-    }
-    .table tbody tr:hover { 
-      background-color: #f8f9fa; 
-    }
-    .form-control-sm, .form-select-sm { 
-      font-size: 0.875rem; 
-    }
-    .btn-sm { 
-      font-size: 0.8rem; 
-    }
-    .modal-content { 
-      border-radius: 12px; 
-    }
-    .empty-gade {
-      font-style: italic;
-      color: #6c757d;
-      font-size: 0.9em;
-    }
-  </style>
-</head>
-<body>
-  <div class="container-fluid">
-    <div class="card content-card bg-primary">
-      <h2>ಗಾದೆ ಸೂಚಿ ನಿರ್ವಹಣೆ</h2>
-    </div>
-    <div id="alertContainer"></div>
-    
-    <div class="row g-2 mb-3 align-items-end">
-      <div class="col-md-4">
-        <input id="gade_search" class="form-control form-control-sm" placeholder="ಗಾದೆ ಹುಡುಕಿ (ಹೆಸರು, ಪರ್ವ, ಸಂಧಿ)..." />
-      </div>
-      <div class="col-md-2 d-grid">
-        <button class="btn btn-primary btn-sm" id="gade-search-btn"><i class="bi bi-search me-1"></i>ಹುಡುಕಿ</button>
-      </div>
-      <div class="col-md-2 d-grid">
-        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#gadeModal"><i class="bi bi-plus-circle me-1"></i>Add Gade</button>
-      </div>
-      <div class="col-md-2 d-grid">
-        <button type="button" class="btn btn-info btn-sm" id="download-gade-template-btn">
-          <i class="bi bi-download me-1"></i>Download Template
-        </button>
-      </div>
-      <div class="col-md-2">
-        <input type="file" id="gade_csv_upload" class="form-control form-control-sm" accept=".csv" />
-      </div>
-    </div>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ಗಾದೆ ಸೂಚಿ - ನಿರ್ವಹಣೆ</title>
 
-    <div class="table-responsive">
-      <table class="table table-hover table-sm">
-        <thead class="table-dark">
-          <tr>
-            <th>ಗಾದೆ ಹೆಸರು</th>
-            <th>ಪರ್ವ</th>
-            <th>ಸಂಧಿ</th>
-            <th>ಪದ್ಯ</th>
-            <th style="width: 120px" class="text-center">ಕ್ರಿಯೆ</th>
-          </tr>
-        </thead>
-        <tbody id="gade_table">
-          <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/noto-sans-kannada.css') }}" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
 
-  <div class="modal fade" id="gadeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="modalTitle">ಹೊಸ ಗಾದೆ ಸೇರಿಸಿ</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="gade_id">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">ಪರ್ವ</label>
-              <select id="gade_parva_select" class="form-select"></select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">ಸಂಧಿ</label>
-              <select id="gade_sandhi_select" class="form-select"></select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">ಪದ್ಯ</label>
-              <select id="gade_padya_select" class="form-select"></select>
-            </div>
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಗಾದೆ ಹೆಸರು <span class="text-danger">*</span></label>
-            <input type="text" id="gade_name" class="form-control" placeholder="ಗಾದೆ ಹೆಸರು ನಮೂದಿಸಿ" />
-          </div>
-          <div class="mt-3">
-            <label class="form-label">ಸಂದರ್ಭ / ಟಿಪ್ಪಣಿ</label>
-            <textarea id="gade_tippani" class="form-control" rows="3" placeholder="ಟಿಪ್ಪಣಿ ಅಥವಾ ವಿವರಣೆ ನಮೂದಿಸಿ"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ರದ್ದು</button>
-          <button type="button" class="btn btn-success" id="save-gade-btn">ಸೇರಿಸಿ</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      let gadeData = [];
-      let parvaData = [];
-      let sandhiData = [];
-      const API_BASE = "/api/v1/additional/gadesuchi";
-
-      function resetForm() {
-        $("#gade_id").val("");
-        $("#gade_name").val("");
-        $("#gade_tippani").val("");
-        $("#gade_parva_select").val("");
-        $("#gade_sandhi_select").html('<option value="">-- ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ --</option>');
-        $("#gade_padya_select").html('<option value="">-- ಪದ್ಯ ಆಯ್ಕೆಮಾಡಿ --</option>');
-        $("#save-gade-btn").text("ಸೇರಿಸಿ");
-        $("#modalTitle").text("ಹೊಸ ಗಾದೆ ಸೇರಿಸಿ");
-      }
-
-      function loadParva() {
-        $.get("/api/v1/parva")
-          .done(function(res) {
-            parvaData = res.data || [];
-            const select = $("#gade_parva_select").html('<option value="">-- ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ --</option>');
-            parvaData.forEach(p => select.append(`<option value="${p.parva_number}">${p.name}</option>`));
-          })
-          .fail(function() { 
-            console.error("Failed to load parva"); 
-            $("#gade_parva_select").html('<option value="">ಪರ್ವ ಲೋಡ್ ಫೇಲ್ ಆಯಿತು</option>');
-          });
-      }
-
-      function loadSandhi(parva_number, selectedSandhi = null, selectedPadya = null) {
-        const sandhiSelect = $("#gade_sandhi_select").html('<option value="">-- ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ --</option>');
-        const padyaSelect = $("#gade_padya_select").html('<option value="">-- ಪದ್ಯ ಆಯ್ಕೆಮಾಡಿ --</option>');
-        
-        if (!parva_number) return;
-
-        $.get(`/api/v1/sandhi/by_parva/${parva_number}`)
-          .done(function(res) {
-            sandhiData = res.data || [];
-            sandhiData.forEach(s => {
-              sandhiSelect.append(`<option value="${s.sandhi_number}" data-padya='${JSON.stringify(s.padya_numbers || [])}'>${s.name}</option>`);
-            });
-            
-            if (selectedSandhi) {
-              setTimeout(() => {
-                sandhiSelect.val(selectedSandhi).trigger("change");
-                setTimeout(() => {
-                  if (selectedPadya) padyaSelect.val(selectedPadya);
-                }, 150);
-              }, 150);
-            }
-          })
-          .fail(function() { 
-            console.error("Failed to load sandhi"); 
-            sandhiSelect.html('<option value="">ಸಂಧಿ ಲೋಡ್ ಫೇಲ್ ಆಯಿತು</option>');
-          });
-      }
-
-      $("#gade_parva_select").on("change", function() {
-        loadSandhi($(this).val());
-      });
-
-      $("#gade_sandhi_select").on("change", function() {
-        const padyaSelect = $("#gade_padya_select").html('<option value="">-- ಪದ್ಯ ಆಯ್ಕೆಮಾಡಿ --</option>');
-        const padyaNumbers = $(this).find(":selected").data("padya") || [];
-        padyaNumbers.forEach(num => padyaSelect.append(`<option value="${num}">${num}</option>`));
-      });
-
-      function loadGadeData(filter = "") {
-        $.get(`${API_BASE}/`)
-          .done(function(res) {
-            gadeData = res.data || [];
-            
-            // Create parva name lookup
-            const parvaLookup = {};
-            parvaData.forEach(p => {
-              parvaLookup[p.parva_number] = p.name;
-            });
-            
-            // FIXED FILTER - handle empty strings properly
-            const filtered = gadeData.filter(g => {
-              const searchLower = filter.toLowerCase().trim();
-              if (!searchLower) return true; // Show all if no filter
-              
-              return (g.gade_suchi && g.gade_suchi.toLowerCase().includes(searchLower)) ||
-                     (g.parva_name && g.parva_name.toLowerCase().includes(searchLower)) ||
-                     (g.parva_number && g.parva_number.toString().includes(searchLower)) ||
-                     (g.sandhi_number && g.sandhi_number.toString().includes(searchLower));
-            });
-
-            const tbody = $("#gade_table").empty();
-            
-            if (filtered.length === 0) {
-              tbody.html('<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>');
-              return;
-            }
-
-            filtered.forEach(g => {
-              const parvaDisplay = g.parva_name || parvaLookup[g.parva_number] || g.parva_number || "";
-              const sandhiDisplay = g.sandhi_name || g.sandhi_number || "";
-              const gadeDisplay = g.gade_suchi || '<span class="empty-gade">[ಖಾಲಿ]</span>';
-              
-              tbody.append(`
-                <tr>
-                  <td>${gadeDisplay}</td>
-                  <td>${parvaDisplay}</td>
-                  <td>${sandhiDisplay}</td>
-                  <td>${g.padya_number || ""}</td>
-                  <td class="text-center">
-                    <button class="btn btn-sm btn-info edit-gade-btn me-1" data-id="${g.id}" title="ಸಂಪಾದಿಸಿ">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger delete-gade-btn" data-id="${g.id}" title="ಅಳಿಸಿ">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              `);
-            });
-          })
-          .fail(function(xhr) {
-            $("#gade_table").html('<tr><td colspan="5" class="text-center text-danger">Failed to load data</td></tr>');
-            console.error("Load gade data failed:", xhr);
-          });
-      }
-
-      function downloadGadeTemplate() {
-        const headers = ["gade_suchi", "description", "parva_number", "sandhi_number", "padya_number"];
-        const sampleRows = [
-          ["ಉದಾಹರಣೆ ಗಡೆ", "ಉದಾಹರಣೆ ವಿವರಣೆ", "1", "1", "1"]
-        ];
-
-        let csvContent = "\uFEFF";
-        csvContent += headers.join(",") + "\n";
-        sampleRows.forEach(row => {
-          csvContent += row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(",") + "\n";
-        });
-
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "gadesuchi_template.csv";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-      }
-
-      $("#download-gade-template-btn").on("click", downloadGadeTemplate);
-      $("#gade-search-btn").click(function() {
-        loadGadeData($("#gade_search").val().trim());
-      });
-
-      $("#save-gade-btn").click(function() {
-        const gadeId = $("#gade_id").val();
-        const payload = {
-          gade_suchi: $("#gade_name").val().trim(),
-          description: $("#gade_tippani").val().trim(),
-          parva_number: parseInt($("#gade_parva_select").val(), 10),
-          sandhi_number: parseInt($("#gade_sandhi_select").val(), 10),
-          padya_number: parseInt($("#gade_padya_select").val(), 10)
-        };
-
-        if (!payload.gade_suchi || 
-            isNaN(payload.parva_number) || 
-            isNaN(payload.sandhi_number) || 
-            isNaN(payload.padya_number)) {
-          alert("ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳು (ಗಾದೆ ಹೆಸರು, ಪರ್ವ, ಸಂಧಿ, ಪದ್ಯ) ಅಗತ್ಯ");
-          return;
+    <style>
+        body {
+            font-family: "Noto Sans Kannada", sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
 
-        $.ajax({
-          url: gadeId ? `${API_BASE}/${gadeId}` : `${API_BASE}/`,
-          type: gadeId ? "PUT" : "POST",
-          contentType: "application/json",
-          data: JSON.stringify(payload),
-          success: function() {
-            $("#gadeModal").modal("hide");
-            resetForm();
-            loadGadeData();
-          },
-          error: function(xhr) {
-            alert(xhr.responseJSON?.message || "Operation failed!");
-          }
-        });
-      });
+        .main-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 2rem;
+        }
 
-      $(document).on("click", ".edit-gade-btn", function() {
-        const id = $(this).data("id");
-        $.get(`${API_BASE}/${id}`)
-          .done(function(res) {
-            if (res.status === "success") {
-              const g = res.data;
-              $("#gade_id").val(g.id);
-              $("#gade_name").val(g.gade_suchi || "");
-              $("#gade_tippani").val(g.description || "");
-              $("#gade_parva_select").val(g.parva_number);
-              $("#save-gade-btn").text("ನವೀಕರಿಸಿ");
-              $("#modalTitle").text("ಗಾದೆ ಸಂಪಾದಿಸಿ");
-              $("#gadeModal").modal("show");
-              
-              // Load dependent dropdowns
-              setTimeout(() => {
-                loadSandhi(g.parva_number, g.sandhi_number, g.padya_number);
-              }, 100);
-            } else {
-              alert(res.message || "Record not found");
-            }
-          })
-          .fail(function() { 
-            alert("Record not found"); 
-          });
-      });
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 14px;
+            margin-bottom: 2rem;
+        }
 
-      $(document).on("click", ".delete-gade-btn", function() {
-        if (!confirm("Are you sure you want to delete this record?")) return;
-        const id = $(this).data("id");
-        $.ajax({
-          url: `${API_BASE}/${id}`,
-          type: "DELETE",
-          success: function() { 
-            loadGadeData(); 
-          },
-          error: function(xhr) { 
-            alert(xhr.responseJSON?.message || "Delete failed!"); 
-          }
-        });
-      });
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
 
-      $("#gade_csv_upload").on("change", function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const formData = new FormData();
-        formData.append("file", file);
-        $.ajax({
-          url: `${API_BASE}/bulk-upload`,
-          type: "POST",
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function() {
-            alert("CSV uploaded successfully!");
-            loadGadeData();
-            $("#gade_csv_upload").val("");
-          },
-          error: function(xhr) {
-            alert(xhr.responseJSON?.message || "CSV upload failed!");
-          }
-        });
-      });
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
 
-      $("#gadeModal").on("hidden.bs.modal", resetForm);
+        .modal-content {
+            border-radius: 12px;
+        }
 
-      // Initial load
-      loadParva();
-      loadGadeData();
-    });
-  </script>
+        .btn-sm {
+            font-size: 0.8rem;
+        }
+
+        .empty-text {
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        .custom-search {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <div class="card header-card">
+                <h2>ಗಾದೆ ಸೂಚಿ ನಿರ್ವಹಣೆ</h2>
+                <small class="opacity-75">ಕನ್ನಡ ಸಾಹಿತ್ಯ - ಡೇಟಾಬೇಸ್ ನಿರ್ವಹಣೆ</small>
+            </div>
+
+            <!-- Action buttons row -->
+            <div class="row g-3 mb-4 align-items-end">
+                <div class="col-md-2">
+                    <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#gadeModal">
+                        <i class="bi bi-plus-circle me-1"></i> ಹೊಸ ಗಾದೆ
+                    </button>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-info btn-sm w-100" id="downloadTemplate">
+                        <i class="bi bi-download me-1"></i> CSV Template
+                    </button>
+                </div>
+
+                <div class="col-md-3">
+                    <input type="file" id="csvUpload" class="form-control form-control-sm" accept=".csv" />
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary btn-sm w-100" id="refreshBtn">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="col-md-3"></div>
+            </div>
+
+            <!-- ✅ SINGLE Custom Search (DataTables default HIDDEN) -->
+            <div class="custom-search">
+                <div class="row align-items-center g-2">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="search" id="searchInput" class="form-control"
+                                placeholder="ಗಾದೆ ಹೆಸರು, ಪರ್ವ, ಸಂಧಿ ಅಥವಾ ಪದ್ಯ ಹುಡುಕಿ..." />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" id="searchBtn" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i> ಹುಡುಕಿ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="gadeTable" class="table table-hover table-sm" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ಗಾದೆ ಹೆಸರು</th>
+                            <th>ಪರ್ವ</th>
+                            <th>ಸಂಧಿ</th>
+                            <th>ಪದ್ಯ</th>
+                            <th style="width:120px">ಕ್ರಿಯೆಗಳು</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="gadeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalTitle">ಹೊಸ ಗಾದೆ ಸೇರಿಸಿ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="gadeId" />
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಪರ್ವ <span class="text-danger">*</span></label>
+                            <select id="parvaSelect" class="form-select form-select-sm">
+                                <option value="">ಆಯ್ಕೆಮಾಡಿ...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಸಂಧಿ <span class="text-danger">*</span></label>
+                            <select id="sandhiSelect" class="form-select form-select-sm" disabled>
+                                <option value="">ಮೊದಲು ಪರ್ವ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಪದ್ಯ <span class="text-danger">*</span></label>
+                            <select id="padyaSelect" class="form-select form-select-sm" disabled>
+                                <option value="">ಮೊದಲು ಸಂಧಿ ಆಯ್ಕೆಮಾಡಿ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">ಗಾದೆ ಹೆಸರು <span class="text-danger">*</span></label>
+                            <input type="text" id="gadeName" class="form-control form-control-sm"
+                                placeholder="ಗಾದೆ ಹೆಸರು" />
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <label class="form-label">ಟಿಪ್ಪಣಿ</label>
+                            <textarea id="description" class="form-control form-control-sm" rows="2"
+                                placeholder="ಸಂದರ್ಭ ಅಥವಾ ವಿವರಣೆ..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ರದ್ದು</button>
+                    <button type="button" class="btn btn-success btn-sm" id="saveBtn">ಸೇರಿಸಿ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="{{ url_for('static', filename='js/admin/gadesuchi.js') }}"></script>
 </body>
+
 </html>
