@@ -19,8 +19,8 @@ $(document).ready(function () {
   const table = $("#dictionaryTable").DataTable({
     language: {
       search: "ಹುಡುಕು:",
-      lengthMenu: "_MENU_ ಪದಗಳನ್ನು ತೋರಿಸು",
-      info: "_TOTAL_ ಪದಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದಗಳು",
+      lengthMenu: "_MENU_ ಪದ್ಯಗಳನ್ನು ತೋರಿಸು",
+      info: "_TOTAL_ ಪದ್ಯಗಳಲ್ಲಿ _START_ ರಿಂದ _END_ ವರೆಗಿನ ಪದ್ಯಗಳು",
       infoEmpty: "ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ",
       zeroRecords: "ಹೊಂದುವ ದಾಖಲೆಗಳಿಲ್ಲ",
       paginate: {
