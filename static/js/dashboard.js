@@ -1154,6 +1154,12 @@ async function savePadya() {
     // Upload photo if a new one is selected
     const photoInput = document.getElementById('modal_padya_gamaka_photo_input');
     if (photoInput.files && photoInput.files.length > 0) {
+      // Validate that name and raga are provided for file naming
+      if (!gamaka_vachakara_name || !gamaka_raga) {
+        showAlert("ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಗಮಕ ವಾಚಕರ ಹೆಸರು ಮತ್ತು ರಾಗ ನಮೂದಿಸಿ", "warning");
+        return;
+      }
+      
       showAlert("ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಚಾಲನೆಯಲ್ಲಿದೆ...", "info");
       
       const uploadedPath = await uploadGamakaPhoto(
@@ -1166,12 +1172,22 @@ async function savePadya() {
       
       if (uploadedPath) {
         gamaka_photo_path = uploadedPath;
+        showAlert("ಫೋಟೋ ಸೋಪಮ್ಮತವಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ", "success");
+      } else {
+        showAlert("ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ವೈಫಲ್ಯವಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ", "danger");
+        return;
       }
     }
 
     // Upload audio if a new one is selected
     const audioInput = document.getElementById('modal_padya_gamaka_audio_input');
     if (audioInput.files && audioInput.files.length > 0) {
+      // Validate that name and raga are provided for file naming
+      if (!gamaka_vachakara_name || !gamaka_raga) {
+        showAlert("ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್ ಮಾಡುವ ಮೊದಲು ಗಮಕ ವಾಚಕರ ಹೆಸರು ಮತ್ತು ರಾಗ ನಮೂದಿಸಿ", "warning");
+        return;
+      }
+      
       showAlert("ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್ ಚಾಲನೆಯಲ್ಲಿದೆ...", "info");
       
       const uploadedPath = await uploadGamakaAudio(
@@ -1184,6 +1200,10 @@ async function savePadya() {
       
       if (uploadedPath) {
         gamaka_audio_path = uploadedPath;
+        showAlert("ಆಡಿಯೊ ಸೋಪಮ್ಮತವಾಗಿ ಅಪ್‌ಲೋಡ್ ಆಗಿದೆ", "success");
+      } else {
+        showAlert("ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್ ವೈಫಲ್ಯವಾಗಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ", "danger");
+        return;
       }
     }
 
@@ -1399,22 +1419,22 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
             clearAudioUpload();
           }
         } else {
-          clearPhotoUpload();
-          clearAudioUpload();
+          resetPhotoUploadUI();
+          resetAudioUploadUI();
         }
       } else {
         // Display photo preview if exists
         if (gamaka.gamaka_vachakar_photo_path) {
           displayGamakaPhotoPreview(gamaka.gamaka_vachakar_photo_path, authorName);
         } else {
-          clearPhotoUpload();
+          resetPhotoUploadUI();
         }
         
         // Display audio preview if exists
         if (gamaka.gamaka_vachakar_audio_path) {
           displayGamakaAudioPreview(gamaka.gamaka_vachakar_audio_path, authorName);
         } else {
-          clearAudioUpload();
+          resetAudioUploadUI();
         }
       }
     } else {
@@ -1424,8 +1444,8 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
       document.getElementById("modal_padya_gamaka_photo_path").value = '';
       document.getElementById("modal_padya_gamaka_audio_path").value = '';
       document.getElementById("modal_padya_gamaka_id").value = ''; // Clear gamaka ID
-      clearPhotoUpload();
-      clearAudioUpload();
+      resetPhotoUploadUI();
+      resetAudioUploadUI();
     }
     
     // Clear file input for new uploads
@@ -1493,6 +1513,11 @@ function initializePhotoUpload() {
   // Replace existing photo button
   if (replaceBtn) {
     replaceBtn.addEventListener('click', () => {
+      // Mark old file for deletion when replacing
+      const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
+      if (photoPath && photoPath.value) {
+        photoPath.dataset.deleted = 'true';
+      }
       fileInput.click();
     });
   }
@@ -1573,10 +1598,14 @@ function handlePhotoSelection(file) {
     const uploadArea = document.getElementById('gamaka_photo_upload_area');
     const previewContainer = document.getElementById('gamaka_photo_preview_container');
     const pathDisplay = document.getElementById('gamaka_photo_path_display');
+    const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
 
     preview.src = e.target.result;
     filename.textContent = file.name;
     pathDisplay.textContent = '(ಸಂರಕ್ಷಿತ ಸೂಚನೆ: ಸಂರಕ್ಷಿಸಿದ ನಂತರ ಪಥ ತೋರಿಸುತ್ತಾರೆ)';
+    
+    // Clear old path value to use new uploaded path
+    photoPath.value = '';
     
     uploadArea.style.display = 'none';
     previewContainer.style.display = 'block';
@@ -1606,6 +1635,23 @@ function clearPhotoUpload() {
   uploadArea.style.display = 'block';
   previewContainer.style.display = 'none';
   showAlert('ಫೋಟೋ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
+}
+
+// Reset photo upload UI without marking for deletion (used when loading existing data)
+function resetPhotoUploadUI() {
+  const fileInput = document.getElementById('modal_padya_gamaka_photo_input');
+  const uploadArea = document.getElementById('gamaka_photo_upload_area');
+  const previewContainer = document.getElementById('gamaka_photo_preview_container');
+
+  fileInput.value = '';
+  fileInput.dataset.selectedFile = '';
+  
+  // Only hide preview if there's no existing path
+  const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
+  if (!photoPath.value) {
+    uploadArea.style.display = 'block';
+    previewContainer.style.display = 'none';
+  }
 }
 
 function displayGamakaPhotoPreview(photoPath, authorName) {
@@ -1663,14 +1709,31 @@ async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     formData.append('parva_number', parvaNumber);
     formData.append('sandhi_number', sandhiNumber);
     formData.append('padya_number', padyaNumber);
-    formData.append('raga', ragaName);
-    formData.append('author_name', authorName);
+    formData.append('raga', ragaName || 'unknown');
+    formData.append('author_name', authorName || 'unknown');
+
+    console.log('Uploading photo with FormData:', {
+      parva: parvaNumber,
+      sandhi: sandhiNumber,
+      padya: padyaNumber,
+      raga: ragaName,
+      author: authorName,
+      filename: file.name
+    });
 
     const result = await apiClient.post(ApiEndpoints.PADYA.uploadPhoto, formData);
-    let photoPath = result.photo_path;
+    console.log('Photo upload response:', result);
+    
+    // Handle both direct response and wrapped response
+    let photoPath = result.photo_path || (result.data && result.data.photo_path);
+    
+    if (!photoPath) {
+      throw new Error('Backend did not return photo path');
+    }
     
     // Normalize the path in case backend returns absolute path
     photoPath = normalizePath(photoPath);
+    console.log('Normalized photo path:', photoPath);
     
     // Update hidden field with the photo path for database storage
     const photoPathField = document.getElementById('modal_padya_gamaka_photo_path');
@@ -1686,6 +1749,7 @@ async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     
     return photoPath; // Return the photo path
   } catch (error) {
+    console.error('Photo upload error:', error);
     showAlert('ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ದೋಷ: ' + error.message, 'danger');
     return null;
   }
@@ -1709,6 +1773,11 @@ function initializeAudioUpload() {
   // Replace existing audio button
   if (replaceBtn) {
     replaceBtn.addEventListener('click', () => {
+      // Mark old file for deletion when replacing
+      const audioPath = document.getElementById('modal_padya_gamaka_audio_path');
+      if (audioPath && audioPath.value) {
+        audioPath.dataset.deleted = 'true';
+      }
       fileInput.click();
     });
   }
@@ -1776,6 +1845,7 @@ function handleAudioSelection(file) {
   const uploadArea = document.getElementById('gamaka_audio_upload_area');
   const previewContainer = document.getElementById('gamaka_audio_preview_container');
   const pathDisplay = document.getElementById('gamaka_audio_path_display');
+  const audioPath = document.getElementById('modal_padya_gamaka_audio_path');
 
   // Create object URL for preview
   const audioUrl = URL.createObjectURL(file);
@@ -1785,6 +1855,9 @@ function handleAudioSelection(file) {
   
   filename.textContent = file.name;
   pathDisplay.textContent = '(ಸಂರಕ್ಷಿತ ಸೂಚನೆ: ಸಂರಕ್ಷಿಸಿದ ನಂತರ ಪಥ ತೋರಿಸುತ್ತಾರೆ)';
+  
+  // Clear old path value to use new uploaded path
+  audioPath.value = '';
   
   uploadArea.style.display = 'none';
   previewContainer.style.display = 'block';
@@ -1816,6 +1889,23 @@ function clearAudioUpload() {
   showAlert('ಆಡಿಯೊ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
 }
 
+// Reset audio upload UI without marking for deletion (used when loading existing data)
+function resetAudioUploadUI() {
+  const fileInput = document.getElementById('modal_padya_gamaka_audio_input');
+  const uploadArea = document.getElementById('gamaka_audio_upload_area');
+  const previewContainer = document.getElementById('gamaka_audio_preview_container');
+
+  fileInput.value = '';
+  fileInput.dataset.selectedFile = '';
+  
+  // Only hide preview if there's no existing path
+  const audioPath = document.getElementById('modal_padya_gamaka_audio_path');
+  if (!audioPath.value) {
+    uploadArea.style.display = 'block';
+    previewContainer.style.display = 'none';
+  }
+}
+
 async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaName, authorName) {
   const fileInput = document.getElementById('modal_padya_gamaka_audio_input');
   
@@ -1829,14 +1919,31 @@ async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     formData.append('parva_number', parvaNumber);
     formData.append('sandhi_number', sandhiNumber);
     formData.append('padya_number', padyaNumber);
-    formData.append('raga', ragaName);
-    formData.append('author_name', authorName);
+    formData.append('raga', ragaName || 'unknown');
+    formData.append('author_name', authorName || 'unknown');
+
+    console.log('Uploading audio with FormData:', {
+      parva: parvaNumber,
+      sandhi: sandhiNumber,
+      padya: padyaNumber,
+      raga: ragaName,
+      author: authorName,
+      filename: fileInput.files[0].name
+    });
 
     const result = await apiClient.post(ApiEndpoints.PADYA.uploadAudio, formData);
-    let audioPath = result.audio_path;
+    console.log('Audio upload response:', result);
+    
+    // Handle both direct response and wrapped response
+    let audioPath = result.audio_path || (result.data && result.data.audio_path);
+    
+    if (!audioPath) {
+      throw new Error('Backend did not return audio path');
+    }
     
     // Normalize the path in case backend returns absolute path
     audioPath = normalizePath(audioPath);
+    console.log('Normalized audio path:', audioPath);
     
     // Update hidden field with the audio path for database storage
     const audioPathField = document.getElementById('modal_padya_gamaka_audio_path');
@@ -1852,6 +1959,7 @@ async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaNam
     
     return audioPath; // Return the audio path
   } catch (error) {
+    console.error('Audio upload error:', error);
     showAlert('ಆಡಿಯೊ ಅಪ್‌ಲೋಡ್ ದೋಷ: ' + error.message, 'danger');
     return null;
   }

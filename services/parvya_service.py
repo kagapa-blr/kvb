@@ -1097,45 +1097,60 @@ class PadyaService:
             has_user_gamaka_metadata = gamaka_vachakara_name and raga
 
             if existing_gamaka:
-                # Track what changed to determine if we need to rename files
-                name_changed = gamaka_vachakara_name and gamaka_vachakara_name != existing_gamaka.gamaka_vachakara_name
-                raga_changed = raga and raga != existing_gamaka.raga
+                # ===== STEP 1: HANDLE DELETIONS =====
+                # Check if user explicitly requested deletion
+                photo_deleted = kwargs.get("photo_deleted", False)
+                audio_deleted = kwargs.get("audio_deleted", False)
                 
-                # If name or raga is changing and we have existing files,
-                # rename those files to reflect the new metadata
-                if (name_changed or raga_changed):
-                    # Use the new values, or fall back to existing values if not provided
-                    final_name = gamaka_vachakara_name or existing_gamaka.gamaka_vachakara_name
-                    final_raga = raga or existing_gamaka.raga
-                    
-                    # Rename photo file if it exists
-                    if existing_gamaka.gamaka_vachakar_photo_path and final_name and final_raga:
-                        new_photo_path = rename_gamaka_file_with_metadata(
-                            existing_gamaka.gamaka_vachakar_photo_path,
-                            parva.parva_number if parva else None,
-                            sandhi.sandhi_number if sandhi else None,
-                            padya_number,
-                            final_name,
-                            final_raga,
-                            file_type="photo"
-                        )
-                        if new_photo_path:
-                            gamaka_vachakar_photo_path = new_photo_path
-                    
-                    # Rename audio file if it exists
-                    if existing_gamaka.gamaka_vachakar_audio_path and final_name and final_raga:
-                        new_audio_path = rename_gamaka_file_with_metadata(
-                            existing_gamaka.gamaka_vachakar_audio_path,
-                            parva.parva_number if parva else None,
-                            sandhi.sandhi_number if sandhi else None,
-                            padya_number,
-                            final_name,
-                            final_raga,
-                            file_type="audio"
-                        )
-                        if new_audio_path:
-                            gamaka_vachakar_audio_path = new_audio_path
+                # Delete photo file from filesystem if user requested
+                if photo_deleted and existing_gamaka.gamaka_vachakar_photo_path:
+                    delete_gamaka_file(existing_gamaka.gamaka_vachakar_photo_path, file_type="photo")
+                    gamaka_vachakar_photo_path = None  # Set path to None
                 
+                # Delete audio file from filesystem if user requested
+                if audio_deleted and existing_gamaka.gamaka_vachakar_audio_path:
+                    delete_gamaka_file(existing_gamaka.gamaka_vachakar_audio_path, file_type="audio")
+                    gamaka_vachakar_audio_path = None  # Set path to None
+                
+                # ===== STEP 2: HANDLE RENAMES =====
+                # Only rename files if they're NOT being deleted and we have new name/raga
+                # Use new values if provided, otherwise use existing values
+                final_name = gamaka_vachakara_name or existing_gamaka.gamaka_vachakara_name
+                final_raga = raga or existing_gamaka.raga
+                
+                # Rename photo file if it exists (and wasn't deleted) and we have both name and raga
+                # This ensures files always have proper naming with metadata
+                if (not photo_deleted and existing_gamaka.gamaka_vachakar_photo_path and 
+                    final_name and final_raga):
+                    new_photo_path = rename_gamaka_file_with_metadata(
+                        existing_gamaka.gamaka_vachakar_photo_path,
+                        parva.parva_number if parva else None,
+                        sandhi.sandhi_number if sandhi else None,
+                        padya_number,
+                        final_name,
+                        final_raga,
+                        file_type="photo"
+                    )
+                    if new_photo_path:
+                        gamaka_vachakar_photo_path = new_photo_path
+                
+                # Rename audio file if it exists (and wasn't deleted) and we have both name and raga
+                # This ensures files always have proper naming with metadata
+                if (not audio_deleted and existing_gamaka.gamaka_vachakar_audio_path and 
+                    final_name and final_raga):
+                    new_audio_path = rename_gamaka_file_with_metadata(
+                        existing_gamaka.gamaka_vachakar_audio_path,
+                        parva.parva_number if parva else None,
+                        sandhi.sandhi_number if sandhi else None,
+                        padya_number,
+                        final_name,
+                        final_raga,
+                        file_type="audio"
+                    )
+                    if new_audio_path:
+                        gamaka_vachakar_audio_path = new_audio_path
+                
+                # ===== STEP 3: UPDATE DATABASE =====
                 # Update existing record - only update if a value is explicitly provided
                 if gamaka_vachakara_name:
                     existing_gamaka.gamaka_vachakara_name = gamaka_vachakara_name
@@ -1727,8 +1742,8 @@ class PadyaService:
         """
         Save uploaded photo for GamakaVachana (who sang the padya).
 
-        Naming convention: parva_number_sandhi_number_padya_number_raga_authorname.ext
-        Example: 1_1_1_Dheeravati_RamanandaSagara.jpg
+        Naming convention: parva_number_sandhi_number_padya_number_gamaka_vachakara_name_raga.ext
+        Example: 1_1_1_Rekha_Yaman.jpg
 
         Returns the relative photo path for storage in database.
         """
@@ -1747,12 +1762,12 @@ class PadyaService:
             if file_ext not in allowed_extensions:
                 return {"error": "ಫೋಟೋ ಸ್ವರೂಪ ಸಮರ್ಥನೀಯವಲ್ಲ. ಸಮರ್ಥನೀಯ: JPEG (.jpg, .jpeg), WebP (.webp)"}, 400
 
-            # Clean up raga and author_name for filename
-            raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"
+            # Clean up author_name (gamaka_vachakara_name) and raga for filename
             author_clean = author_name.replace(" ", "_").replace("/", "_").replace("\\", "_") if author_name else "unknown"
+            raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"
 
-            # Create filename with naming convention
-            new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{file_ext}"
+            # Create filename with naming convention: parva_sandhi_padya_name_raga.ext
+            new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{author_clean}_{raga_clean}.{file_ext}"
 
             # Get absolute path to static folder
             from flask import current_app
@@ -1789,8 +1804,8 @@ class PadyaService:
         """
         Save uploaded audio for GamakaVachana (who sang the padya).
 
-        Naming convention: parva_number_sandhi_number_padya_number_raga_authorname.ext
-        Example: 1_1_5_Yaman_RamanandaSagara.mp3
+        Naming convention: parva-sandhi-padya-gamaka_vachakara_name-raga.ext
+        Example: 1-1-5-Rekha-Yaman.mp3
 
         Returns the relative audio path for storage in database.
         """
@@ -1809,12 +1824,12 @@ class PadyaService:
             if file_ext not in allowed_extensions:
                 return {"error": f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"}, 400
 
-            # Clean up raga and author_name for filename
-            raga_clean = raga.replace(" ", "_").replace("/", "_").replace("\\", "_") if raga else "unknown"
-            author_clean = author_name.replace(" ", "_").replace("/", "_").replace("\\", "_") if author_name else "unknown"
+            # Clean up author_name (gamaka_vachakara_name) and raga for filename
+            author_clean = author_name.replace(" ", "-").replace("/", "-").replace("\\", "-") if author_name else "unknown"
+            raga_clean = raga.replace(" ", "-").replace("/", "-").replace("\\", "-") if raga else "unknown"
 
-            # Create filename with naming convention
-            new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{raga_clean}_{author_clean}.{file_ext}"
+            # Create filename with naming convention: parva-sandhi-padya-name-raga.ext
+            new_filename = f"{parva_number}-{sandhi_number}-{padya_number}-{author_clean}-{raga_clean}.{file_ext}"
 
             # Get absolute path to static folder
             from flask import current_app
