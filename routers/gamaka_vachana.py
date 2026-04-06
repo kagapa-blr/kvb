@@ -1,12 +1,42 @@
-from flask import Blueprint, request, jsonify
 import os
+from flask import Blueprint, request, jsonify
+from sqlalchemy.exc import IntegrityError
 
-from services.gamaka_vachana import GamakaVachanaService
-from utils.statistics import Statistics
-from utils.audio_file_handler import AudioFileHandler
+from services.gamaka_vachana_service import GamakaVachanaService
 
-gamaka_bp = Blueprint('gamaka', __name__)
-stats = Statistics()
+gamaka_bp = Blueprint("gamaka", __name__)
+
+
+def _json_error(message, status_code=400):
+    return jsonify({"error": message}), status_code
+
+
+def _get_json_body():
+    data = request.get_json(silent=True)
+    if data is None:
+        return None, _json_error("Request body must be valid JSON", 400)
+    return data, None
+
+
+def _validate_required_fields(data, required_fields):
+    missing = [field for field in required_fields if data.get(field) in (None, "")]
+    if missing:
+        return f"Missing required fields: {', '.join(missing)}"
+    return None
+
+
+def _serialize_gamaka(g):
+    """Serialize GamakaVachana model to API response (maps model fields to API field names)."""
+    return {
+        "id": g.id,
+        "parva_id": g.parva_number,              # Map model field to API field
+        "sandhi_id": g.sandhi_number,            # Map model field to API field
+        "padya_number": g.padya_number,
+        "raga": g.raga,
+        "gamaka_vachakara_name": g.gamaka_vachakara_name,
+        "gamaka_vachakar_photo_path": g.gamaka_vachakar_photo_path,
+        "gamaka_vachakar_audio_path": g.gamaka_vachakar_audio_path,
+    }
 
 
 # -------------------------------------------------------
@@ -14,21 +44,39 @@ stats = Statistics()
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka", methods=["POST"])
 def create_gamaka():
-    data = request.get_json()
+    data, error = _get_json_body()
+    if error:
+        return error
 
-    gamaka = GamakaVachanaService.create_gamaka_vachana(
-        parva_id=data.get("parva_id"),
-        sandhi_id=data.get("sandhi_id"),
-        padya_number=data.get("padya_number"),
-        raga=data.get("raga"),
-        gamaka_vachakara_name=data.get("gamaka_vachakara_name"),
-        gamaka_vachakar_photo_path=data.get("gamaka_vachakar_photo_path")
+    validation_error = _validate_required_fields(
+        data,
+        ["parva_id", "sandhi_id", "padya_number", "raga", "gamaka_vachakara_name"]
     )
+    if validation_error:
+        return _json_error(validation_error, 400)
 
-    return jsonify({
-        "message": "Gamaka Vachana created",
-        "id": gamaka.id
-    }), 201
+    try:
+        gamaka = GamakaVachanaService.create(
+            parva_number=int(data.get("parva_id")),
+            sandhi_number=int(data.get("sandhi_id")),
+            padya_number=int(data.get("padya_number")),
+            raga=data.get("raga"),
+            gamaka_vachakara_name=data.get("gamaka_vachakara_name"),
+            gamaka_vachakar_photo_path=data.get("gamaka_vachakar_photo_path"),
+            gamaka_vachakar_audio_path=data.get("gamaka_vachakar_audio_path")
+        )
+
+        return jsonify({
+            "message": "Gamaka Vachana created successfully",
+            "entry": _serialize_gamaka(gamaka)
+        }), 201
+
+    except ValueError:
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except IntegrityError:
+        return _json_error("Duplicate gamaka vachana entry or invalid data", 409)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -36,22 +84,11 @@ def create_gamaka():
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka", methods=["GET"])
 def get_all_gamaka():
-    gamakas = GamakaVachanaService.get_all()
-
-    result = []
-
-    for g in gamakas:
-        result.append({
-            "id": g.id,
-            "parva_id": g.parva_id,
-            "sandhi_id": g.sandhi_id,
-            "padya_number": g.padya_number,
-            "raga": g.raga,
-            "gamaka_vachakara_name": g.gamaka_vachakara_name,
-            "gamaka_vachakar_photo_path": g.gamaka_vachakar_photo_path
-        })
-
-    return jsonify(result)
+    try:
+        gamakas = GamakaVachanaService.get_all()
+        return jsonify([_serialize_gamaka(g) for g in gamakas]), 200
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -59,20 +96,15 @@ def get_all_gamaka():
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka/<int:gamaka_id>", methods=["GET"])
 def get_gamaka(gamaka_id):
-    g = GamakaVachanaService.get_by_id(gamaka_id)
+    try:
+        gamaka = GamakaVachanaService.get_by_id(gamaka_id)
 
-    if not g:
-        return jsonify({"error": "Gamaka entry not found"}), 404
+        if not gamaka:
+            return _json_error("Gamaka entry not found", 404)
 
-    return jsonify({
-        "id": g.id,
-        "parva_id": g.parva_id,
-        "sandhi_id": g.sandhi_id,
-        "padya_number": g.padya_number,
-        "raga": g.raga,
-        "gamaka_vachakara_name": g.gamaka_vachakara_name,
-        "gamaka_vachakar_photo_path": g.gamaka_vachakar_photo_path
-    })
+        return jsonify(_serialize_gamaka(gamaka)), 200
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -80,27 +112,22 @@ def get_gamaka(gamaka_id):
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka/padya", methods=["GET"])
 def get_gamaka_by_padya():
-    parva_id = request.args.get("parva_id")
-    sandhi_id = request.args.get("sandhi_id")
-    padya_number = request.args.get("padya_number")
+    try:
+        parva_id = int(request.args.get("parva_id", 0))
+        sandhi_id = int(request.args.get("sandhi_id", 0))
+        padya_number = int(request.args.get("padya_number", 0))
 
-    gamakas = GamakaVachanaService.get_by_padya(
-        parva_id,
-        sandhi_id,
-        padya_number
-    )
+        if not (parva_id and sandhi_id and padya_number):
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
 
-    result = []
+        gamakas = GamakaVachanaService.get_by_padya(parva_id, sandhi_id, padya_number)
 
-    for g in gamakas:
-        result.append({
-            "id": g.id,
-            "raga": g.raga,
-            "gamaka_vachakara_name": g.gamaka_vachakara_name,
-            "photo": g.gamaka_vachakar_photo_path
-        })
+        return jsonify([_serialize_gamaka(g) for g in gamakas]), 200
 
-    return jsonify(result)
+    except ValueError:
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -108,19 +135,31 @@ def get_gamaka_by_padya():
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka/<int:gamaka_id>", methods=["PUT"])
 def update_gamaka(gamaka_id):
-    data = request.get_json()
+    data, error = _get_json_body()
+    if error:
+        return error
 
-    gamaka = GamakaVachanaService.update(
-        gamaka_id,
-        raga=data.get("raga"),
-        gamaka_vachakara_name=data.get("gamaka_vachakara_name"),
-        gamaka_vachakar_photo_path=data.get("gamaka_vachakar_photo_path")
-    )
+    try:
+        gamaka = GamakaVachanaService.update(
+            gamaka_id=gamaka_id,
+            raga=data.get("raga"),
+            gamaka_vachakara_name=data.get("gamaka_vachakara_name"),
+            gamaka_vachakar_photo_path=data.get("gamaka_vachakar_photo_path"),
+            gamaka_vachakar_audio_path=data.get("gamaka_vachakar_audio_path")
+        )
 
-    if not gamaka:
-        return jsonify({"error": "Gamaka entry not found"}), 404
+        if not gamaka:
+            return _json_error("Gamaka entry not found", 404)
 
-    return jsonify({"message": "Gamaka entry updated"})
+        return jsonify({
+            "message": "Gamaka entry updated successfully",
+            "entry": _serialize_gamaka(gamaka)
+        }), 200
+
+    except IntegrityError:
+        return _json_error("Duplicate gamaka vachana entry or invalid data", 409)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -128,12 +167,16 @@ def update_gamaka(gamaka_id):
 # -------------------------------------------------------
 @gamaka_bp.route("/gamaka/<int:gamaka_id>", methods=["DELETE"])
 def delete_gamaka(gamaka_id):
-    deleted = GamakaVachanaService.delete(gamaka_id)
+    try:
+        deleted = GamakaVachanaService.delete(gamaka_id)
 
-    if not deleted:
-        return jsonify({"error": "Gamaka entry not found"}), 404
+        if not deleted:
+            return _json_error("Gamaka entry not found", 404)
 
-    return jsonify({"message": "Gamaka entry deleted"})
+        return jsonify({"message": "Gamaka entry deleted successfully"}), 200
+
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -141,21 +184,19 @@ def delete_gamaka(gamaka_id):
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/parse-filename", methods=["POST"])
 def parse_audio_filename():
-    """
-    Parse an audio filename to extract parva_id, sandhi_id, and padya_number.
-    
-    Expected format: filename like '1_1_1_testraga_sunita.mp3'
-    Returns parsed components and mapped padya entry if found.
-    """
-    data = request.get_json()
+    data, error = _get_json_body()
+    if error:
+        return error
+
     filename = data.get("filename")
-
     if not filename:
-        return jsonify({"error": "Filename is required"}), 400
+        return _json_error("filename is required", 400)
 
-    result = AudioFileHandler.parse_and_map(filename)
-
-    return jsonify(result), 200 if result['parse_result']['valid'] else 400
+    try:
+        result = GamakaVachanaService.parse_and_map_audio_file(filename)
+        return jsonify(result), 200 if result.get("parse_result", {}).get("valid") else 400
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -163,63 +204,37 @@ def parse_audio_filename():
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/map-to-padya", methods=["GET"])
 def map_audio_to_padya():
-    """
-    Map audio file identifiers to a padya entry.
-    
-    Query params:
-    - filename: audio filename (e.g., '1_1_1_testraga_sunita.mp3')
-    OR
-    - parva_id: parva identifier (int)
-    - sandhi_id: sandhi identifier (int)
-    - padya_number: padya number (int)
-    """
     filename = request.args.get("filename")
 
-    if filename:
-        # Parse filename
-        result = AudioFileHandler.parse_and_map(filename)
-        return jsonify(result), 200 if result['parse_result']['valid'] else 400
-    else:
-        # Use direct parameters
-        try:
-            parva_id = int(request.args.get("parva_id", 0))
-            sandhi_id = int(request.args.get("sandhi_id", 0))
-            padya_number = int(request.args.get("padya_number", 0))
+    try:
+        if filename:
+            result = GamakaVachanaService.parse_and_map_audio_file(filename)
+            return jsonify(result), 200 if result.get("parse_result", {}).get("valid") else 400
 
-            if not (parva_id and sandhi_id and padya_number):
-                return jsonify({
-                    "error": "parva_id, sandhi_id, and padya_number are required"
-                }), 400
+        parva_id = int(request.args.get("parva_id", 0))
+        sandhi_id = int(request.args.get("sandhi_id", 0))
+        padya_number = int(request.args.get("padya_number", 0))
 
-            entry = AudioFileHandler.map_to_padya_entry(
-                parva_id, sandhi_id, padya_number
-            )
+        if not (parva_id and sandhi_id and padya_number):
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
 
-            if entry:
-                return jsonify({
-                    'found': True,
-                    'entry': {
-                        'id': entry.id,
-                        'parva_id': entry.parva_id,
-                        'sandhi_id': entry.sandhi_id,
-                        'padya_number': entry.padya_number,
-                        'raga': entry.raga,
-                        'gamaka_vachakara_name': entry.gamaka_vachakara_name,
-                        'gamaka_vachakar_photo_path': entry.gamaka_vachakar_photo_path,
-                        'gamaka_vachakar_audio_path': entry.gamaka_vachakar_audio_path
-                    }
-                }), 200
-            else:
-                return jsonify({
-                    'found': False,
-                    'message': f"No padya entry found for parva_id={parva_id}, "
-                              f"sandhi_id={sandhi_id}, padya_number={padya_number}"
-                }), 404
+        entries = GamakaVachanaService.get_by_padya(parva_id, sandhi_id, padya_number)
 
-        except ValueError:
+        if entries:
             return jsonify({
-                "error": "parva_id, sandhi_id, and padya_number must be integers"
-            }), 400
+                "found": True,
+                "entries": [_serialize_gamaka(entry) for entry in entries]
+            }), 200
+
+        return jsonify({
+            "found": False,
+            "message": f"No gamaka entry found for parva_id={parva_id}, sandhi_id={sandhi_id}, padya_number={padya_number}"
+        }), 404
+
+    except ValueError:
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -227,25 +242,22 @@ def map_audio_to_padya():
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/process-directory", methods=["POST"])
 def process_audio_directory():
-    """
-    Process all audio files in a directory and map them to padya entries.
-    
-    Request body: {
-        "directory_path": "/path/to/audio/directory"
-    }
-    """
-    data = request.get_json()
+    data, error = _get_json_body()
+    if error:
+        return error
+
     directory_path = data.get("directory_path")
-
     if not directory_path:
-        return jsonify({"error": "directory_path is required"}), 400
+        return _json_error("directory_path is required", 400)
 
-    results = AudioFileHandler.process_audio_directory(directory_path)
-
-    return jsonify({
-        'total_files': len(results),
-        'results': results
-    }), 200
+    try:
+        results = GamakaVachanaService.process_audio_directory(directory_path)
+        return jsonify({
+            "total_files": len(results),
+            "results": results
+        }), 200
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -253,53 +265,31 @@ def process_audio_directory():
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/get-with-fs-check", methods=["GET"])
 def get_audio_with_filesystem_check():
-    """
-    Get gamaka vachana entry with filesystem fallback.
-    
-    If database audio_path is null/none, searches filesystem for the file.
-    If found, updates database so next time it returns from DB.
-    
-    Supports padded and unpadded formats: 1_1_1 and 01_01_01 are treated as same.
-    
-    Query params:
-    - parva_id: parva identifier (int) - required
-    - sandhi_id: sandhi identifier (int) - required
-    - padya_number: padya number (int) - required
-    - audio_dir: optional custom audio directory path
-    """
     try:
         parva_id = int(request.args.get("parva_id", 0))
         sandhi_id = int(request.args.get("sandhi_id", 0))
         padya_number = int(request.args.get("padya_number", 0))
-        audio_dir = request.args.get("audio_dir", None)
+        audio_dir = request.args.get("audio_dir")
 
         if not (parva_id and sandhi_id and padya_number):
-            return jsonify({
-                "error": "parva_id, sandhi_id, and padya_number are required"
-            }), 400
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
 
         result = GamakaVachanaService.get_audio_with_filesystem_check(
             parva_id, sandhi_id, padya_number, audio_dir
         )
 
-        if result['found']:
-            return jsonify({
-                'found': True,
-                'audio_path': result['audio_path'],
-                'audio_found_in': result['audio_found_in'],
-                'entry': result['details']
-            }), 200
-        else:
-            return jsonify({
-                'found': False,
-                'message': f"No padya entry found for parva_id={parva_id}, "
-                          f"sandhi_id={sandhi_id}, padya_number={padya_number}"
-            }), 404
+        if result and result.get("found"):
+            return jsonify(result), 200
+
+        return jsonify({
+            "found": False,
+            "message": f"No gamaka/audio entry found for parva_id={parva_id}, sandhi_id={sandhi_id}, padya_number={padya_number}"
+        }), 404
 
     except ValueError:
-        return jsonify({
-            "error": "parva_id, sandhi_id, and padya_number must be integers"
-        }), 400
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -307,30 +297,14 @@ def get_audio_with_filesystem_check():
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/find-in-filesystem", methods=["GET"])
 def find_audio_in_filesystem():
-    """
-    Search for audio file in filesystem with padding-aware matching.
-    
-    Supports both padded and unpadded formats:
-    - 1_1_1_*.mp3
-    - 01_01_01_*.mp3
-    - 001_001_001_*.mp3
-    
-    Query params:
-    - parva_id: parva identifier (int) - required
-    - sandhi_id: sandhi identifier (int) - required
-    - padya_number: padya number (int) - required
-    - audio_dir: optional custom audio directory path
-    """
     try:
         parva_id = int(request.args.get("parva_id", 0))
         sandhi_id = int(request.args.get("sandhi_id", 0))
         padya_number = int(request.args.get("padya_number", 0))
-        audio_dir = request.args.get("audio_dir", None)
+        audio_dir = request.args.get("audio_dir")
 
         if not (parva_id and sandhi_id and padya_number):
-            return jsonify({
-                "error": "parva_id, sandhi_id, and padya_number are required"
-            }), 400
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
 
         audio_path = GamakaVachanaService.find_audio_file(
             parva_id, sandhi_id, padya_number, audio_dir
@@ -338,24 +312,23 @@ def find_audio_in_filesystem():
 
         if audio_path:
             return jsonify({
-                'found': True,
-                'audio_path': audio_path,
-                'file_exists': os.path.isfile(audio_path),
-                'parva_id': parva_id,
-                'sandhi_id': sandhi_id,
-                'padya_number': padya_number
+                "found": True,
+                "audio_path": audio_path,
+                "file_exists": os.path.isfile(audio_path),
+                "parva_id": parva_id,
+                "sandhi_id": sandhi_id,
+                "padya_number": padya_number
             }), 200
-        else:
-            return jsonify({
-                'found': False,
-                'message': f"No audio file found for parva_id={parva_id}, "
-                          f"sandhi_id={sandhi_id}, padya_number={padya_number}"
-            }), 404
+
+        return jsonify({
+            "found": False,
+            "message": f"No audio file found for parva_id={parva_id}, sandhi_id={sandhi_id}, padya_number={padya_number}"
+        }), 404
 
     except ValueError:
-        return jsonify({
-            "error": "parva_id, sandhi_id, and padya_number must be integers"
-        }), 400
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
 
 
 # -------------------------------------------------------
@@ -363,32 +336,107 @@ def find_audio_in_filesystem():
 # -------------------------------------------------------
 @gamaka_bp.route("/audio/update-path", methods=["PUT"])
 def update_audio_path_endpoint():
-    """
-    Manually update audio path for a gamaka vachana entry.
-    
-    Request body: {
-        "entry_id": 123,
-        "audio_path": "/full/path/to/audio/file.mp3"
-    }
-    """
-    data = request.get_json()
+    data, error = _get_json_body()
+    if error:
+        return error
+
     entry_id = data.get("entry_id")
     audio_path = data.get("audio_path")
 
     if not entry_id or not audio_path:
-        return jsonify({
-            "error": "entry_id and audio_path are required"
-        }), 400
+        return _json_error("entry_id and audio_path are required", 400)
 
-    success = GamakaVachanaService.update_audio_path(entry_id, audio_path)
+    try:
+        success = GamakaVachanaService.update_audio_path(int(entry_id), audio_path)
 
-    if success:
+        if success:
+            return jsonify({
+                "message": "Audio path updated successfully",
+                "entry_id": int(entry_id),
+                "audio_path": audio_path
+            }), 200
+
+        return _json_error(f"Failed to update audio path for entry {entry_id}", 400)
+
+    except ValueError:
+        return _json_error("entry_id must be an integer", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
+
+
+# -------------------------------------------------------
+# PHOTO FILE HANDLING - GET WITH FILESYSTEM FALLBACK
+# -------------------------------------------------------
+@gamaka_bp.route("/photo/get-with-fs-check", methods=["GET"])
+def get_photo_with_filesystem_check():
+    try:
+        parva_id = int(request.args.get("parva_id", 0))
+        sandhi_id = int(request.args.get("sandhi_id", 0))
+        padya_number = int(request.args.get("padya_number", 0))
+        photos_dir = request.args.get("photos_dir")
+
+        if not (parva_id and sandhi_id and padya_number):
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
+
+        photo_path = GamakaVachanaService.get_photo_with_filesystem_check(
+            parva_id, sandhi_id, padya_number, photos_dir
+        )
+
+        if photo_path:
+            return jsonify({
+                "found": True,
+                "photo_path": photo_path,
+                "file_exists": os.path.isfile(photo_path),
+                "parva_id": parva_id,
+                "sandhi_id": sandhi_id,
+                "padya_number": padya_number
+            }), 200
+
         return jsonify({
-            'message': 'Audio path updated successfully',
-            'entry_id': entry_id,
-            'audio_path': audio_path
-        }), 200
-    else:
+            "found": False,
+            "message": f"No photo found for parva_id={parva_id}, sandhi_id={sandhi_id}, padya_number={padya_number}"
+        }), 404
+
+    except ValueError:
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)
+
+
+# -------------------------------------------------------
+# PHOTO FILE HANDLING - FIND IN FILESYSTEM
+# -------------------------------------------------------
+@gamaka_bp.route("/photo/find-in-filesystem", methods=["GET"])
+def find_photo_in_filesystem():
+    try:
+        parva_id = int(request.args.get("parva_id", 0))
+        sandhi_id = int(request.args.get("sandhi_id", 0))
+        padya_number = int(request.args.get("padya_number", 0))
+        photos_dir = request.args.get("photos_dir")
+
+        if not (parva_id and sandhi_id and padya_number):
+            return _json_error("parva_id, sandhi_id, and padya_number are required", 400)
+
+        photo_path = GamakaVachanaService.find_photo_file(
+            parva_id, sandhi_id, padya_number, photos_dir
+        )
+
+        if photo_path:
+            return jsonify({
+                "found": True,
+                "photo_path": photo_path,
+                "file_exists": os.path.isfile(photo_path),
+                "parva_id": parva_id,
+                "sandhi_id": sandhi_id,
+                "padya_number": padya_number
+            }), 200
+
         return jsonify({
-            'error': f'Failed to update audio path for entry {entry_id}'
-        }), 400
+            "found": False,
+            "message": f"No photo file found for parva_id={parva_id}, sandhi_id={sandhi_id}, padya_number={padya_number}"
+        }), 404
+
+    except ValueError:
+        return _json_error("parva_id, sandhi_id, and padya_number must be integers", 400)
+    except Exception as e:
+        return _json_error(str(e), 500)

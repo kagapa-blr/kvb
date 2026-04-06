@@ -6,3 +6,10 @@ docs
 *.mp3
 migrations
 static/photos
+*.log
+*.sqlite3
+*.pyc
+*.pyo
+*.pyd
+*.swp
+.DS_Store

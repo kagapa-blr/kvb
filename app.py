@@ -27,13 +27,9 @@ from services.user_management import (
     change_password
 )
 from utils.auth_decorator import login_required
+from utils.logger import get_logger
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+logger = get_logger(logger_name='main')
 
 # Load environment variables
 load_dotenv()
@@ -55,6 +51,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Session timeout
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
+logger.info(f"Initializing Database Connection")
 # Initialize SQLAlchemy
 db.init_app(app)
 with app.app_context():

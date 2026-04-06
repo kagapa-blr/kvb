@@ -1144,6 +1144,12 @@ async function savePadya() {
     const gamaka_raga = document.getElementById("modal_padya_gamaka_raga")?.value.trim() || null;
     let gamaka_photo_path = document.getElementById("modal_padya_gamaka_photo_path")?.value.trim() || null;
     let gamaka_audio_path = document.getElementById("modal_padya_gamaka_audio_path")?.value.trim() || null;
+    
+    // Check if user explicitly deleted files
+    const photoPathField = document.getElementById("modal_padya_gamaka_photo_path");
+    const audioPathField = document.getElementById("modal_padya_gamaka_audio_path");
+    const photo_deleted = photoPathField.dataset.deleted === 'true';
+    const audio_deleted = audioPathField.dataset.deleted === 'true';
 
     // Upload photo if a new one is selected
     const photoInput = document.getElementById('modal_padya_gamaka_photo_input');
@@ -1195,12 +1201,39 @@ async function savePadya() {
       gamaka_raga: gamaka_raga,
       gamaka_photo_path: gamaka_photo_path,
       gamaka_audio_path: gamaka_audio_path,
+      photo_deleted: photo_deleted,  // Explicitly mark if user deleted photo
+      audio_deleted: audio_deleted,  // Explicitly mark if user deleted audio
     };
 
     await apiRequest(endpoint, {
       method: method,
       body: requestBody,
     });
+
+    // After successful save, refresh the gamaka paths from database
+    // to ensure paths are correctly saved and displayed
+    try {
+      let refreshResult = await apiRequest(ApiEndpoints.PADYA.get(parvaNumber, sandhiNumber, padyaNumber));
+      let refreshedPadya = refreshResult.data;
+      
+      if (refreshedPadya.gamaka_vachana && refreshedPadya.gamaka_vachana.length > 0) {
+        const gamaka = refreshedPadya.gamaka_vachana[0];
+        const normalizedPhotoPath = normalizePath(gamaka.gamaka_vachakar_photo_path) || '';
+        const normalizedAudioPath = normalizePath(gamaka.gamaka_vachakar_audio_path) || '';
+        
+        // Update hidden fields with refreshed paths from database
+        document.getElementById("modal_padya_gamaka_photo_path").value = normalizedPhotoPath;
+        document.getElementById("modal_padya_gamaka_audio_path").value = normalizedAudioPath;
+        
+        console.log('[Dashboard] Gamaka paths refreshed after save:', {
+          photo: normalizedPhotoPath,
+          audio: normalizedAudioPath
+        });
+      }
+    } catch (refreshError) {
+      console.warn('[Dashboard] Could not refresh gamaka paths after save:', refreshError);
+      // Continue anyway - paths should still be saved
+    }
 
     // Reset modal form
     resetPadyaModal();
@@ -1251,8 +1284,15 @@ function resetPadyaModal() {
   // Clear GamakaVachana fields
   document.getElementById("modal_padya_gamaka_vachakara_name").value = "";
   document.getElementById("modal_padya_gamaka_raga").value = "";
-  document.getElementById("modal_padya_gamaka_photo_path").value = "";
-  document.getElementById("modal_padya_gamaka_audio_path").value = "";
+  
+  // Clear deletion markers
+  const photoPath = document.getElementById("modal_padya_gamaka_photo_path");
+  const audioPath = document.getElementById("modal_padya_gamaka_audio_path");
+  photoPath.value = "";
+  photoPath.dataset.deleted = '';
+  audioPath.value = "";
+  audioPath.dataset.deleted = '';
+  
   document.getElementById("modal_padya_gamaka_id").value = "";
   
   // Clear photo and audio upload
@@ -1317,6 +1357,10 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
       document.getElementById("modal_padya_gamaka_audio_path").value = normalizedAudioPath;
       document.getElementById("modal_padya_gamaka_id").value = gamaka.id || ''; // Store gamaka ID for delete operations
       
+      // Clear deletion markers since we just loaded data from DB
+      document.getElementById("modal_padya_gamaka_photo_path").dataset.deleted = '';
+      document.getElementById("modal_padya_gamaka_audio_path").dataset.deleted = '';
+      
       // Re-fetch with author and raga filter to ensure we get the correct record
       if (authorName || ragaName) {
         let filteredResult = await apiRequest(ApiEndpoints.PADYA.get(parvaNumber, sandhiNumber, padyaNumber), {
@@ -1336,6 +1380,10 @@ async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
           document.getElementById("modal_padya_gamaka_photo_path").value = filteredPhotoPath;
           document.getElementById("modal_padya_gamaka_audio_path").value = filteredAudioPath;
           document.getElementById("modal_padya_gamaka_id").value = filteredGamaka.id || ''; // Update gamaka ID for delete operations
+          
+          // Clear deletion markers since we just loaded filtered data from DB
+          document.getElementById("modal_padya_gamaka_photo_path").dataset.deleted = '';
+          document.getElementById("modal_padya_gamaka_audio_path").dataset.deleted = '';
           
           // Display photo preview if exists
           if (filteredGamaka.gamaka_vachakar_photo_path) {
@@ -1547,7 +1595,8 @@ function clearPhotoUpload() {
   const pathDisplay = document.getElementById('gamaka_photo_path_display');
 
   fileInput.value = '';
-  photoPath.value = ''; // Setting to empty string - will be null when saved to database
+  photoPath.value = ''; // Setting to empty string - explicitly marks for deletion
+  photoPath.dataset.deleted = 'true'; // Mark as explicitly deleted by user
   fileInput.dataset.selectedFile = '';
   
   if (pathDisplay) {
@@ -1556,6 +1605,7 @@ function clearPhotoUpload() {
   
   uploadArea.style.display = 'block';
   previewContainer.style.display = 'none';
+  showAlert('ಫೋಟೋ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
 }
 
 function displayGamakaPhotoPreview(photoPath, authorName) {
@@ -1752,7 +1802,8 @@ function clearAudioUpload() {
 
   // Clear UI elements
   fileInput.value = '';
-  audioPath.value = '';  // Setting to empty string - will be null when saved to database
+  audioPath.value = '';  // Setting to empty string - explicitly marks for deletion
+  audioPath.dataset.deleted = 'true'; // Mark as explicitly deleted by user
   fileInput.dataset.selectedFile = '';
   
   if (pathDisplay) {
@@ -1762,7 +1813,6 @@ function clearAudioUpload() {
   uploadArea.style.display = 'block';
   previewContainer.style.display = 'none';
   
-  // Note: Actual database update happens when user clicks Save button
   showAlert('ಆಡಿಯೊ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
 }
 
