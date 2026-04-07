@@ -8,10 +8,9 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-icons.css') }}" />
-    <!-- Bootstrap JS -->
+
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <!-- Axios for HTTP requests -->
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{{ url_for('static', filename='js/cdn/axios.min.js') }}"></script>
     
     <style>
         :root {
@@ -280,7 +279,7 @@
             </div>
             {% endif %}
 
-            <form id="loginForm" method="POST" action="/login" novalidate>
+            <form id="loginForm" method="POST" action="{{ url_for('login') }}" novalidate>
                 <!-- Username/Email Field -->
                 <div class="form-group">
                     <label for="username">
