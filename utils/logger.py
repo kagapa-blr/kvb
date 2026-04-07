@@ -4,7 +4,7 @@ import inspect
 from datetime import datetime
 
 
-def get_logger(logger_name: str | None = None,
+def get_logger(logger_name=None,
                log_dir: str = "logs") -> logging.Logger:
     """
     Create and return a named logger.
