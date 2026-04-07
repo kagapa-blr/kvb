@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: black;">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/" title="Home" style="height: 35px;">
+        <a class="navbar-brand" href="{{ url_for('index') }}" title="Home" style="height: 35px;">
             <img src="{{ url_for('static', filename='images/kgp_logo.png') }}" alt="Logo" height="35px" />
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -11,7 +11,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/kavya" title="ಕಾವ್ಯಪ್ರವೇಶ" style="color: white; text-decoration: none;">
+                    <a class="nav-link" href="{{ url_for('kavya') }}" title="ಕಾವ್ಯಪ್ರವೇಶ" style="color: white; text-decoration: none;">
                         ಕಾವ್ಯಪ್ರವೇಶ
                     </a>
                 </li>
@@ -33,27 +33,27 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/chitra-samputa" title="ಚಿತ್ರ ಸಂಪುಟ"
+                    <a class="nav-link" href="{{ url_for('chitra_samputa') }}" title="ಚಿತ್ರ ಸಂಪುಟ"
                         style="color: white; text-decoration: none;">
                         ಚಿತ್ರ ಸಂಪುಟ
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/stats" title="ಅಂಕಿ ಅಂಶ" style="color: white; text-decoration: none;">
+                    <a class="nav-link" href="{{ url_for('new_admin') }}" title="ಅಂಕಿ ಅಂಶ" style="color: white; text-decoration: none;">
                         ಅಂಕಿ ಅಂಶ
                     </a>
                 </li> -->
 
 
                 <!-- <li class="nav-item">
-                    <a class="nav-link" href="/logout" title="ನಿರ್ಗಮನ" style="color: white; text-decoration: none;">
+                    <a class="nav-link" href="{{ url_for('logout') }}" title="ನಿರ್ಗಮನ" style="color: white; text-decoration: none;">
                         ನಿರ್ಗಮನ
                     </a>
                 </li> -->
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin" title="ನಿರ್ವಾಹಕರ ಪುಟ​"
+                    <a class="nav-link" href="{{ url_for('admin') }}" title="ನಿರ್ವಾಹಕರ ಪುಟ​"
                         style="color: white; text-decoration: none;">
                         ನಿರ್ವಾಹಕರ ಪುಟ​
                     </a>
