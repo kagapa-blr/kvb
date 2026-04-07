@@ -67,8 +67,16 @@ function getStaticUrl(path) {
     return path;
   }
   
-  // Detect base path from current location
-  const basePath = window.location.pathname.includes('/kvb/') ? '/kvb' : '';
+  // Get base path from ApiClient if available, otherwise fallback to window.location detection
+  let basePath = '';
+  if (typeof window.ApiClient !== 'undefined' && typeof window.ApiClient.getBaseUrl === 'function') {
+    basePath = window.ApiClient.getBaseUrl();
+    console.log('[KavyaProcess] Using ApiClient base URL:', basePath);
+  } else {
+    // Fallback: Detect base path from current location
+    basePath = window.location.pathname.includes('/kvb/') ? '/kvb' : '';
+    console.log('[KavyaProcess] Using location-based base URL:', basePath);
+  }
   
   // If path already includes /static/, don't add it again
   if (path.includes('/static/')) {

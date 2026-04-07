@@ -26,6 +26,42 @@ const state = {
 
 // ================= UTILITY FUNCTIONS =================
 /**
+ * Convert file path to static URL with proper base path
+ * Examples:
+ * - Input: "photos/gamakaPhotos/file.jpg" → "/static/photos/gamakaPhotos/file.jpg"
+ * - Input: "audio/gamakaAudio/file.mp3" → "/static/audio/gamakaAudio/file.mp3"
+ * Returns full URL including base path from ApiClient
+ */
+function getStaticUrl(path) {
+  if (!path) {
+    return '';
+  }
+  
+  // If path is already a complete URL, return it
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  
+  // Get base path from ApiClient if available, otherwise fallback to window.location detection
+  let basePath = '';
+  if (typeof window.ApiClient !== 'undefined' && typeof window.ApiClient.getBaseUrl === 'function') {
+    basePath = window.ApiClient.getBaseUrl();
+  } else {
+    // Fallback: Detect base path from current location
+    basePath = window.location.pathname.includes('/kvb/') ? '/kvb' : '';
+  }
+  
+  // If path already includes /static/, don't add it again
+  if (path.includes('/static/')) {
+    return basePath + path;
+  }
+  
+  // Build the full URL
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${basePath}/static${cleanPath}`;
+}
+
+/**
  * Normalize file paths - convert absolute paths to relative paths
  * Examples:
  * - Input: "C:/Users/techk/Desktop/kagapa/kvb/static/photos/gamakaPhotos/file.jpg"
@@ -1728,8 +1764,8 @@ function displayGamakaPhotoPreview(photoPath, authorName) {
     const normalizedPath = normalizePath(photoPath);
     
     if (normalizedPath) {
-      // Build full URL from relative path
-      const fullUrl = '/static/' + normalizedPath;
+      // Build full URL using base path from ApiClient
+      const fullUrl = buildPhotoUrl(normalizedPath);
       preview.src = fullUrl;
       filename.textContent = authorName || 'ಫೋಟೋ';
       pathDisplay.textContent = normalizedPath;
@@ -1742,6 +1778,20 @@ function displayGamakaPhotoPreview(photoPath, authorName) {
   } else {
     resetPhotoUploadUI();
   }
+}
+
+// Helper function to build photo preview URLs with proper base path
+function buildPhotoUrl(photoPath) {
+  if (!photoPath) return '';
+  const normalizedPath = normalizePath(photoPath);
+  return getStaticUrl(normalizedPath);
+}
+
+// Helper function to build audio preview URLs with proper base path
+function buildAudioUrl(audioPath) {
+  if (!audioPath) return '';
+  const normalizedPath = normalizePath(audioPath);
+  return getStaticUrl(normalizedPath);
 }
 
 async function uploadGamakaPhoto(parvaNumber, sandhiNumber, padyaNumber, ragaName, authorName) {
@@ -2069,8 +2119,8 @@ function displayGamakaAudioPreview(audioPath, authorName) {
     const normalizedPath = normalizePath(audioPath);
     
     if (normalizedPath) {
-      // Build full URL from relative path
-      const fullUrl = '/static/' + normalizedPath;
+      // Build full URL using base path from ApiClient
+      const fullUrl = buildAudioUrl(normalizedPath);
       const source = audioPlayer.querySelector('source');
       source.src = fullUrl;
       audioPlayer.load(); // Reload audio element with new source
