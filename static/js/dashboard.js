@@ -1699,6 +1699,23 @@ function resetPhotoUploadOnlyUI() {
   previewContainer.style.display = 'none';
 }
 
+// Reset photo upload UI without marking for deletion (used when loading existing data)
+function resetPhotoUploadUI() {
+  const fileInput = document.getElementById('modal_padya_gamaka_photo_input');
+  const uploadArea = document.getElementById('gamaka_photo_upload_area');
+  const previewContainer = document.getElementById('gamaka_photo_preview_container');
+
+  fileInput.value = '';
+  fileInput.dataset.selectedFile = '';
+  
+  // Only hide preview if there's no existing path
+  const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
+  if (!photoPath.value) {
+    uploadArea.style.display = 'block';
+    previewContainer.style.display = 'none';
+  }
+}
+
 function displayGamakaPhotoPreview(photoPath, authorName) {
   const uploadArea = document.getElementById('gamaka_photo_upload_area');
   const previewContainer = document.getElementById('gamaka_photo_preview_container');
