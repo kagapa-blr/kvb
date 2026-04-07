@@ -1,12 +1,12 @@
 import os
-from logging import getLogger
 
 from sqlalchemy.exc import IntegrityError
 
 from model.models import GamakaVachana, db
 from utils.path_builder import GamakaPathBuilder
+from utils.logger import get_logger
 
-logger = getLogger(__name__)
+logger = get_logger()
 
 
 class GamakaVachanaService:

@@ -1,4 +1,3 @@
-import logging
 from flask import Blueprint, request, jsonify
 
 from model.models import db, Sandhi
@@ -7,8 +6,9 @@ from services.parvya_service import (
     sandhi_service,
     padya_service,
 )
+from utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 parvya_bp = Blueprint("parvya", __name__)
 
 

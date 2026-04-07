@@ -1,13 +1,8 @@
-import logging
-import csv
 import os
-from io import StringIO, BytesIO
-from logging import getLogger
 
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
-from flask import send_file, current_app
 
 from model.models import (
     db,
@@ -18,8 +13,9 @@ from model.models import (
 )
 from services.gamaka_vachana_service import GamakaVachanaService
 from utils.path_builder import GamakaPathBuilder
+from utils.logger import get_logger
 
-logger = getLogger()
+logger = get_logger()
 
 
 # -------------------------------------------------------
@@ -34,18 +30,45 @@ def normalize_file_path(file_path):
     return GamakaPathBuilder.normalize_path(file_path)
 
 
-def delete_gamaka_file(file_path, file_type="photo"):
+def file_exists(relative_path):
     """
-    Delete a gamaka photo or audio file from the filesystem.
+    Check if a gamaka file exists in the static folder.
     
     Args:
-        file_path: Relative path like 'photos/gamakaPhotos/1_1_1_file.jpg'
+        relative_path: Relative path like 'photos/gamakaPhotos/1_1_1_file.jpg'
+    
+    Returns:
+        True if file exists, False otherwise
+    """
+    if not relative_path:
+        return False
+    
+    try:
+        from flask import current_app
+        if current_app and current_app.static_folder:
+            full_path = os.path.join(current_app.static_folder, relative_path)
+            return os.path.isfile(full_path)
+    except Exception as e:
+        logger.error(f"Error checking file existence at {relative_path}: {e}")
+    
+    return False
+
+
+def delete_gamaka_file(file_path, file_type="photo"):
+    """
+    Delete the exact gamaka photo or audio file from the filesystem.
+    
+    Args:
+        file_path: Exact relative path like 'photos/gamakaPhotos/1_1_1_file.jpg'
         file_type: 'photo' or 'audio' for logging
     
     Returns:
         True if deleted successfully, False if not found or error
+    
+    Note: This deletes ONLY the exact file specified, not any similar files.
     """
     if not file_path:
+        logger.debug(f"[DELETE FILE] Empty path provided for {file_type}")
         return False
     
     try:
@@ -56,13 +79,13 @@ def delete_gamaka_file(file_path, file_type="photo"):
             
             if os.path.isfile(full_path):
                 os.remove(full_path)
-                logger.info(f"Deleted gamaka {file_type}: {full_path}")
+                logger.info(f"[DELETE FILE] SUCCESS - Deleted {file_type} | Path: '{file_path}'")
                 return True
             else:
-                logger.debug(f"Gamaka {file_type} not found at: {full_path}")
+                logger.debug(f"[DELETE FILE] FAILED - {file_type.capitalize()} file not found | Relative: '{file_path}' | Absolute: '{full_path}'")
                 return False
     except Exception as e:
-        logger.error(f"Error deleting gamaka {file_type} at {file_path}: {e}")
+        logger.error(f"[DELETE FILE] FAILED - Error deleting {file_type} at '{file_path}': {e}")
         return False
 
 
@@ -137,9 +160,14 @@ def get_gamaka_photo_path_with_fs_check(gamaka_vachana_obj, parva_number, sandhi
     Get gamaka photo path with filesystem fallback check.
     
     Logic:
-    1. Check if DB has a valid photo path
-    2. If empty/None, search filesystem based on parva/sandhi/padya numbers
-    3. Return first match found, or None if nothing found
+    1. If DB has a valid photo path, verify it exists and return it
+    2. If DB path doesn't exist in filesystem, clear it from database
+    3. If DB is empty/null, search filesystem for matching files
+    4. Return first match found, or None if nothing found
+    
+    This allows:
+    - Deleted files to be replaced by newly discovered files from filesystem
+    - Invalid DB paths to be cleaned up automatically
     """
     if not gamaka_vachana_obj:
         return None
@@ -148,9 +176,20 @@ def get_gamaka_photo_path_with_fs_check(gamaka_vachana_obj, parva_number, sandhi
     if gamaka_vachana_obj.gamaka_vachakar_photo_path:
         normalized = GamakaPathBuilder.normalize_path(gamaka_vachana_obj.gamaka_vachakar_photo_path)
         if normalized:
-            return normalized
+            # Verify the path actually exists in filesystem
+            if file_exists(normalized):
+                return normalized
+            else:
+                # Path exists in DB but not in filesystem - clear it
+                logger.warning(f"Photo path in DB but not in filesystem: {normalized}. Clearing from database.")
+                gamaka_vachana_obj.gamaka_vachakar_photo_path = None
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    logger.error(f"Failed to clear invalid photo path from database: {e}")
+                    db.session.rollback()
     
-    # If DB is empty, try filesystem
+    # If DB is empty or was cleared, search filesystem for matching files
     try:
         from flask import current_app
         if current_app:
@@ -176,9 +215,14 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_obj, parva_number, sandhi
     Get gamaka audio path with filesystem fallback check.
     
     Logic:
-    1. Check if DB has a valid audio path
-    2. If empty/None, search filesystem based on parva/sandhi/padya numbers
-    3. Return first match found, or None if nothing found
+    1. If DB has a valid audio path, verify it exists and return it
+    2. If DB path doesn't exist in filesystem, clear it from database
+    3. If DB is empty/null, search filesystem for matching files
+    4. Return first match found, or None if nothing found
+    
+    This allows:
+    - Deleted files to be replaced by newly discovered files from filesystem
+    - Invalid DB paths to be cleaned up automatically
     """
     if not gamaka_vachana_obj:
         return None
@@ -187,9 +231,20 @@ def get_gamaka_audio_path_with_fs_check(gamaka_vachana_obj, parva_number, sandhi
     if gamaka_vachana_obj.gamaka_vachakar_audio_path:
         normalized = GamakaPathBuilder.normalize_path(gamaka_vachana_obj.gamaka_vachakar_audio_path)
         if normalized:
-            return normalized
+            # Verify the path actually exists in filesystem
+            if file_exists(normalized):
+                return normalized
+            else:
+                # Path exists in DB but not in filesystem - clear it
+                logger.warning(f"Audio path in DB but not in filesystem: {normalized}. Clearing from database.")
+                gamaka_vachana_obj.gamaka_vachakar_audio_path = None
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    logger.error(f"Failed to clear invalid audio path from database: {e}")
+                    db.session.rollback()
     
-    # If DB is empty, try filesystem
+    # If DB is empty or was cleared, search filesystem for matching files
     try:
         from flask import current_app
         if current_app:
@@ -1064,7 +1119,7 @@ class PadyaService:
             record.pathantar = kwargs.get(
                 "pathantar", record.pathantar
             )
-
+            logger.info(f"payload received for update {kwargs}")
             # Update the editor info if provided
             if "updated_by" in kwargs and kwargs["updated_by"]:
                 record.updated_by = kwargs.get("updated_by")
@@ -1078,6 +1133,12 @@ class PadyaService:
             gamaka_raga_raw = kwargs.get("gamaka_raga")
             gamaka_photo_path_raw = kwargs.get("gamaka_photo_path")
             gamaka_audio_path_raw = kwargs.get("gamaka_audio_path")
+            photo_deleted_raw = kwargs.get("photo_deleted", False)
+            audio_deleted_raw = kwargs.get("audio_deleted", False)
+
+            logger.info(f"[GAMAKA UPDATE] padya={padya_number} | photo_in_request={'gamaka_photo_path' in kwargs} | audio_in_request={'gamaka_audio_path' in kwargs}")
+            logger.info(f"[GAMAKA UPDATE] photo_deleted={photo_deleted_raw} | audio_deleted={audio_deleted_raw}")
+            logger.info(f"[GAMAKA PATHS] photo={repr(gamaka_photo_path_raw)} | audio={repr(gamaka_audio_path_raw)}")
 
             # Process and strip the values
             gamaka_vachakara_name = (gamaka_vachakara_name_raw or "").strip() if gamaka_vachakara_name_raw is not None else None
@@ -1097,77 +1158,149 @@ class PadyaService:
             has_user_gamaka_metadata = gamaka_vachakara_name and raga
 
             if existing_gamaka:
-                # ===== STEP 1: HANDLE DELETIONS =====
+# ===== STEP 2: HANDLE DELETIONS =====
                 # Check if user explicitly requested deletion
                 photo_deleted = kwargs.get("photo_deleted", False)
                 audio_deleted = kwargs.get("audio_deleted", False)
-                
-                # Delete photo file from filesystem if user requested
-                if photo_deleted and existing_gamaka.gamaka_vachakar_photo_path:
-                    delete_gamaka_file(existing_gamaka.gamaka_vachakar_photo_path, file_type="photo")
-                    gamaka_vachakar_photo_path = None  # Set path to None
-                
-                # Delete audio file from filesystem if user requested
-                if audio_deleted and existing_gamaka.gamaka_vachakar_audio_path:
-                    delete_gamaka_file(existing_gamaka.gamaka_vachakar_audio_path, file_type="audio")
-                    gamaka_vachakar_audio_path = None  # Set path to None
-                
-                # ===== STEP 2: HANDLE RENAMES =====
-                # Only rename files if they're NOT being deleted and we have new name/raga
-                # Use new values if provided, otherwise use existing values
-                final_name = gamaka_vachakara_name or existing_gamaka.gamaka_vachakara_name
-                final_raga = raga or existing_gamaka.raga
-                
-                # Rename photo file if it exists (and wasn't deleted) and we have both name and raga
-                # This ensures files always have proper naming with metadata
-                if (not photo_deleted and existing_gamaka.gamaka_vachakar_photo_path and 
-                    final_name and final_raga):
-                    new_photo_path = rename_gamaka_file_with_metadata(
-                        existing_gamaka.gamaka_vachakar_photo_path,
-                        parva.parva_number if parva else None,
-                        sandhi.sandhi_number if sandhi else None,
-                        padya_number,
-                        final_name,
-                        final_raga,
-                        file_type="photo"
-                    )
-                    if new_photo_path:
-                        gamaka_vachakar_photo_path = new_photo_path
-                
-                # Rename audio file if it exists (and wasn't deleted) and we have both name and raga
-                # This ensures files always have proper naming with metadata
-                if (not audio_deleted and existing_gamaka.gamaka_vachakar_audio_path and 
-                    final_name and final_raga):
-                    new_audio_path = rename_gamaka_file_with_metadata(
-                        existing_gamaka.gamaka_vachakar_audio_path,
-                        parva.parva_number if parva else None,
-                        sandhi.sandhi_number if sandhi else None,
-                        padya_number,
-                        final_name,
-                        final_raga,
-                        file_type="audio"
-                    )
-                    if new_audio_path:
-                        gamaka_vachakar_audio_path = new_audio_path
-                
-                # ===== STEP 3: UPDATE DATABASE =====
-                # Update existing record - only update if a value is explicitly provided
-                if gamaka_vachakara_name:
-                    existing_gamaka.gamaka_vachakara_name = gamaka_vachakara_name
-                if raga:
-                    existing_gamaka.raga = raga
 
-                # IMPORTANT: Check if key was SENT in request (not just if value is not None)
-                # This handles: empty string "", null, and actual paths
-                # Frontend sends "" or null when user deletes media - we must update DB to null
+                logger.info(f"[STEP 1 DELETIONS] photo_deleted={photo_deleted} | audio_deleted={audio_deleted}")
+
+                # Delete photo file from filesystem if user requested
+                if photo_deleted:
+                    # Get paths to delete - could be from DB or from request kwargs
+                    db_photo_path = existing_gamaka.gamaka_vachakar_photo_path
+                    request_photo_path = gamaka_vachakar_photo_path  # From kwargs (new photo being uploaded, if any)
+                    
+                    logger.info(f"[DELETING PHOTO] DB path: '{db_photo_path}' | Request path (new photo): '{request_photo_path}'")
+                    
+                    # IMPORTANT: Only delete the OLD DB path, NOT the request_photo_path!
+                    # The request_photo_path is the NEW photo (if user uploaded one) - we want to keep it
+                    # photo_deleted=True means "replace old photo with new one" or "remove photo entirely"
+                    
+                    # Delete OLD DB path if it exists (and it's different from the new one)
+                    if db_photo_path and db_photo_path != request_photo_path:
+                        db_path_normalized = normalize_file_path(db_photo_path)
+                        logger.info(f"[DELETING PHOTO] Deleting old DB path: '{db_path_normalized}'")
+                        deleted = delete_gamaka_file(db_path_normalized, file_type="photo")
+                        if deleted:
+                            logger.info(f"[PHOTO DELETED] SUCCESS - Deleted old DB path: '{db_path_normalized}'")
+                        else:
+                            logger.warning(f"[PHOTO DELETED] FAILED - Could not delete old DB path: '{db_path_normalized}'")
+                    
+                    # If both old and new paths are None/empty, search filesystem for old files to delete
+                    if not db_photo_path and not request_photo_path:
+                        logger.info(f"[DELETING PHOTO] Both DB and request paths are None - searching filesystem for matching files to delete (parva={parva_number}, sandhi={sandhi_number}, padya={padya_number})")
+                        try:
+                            from flask import current_app
+                            if current_app and current_app.static_folder:
+                                photos_dir = os.path.join(current_app.static_folder, 'photos', 'gamakaPhotos')
+                                if os.path.isdir(photos_dir):
+                                    matches = GamakaPathBuilder.find_photos(photos_dir, parva_number, sandhi_number, padya_number)
+                                    if matches:
+                                        logger.info(f"[DELETING PHOTO] Found {len(matches)} matching file(s) in filesystem to delete")
+                                        for match_file in matches:
+                                            relative_path = GamakaPathBuilder.construct_relative_photo_path(parva_number, sandhi_number, padya_number, match_file)
+                                            deleted = delete_gamaka_file(relative_path, file_type="photo")
+                                            if deleted:
+                                                logger.info(f"[PHOTO DELETED] SUCCESS - Deleted matching file: '{relative_path}'")
+                                            else:
+                                                logger.warning(f"[PHOTO DELETED] FAILED - Could not delete matching file: '{relative_path}'")
+                                    else:
+                                        logger.info(f"[DELETING PHOTO] No matching files found in filesystem")
+                        except Exception as e:
+                            logger.error(f"[DELETING PHOTO] Error searching/deleting files: {e}")
+
+                # Delete audio file from filesystem if user requested
+                if audio_deleted:
+                    # Get paths to delete - could be from DB or from request kwargs
+                    db_audio_path = existing_gamaka.gamaka_vachakar_audio_path
+                    request_audio_path = gamaka_vachakar_audio_path  # From kwargs (new audio being uploaded, if any)
+                    
+                    logger.info(f"[DELETING AUDIO] DB path: '{db_audio_path}' | Request path (new audio): '{request_audio_path}'")
+                    
+                    # IMPORTANT: Only delete the OLD DB path, NOT the request_audio_path!
+                    # The request_audio_path is the NEW audio (if user uploaded one) - we want to keep it
+                    # audio_deleted=True means "replace old audio with new one" or "remove audio entirely"
+                    
+                    # Delete OLD DB path if it exists (and it's different from the new one)
+                    if db_audio_path and db_audio_path != request_audio_path:
+                        db_path_normalized = normalize_file_path(db_audio_path)
+                        logger.info(f"[DELETING AUDIO] Deleting old DB path: '{db_path_normalized}'")
+                        deleted = delete_gamaka_file(db_path_normalized, file_type="audio")
+                        if deleted:
+                            logger.info(f"[AUDIO DELETED] SUCCESS - Deleted old DB path: '{db_path_normalized}'")
+                        else:
+                            logger.warning(f"[AUDIO DELETED] FAILED - Could not delete old DB path: '{db_path_normalized}'")
+                    
+                    # If both old and new paths are None/empty, search filesystem for old files to delete
+                    if not db_audio_path and not request_audio_path:
+                        logger.info(f"[DELETING AUDIO] Both DB and request paths are None - searching filesystem for matching files to delete (parva={parva_number}, sandhi={sandhi_number}, padya={padya_number})")
+                        try:
+                            from flask import current_app
+                            if current_app and current_app.static_folder:
+                                audio_dir = os.path.join(current_app.static_folder, 'audio', 'gamakaAudio')
+                                if os.path.isdir(audio_dir):
+                                    matches = GamakaPathBuilder.find_audios(audio_dir, parva_number, sandhi_number, padya_number)
+                                    if matches:
+                                        logger.info(f"[DELETING AUDIO] Found {len(matches)} matching file(s) in filesystem to delete")
+                                        for match_file in matches:
+                                            relative_path = GamakaPathBuilder.construct_relative_audio_path(parva_number, sandhi_number, padya_number, match_file)
+                                            deleted = delete_gamaka_file(relative_path, file_type="audio")
+                                            if deleted:
+                                                logger.info(f"[AUDIO DELETED] SUCCESS - Deleted matching file: '{relative_path}'")
+                                            else:
+                                                logger.warning(f"[AUDIO DELETED] FAILED - Could not delete matching file: '{relative_path}'")
+                                    else:
+                                        logger.info(f"[DELETING AUDIO] No matching files found in filesystem")
+                        except Exception as e:
+                            logger.error(f"[DELETING AUDIO] Error searching/deleting files: {e}")
+
+                # ===== STEP 3: SIMPLE DATABASE UPDATE =====
+                # Only update photo/audio paths if:
+                # 1. Delete flag is set (set path to null), OR
+                # 2. File exists at the provided path
+
                 if "gamaka_photo_path" in kwargs:
-                    # Key was explicitly sent - update it (even if null or empty)
-                    existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path
+                    if photo_deleted:
+                        # User clicked delete button
+                        if gamaka_vachakar_photo_path and file_exists(gamaka_vachakar_photo_path):
+                            # Delete flag + new photo provided = replace old with new
+                            old_path = existing_gamaka.gamaka_vachakar_photo_path
+                            existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path
+                            logger.info(f"[UPDATE DB PHOTO] SUCCESS - Replaced | Old: '{old_path}' -> New: '{gamaka_vachakar_photo_path}'")
+                        else:
+                            # Delete flag + no new photo = remove completely
+                            old_path = existing_gamaka.gamaka_vachakar_photo_path
+                            existing_gamaka.gamaka_vachakar_photo_path = None
+                            logger.info(f"[UPDATE DB PHOTO] SUCCESS - Deleted by user | Old path: '{old_path}' -> NULL")
+                    elif gamaka_vachakar_photo_path and file_exists(gamaka_vachakar_photo_path):
+                        # File exists - update path
+                        old_path = existing_gamaka.gamaka_vachakar_photo_path
+                        existing_gamaka.gamaka_vachakar_photo_path = gamaka_vachakar_photo_path
+                        logger.info(f"[UPDATE DB PHOTO] SUCCESS - Updated | Old: '{old_path}' -> New: '{gamaka_vachakar_photo_path}'")
+                    else:
+                        logger.warning(f"[UPDATE DB PHOTO] FAILED - File not found or invalid - skipping update | Requested path: '{gamaka_vachakar_photo_path}'")
 
                 if "gamaka_audio_path" in kwargs:
-                    # Key was explicitly sent - update it (even if null or empty)
-                    # This ensures deletion (null) actually gets saved to database
-                    existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path
+                    if audio_deleted:
+                        # User clicked delete button
+                        if gamaka_vachakar_audio_path and file_exists(gamaka_vachakar_audio_path):
+                            # Delete flag + new audio provided = replace old with new
+                            old_path = existing_gamaka.gamaka_vachakar_audio_path
+                            existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path
+                            logger.info(f"[UPDATE DB AUDIO] SUCCESS - Replaced | Old: '{old_path}' -> New: '{gamaka_vachakar_audio_path}'")
+                        else:
+                            # Delete flag + no new audio = remove completely
+                            old_path = existing_gamaka.gamaka_vachakar_audio_path
+                            existing_gamaka.gamaka_vachakar_audio_path = None
+                            logger.info(f"[UPDATE DB AUDIO] SUCCESS - Deleted by user | Old path: '{old_path}' -> NULL")
+                    elif gamaka_vachakar_audio_path and file_exists(gamaka_vachakar_audio_path):
+                        # File exists - update path
+                        old_path = existing_gamaka.gamaka_vachakar_audio_path
+                        existing_gamaka.gamaka_vachakar_audio_path = gamaka_vachakar_audio_path
+                        logger.info(f"[UPDATE DB AUDIO] SUCCESS - Updated | Old: '{old_path}' -> New: '{gamaka_vachakar_audio_path}'")
+                    else:
+                        logger.warning(f"[UPDATE DB AUDIO] FAILED - File not found or invalid - skipping update | Requested path: '{gamaka_vachakar_audio_path}'")
             elif has_user_gamaka_metadata:
                 # Create new GamakaVachana ONLY if user provided BOTH raga and gamaka_vachakara_name
                 # Do NOT create records just because files exist on filesystem
@@ -1751,7 +1884,10 @@ class PadyaService:
             import os
             from werkzeug.utils import secure_filename
 
+            logger.info(f"[SAVE PHOTO] Upload started | File: {file.filename if file else 'None'} | Parva: {parva_number}, Sandhi: {sandhi_number}, Padya: {padya_number}")
+
             if not file or file.filename == "":
+                logger.warning("[SAVE PHOTO] FAILED - No file provided")
                 return {"error": "No file provided"}, 400
 
             # Validate file type - only JPEG and WebP
@@ -1759,7 +1895,10 @@ class PadyaService:
             filename = secure_filename(file.filename)
             file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
 
+            logger.info(f"[SAVE PHOTO] Filename: {filename} | Extension: {file_ext}")
+
             if file_ext not in allowed_extensions:
+                logger.warning(f"[SAVE PHOTO] FAILED - Invalid extension: {file_ext} | Allowed: {allowed_extensions}")
                 return {"error": "ಫೋಟೋ ಸ್ವರೂಪ ಸಮರ್ಥನೀಯವಲ್ಲ. ಸಮರ್ಥನೀಯ: JPEG (.jpg, .jpeg), WebP (.webp)"}, 400
 
             # Clean up author_name (gamaka_vachakara_name) and raga for filename
@@ -1769,10 +1908,14 @@ class PadyaService:
             # Create filename with naming convention: parva_sandhi_padya_name_raga.ext
             new_filename = f"{parva_number}_{sandhi_number}_{padya_number}_{author_clean}_{raga_clean}.{file_ext}"
 
+            logger.info(f"[SAVE PHOTO] New filename: {new_filename}")
+
             # Get absolute path to static folder
             from flask import current_app
             static_folder = current_app.static_folder
             photo_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
+
+            logger.info(f"[SAVE PHOTO] Directory: {photo_dir}")
 
             # Ensure directory exists
             os.makedirs(photo_dir, exist_ok=True)
@@ -1780,11 +1923,17 @@ class PadyaService:
             # Full path to save the file
             filepath = os.path.join(photo_dir, new_filename)
 
+            logger.info(f"[SAVE PHOTO] Saving to: {filepath}")
+
             # Save the file
             file.save(filepath)
 
+            logger.info(f"[SAVE PHOTO] SUCCESS - File saved successfully")
+
             # Return relative path for storage in database (relative to static folder)
             relative_path = f"photos/gamakaPhotos/{new_filename}"
+
+            logger.info(f"[SAVE PHOTO] SUCCESS - Upload completed | Path: {relative_path}")
 
             return {
                 "photo_path": relative_path,
@@ -1793,7 +1942,7 @@ class PadyaService:
             }, 200
 
         except Exception as e:
-            logger.error("Photo upload failed: %s", e)
+            logger.error(f"[SAVE PHOTO] FAILED - Photo upload error: {e}")
             return {"error": f"Photo upload failed: {str(e)}"}, 500
 
     # ---------------------------------------------
@@ -1813,7 +1962,10 @@ class PadyaService:
             import os
             from werkzeug.utils import secure_filename
 
+            logger.info(f"[SAVE AUDIO] Upload started | File: {file.filename if file else 'None'} | Parva: {parva_number}, Sandhi: {sandhi_number}, Padya: {padya_number}")
+
             if not file or file.filename == "":
+                logger.warning("[SAVE AUDIO] FAILED - No file provided")
                 return {"error": "No file provided"}, 400
 
             # Validate file type
@@ -1821,7 +1973,10 @@ class PadyaService:
             filename = secure_filename(file.filename)
             file_ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'mp3'
 
+            logger.info(f"[SAVE AUDIO] Filename: {filename} | Extension: {file_ext}")
+
             if file_ext not in allowed_extensions:
+                logger.warning(f"[SAVE AUDIO] FAILED - Invalid extension: {file_ext} | Allowed: {allowed_extensions}")
                 return {"error": f"File type not allowed. Allowed: {', '.join(allowed_extensions)}"}, 400
 
             # Clean up author_name (gamaka_vachakara_name) and raga for filename
@@ -1831,10 +1986,14 @@ class PadyaService:
             # Create filename with naming convention: parva-sandhi-padya-name-raga.ext
             new_filename = f"{parva_number}-{sandhi_number}-{padya_number}-{author_clean}-{raga_clean}.{file_ext}"
 
+            logger.info(f"[SAVE AUDIO] New filename: {new_filename}")
+
             # Get absolute path to static folder
             from flask import current_app
             static_folder = current_app.static_folder
             audio_dir = os.path.join(static_folder, 'audio', 'gamakaAudio')
+
+            logger.info(f"[SAVE AUDIO] Directory: {audio_dir}")
 
             # Ensure directory exists
             os.makedirs(audio_dir, exist_ok=True)
@@ -1842,11 +2001,17 @@ class PadyaService:
             # Full path to save the file
             filepath = os.path.join(audio_dir, new_filename)
 
+            logger.info(f"[SAVE AUDIO] Saving to: {filepath}")
+
             # Save the file
             file.save(filepath)
 
+            logger.info(f"[SAVE AUDIO] SUCCESS - File saved successfully")
+
             # Return relative path for storage in database (relative to static folder)
             relative_path = f"audio/gamakaAudio/{new_filename}"
+
+            logger.info(f"[SAVE AUDIO] SUCCESS - Upload completed | Path: {relative_path}")
 
             return {
                 "audio_path": relative_path,
@@ -1855,7 +2020,7 @@ class PadyaService:
             }, 200
 
         except Exception as e:
-            logger.error("Audio upload failed: %s", e)
+            logger.error(f"[SAVE AUDIO] FAILED - Audio upload error: {e}")
             return {"error": f"Audio upload failed: {str(e)}"}, 500
 
 

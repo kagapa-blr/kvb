@@ -1,13 +1,13 @@
 import os
-import logging
 import re
 
 from dotenv import load_dotenv
 from model.models import db, User
+from utils.logger import get_logger
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 # Cache default admin username
 _DEFAULT_ADMIN_USERNAME = os.getenv("DEFAULT_ADMIN_USERNAME")

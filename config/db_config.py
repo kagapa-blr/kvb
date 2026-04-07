@@ -1,14 +1,14 @@
 import os
-import logging
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
+from utils.logger import get_logger
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 
 class DatabaseConfig:

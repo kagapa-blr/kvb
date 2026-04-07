@@ -1,11 +1,10 @@
 from sqlalchemy import create_engine, text
-import logging
 import sys
 import os
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# Import custom logger
+from utils.logger import get_logger
+logger = get_logger()
 
 # Import config with error handling
 try:

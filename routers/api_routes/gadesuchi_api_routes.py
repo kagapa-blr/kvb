@@ -1,10 +1,10 @@
-import logging
 import csv
 import io
 from flask import Blueprint, request, jsonify
 from services.additional_service import GadeSuchigaluService
+from utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 gadesuchi_api_routes = Blueprint("gade_api", __name__)
 gade_service = GadeSuchigaluService()
 

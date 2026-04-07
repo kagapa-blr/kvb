@@ -1,11 +1,10 @@
-import logging
-
 from flask import Blueprint
 from flask import request, jsonify
 
 from services.additional_service import AkaradiSuchiService, GadeSuchigaluService, TippaniService
+from utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 additional_api_routes = Blueprint("additional_api", __name__)
 
 # ===========SERVICES Instances

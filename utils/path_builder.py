@@ -1,7 +1,8 @@
 import os
-from logging import getLogger
 
-logger = getLogger()
+from utils.logger import get_logger
+
+logger = get_logger()
 
 
 class GamakaPathBuilder:

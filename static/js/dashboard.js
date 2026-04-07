@@ -1150,6 +1150,16 @@ async function savePadya() {
     const audioPathField = document.getElementById("modal_padya_gamaka_audio_path");
     const photo_deleted = photoPathField.dataset.deleted === 'true';
     const audio_deleted = audioPathField.dataset.deleted === 'true';
+    
+    // Log initial state before uploads
+    console.log('[SavePadya] INITIAL STATE:', {
+      gamaka_photo_path: gamaka_photo_path,
+      gamaka_audio_path: gamaka_audio_path,
+      photo_deleted: photo_deleted,
+      audio_deleted: audio_deleted,
+      photo_dataset_deleted: photoPathField.dataset.deleted,
+      audio_dataset_deleted: audioPathField.dataset.deleted
+    });
 
     // Upload photo if a new one is selected
     const photoInput = document.getElementById('modal_padya_gamaka_photo_input');
@@ -1207,6 +1217,10 @@ async function savePadya() {
       }
     }
 
+    // Build request body - simple tracking of what changed
+    const photoUploaded = photoInput.files && photoInput.files.length > 0;
+    const audioUploaded = audioInput.files && audioInput.files.length > 0;
+    
     const requestBody = { 
       parva_number: parseInt(parvaNumber), 
       sandhi_number: parseInt(sandhiNumber),
@@ -1219,11 +1233,23 @@ async function savePadya() {
       updated_by: updatedBy,
       gamaka_vachakara_name: gamaka_vachakara_name,
       gamaka_raga: gamaka_raga,
-      gamaka_photo_path: gamaka_photo_path,
-      gamaka_audio_path: gamaka_audio_path,
-      photo_deleted: photo_deleted,  // Explicitly mark if user deleted photo
-      audio_deleted: audio_deleted,  // Explicitly mark if user deleted audio
     };
+    
+    // Only send photo if it changed: uploaded OR deleted
+    if (photoUploaded || photo_deleted) {
+      requestBody.gamaka_photo_path = gamaka_photo_path;
+      requestBody.photo_deleted = photo_deleted;
+      console.log('[SavePadya] Photo changed - sending to backend');
+    }
+    
+    // Only send audio if it changed: uploaded OR deleted
+    if (audioUploaded || audio_deleted) {
+      requestBody.gamaka_audio_path = gamaka_audio_path;
+      requestBody.audio_deleted = audio_deleted;
+      console.log('[SavePadya] Audio changed - sending to backend');
+    }
+    
+    console.log('[SavePadya] Request body:', requestBody);
 
     await apiRequest(endpoint, {
       method: method,
@@ -1315,9 +1341,15 @@ function resetPadyaModal() {
   
   document.getElementById("modal_padya_gamaka_id").value = "";
   
-  // Clear photo and audio upload
-  clearPhotoUpload();
-  clearAudioUpload();
+  // Clear replacing flags to ensure they don't carry over to next modal
+  const photoInput = document.getElementById('modal_padya_gamaka_photo_input');
+  const audioInput = document.getElementById('modal_padya_gamaka_audio_input');
+  if (photoInput) photoInput.dataset.isReplacing = '';
+  if (audioInput) audioInput.dataset.isReplacing = '';
+  
+  // Reset upload UI WITHOUT marking as deleted (only clear file inputs and UI)
+  resetPhotoUploadOnlyUI();
+  resetAudioUploadOnlyUI();
 }
 
 async function editPadya(parvaNumber, sandhiNumber, padyaNumber) {
@@ -1513,11 +1545,9 @@ function initializePhotoUpload() {
   // Replace existing photo button
   if (replaceBtn) {
     replaceBtn.addEventListener('click', () => {
-      // Mark old file for deletion when replacing
-      const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
-      if (photoPath && photoPath.value) {
-        photoPath.dataset.deleted = 'true';
-      }
+      // Store flag that user wants to replace (but don't mark as deleted yet)
+      // The deleted flag will be set when a file is actually selected
+      fileInput.dataset.isReplacing = 'true';
       fileInput.click();
     });
   }
@@ -1590,6 +1620,18 @@ function handlePhotoSelection(file) {
     return;
   }
 
+  // If user is replacing, DO NOT mark as deleted yet - they're just uploading a new file
+  // Mark for replacement, which means: keep the metadata flag true but don't set deleted flag
+  const fileInput = document.getElementById('modal_padya_gamaka_photo_input');
+  const isReplacing = fileInput.dataset.isReplacing === 'true';
+  
+  if (isReplacing) {
+    // When replacing: mark that a new file is selected (don't set deleted flag)
+    fileInput.dataset.isReplacingWithNewFile = 'true';
+    fileInput.dataset.isReplacing = '';  // Clear the replace flag
+    console.log('[Photo] Replacement file selected - new file will overwrite old one');
+  }
+
   // Show preview
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -1624,8 +1666,8 @@ function clearPhotoUpload() {
   const pathDisplay = document.getElementById('gamaka_photo_path_display');
 
   fileInput.value = '';
-  photoPath.value = ''; // Setting to empty string - explicitly marks for deletion
-  photoPath.dataset.deleted = 'true'; // Mark as explicitly deleted by user
+  photoPath.value = ''; // Setting to empty string
+  photoPath.dataset.deleted = 'true'; // Mark photo as explicitly deleted by user
   fileInput.dataset.selectedFile = '';
   
   if (pathDisplay) {
@@ -1637,21 +1679,24 @@ function clearPhotoUpload() {
   showAlert('ಫೋಟೋ ತೆಗೆದುಹಾಕಲಾಗಿದೆ - ಸಂರಕ್ಷಿಸಲು Save ಕ್ಲಿಕ್ ಮಾಡಿ', 'info');
 }
 
-// Reset photo upload UI without marking for deletion (used when loading existing data)
-function resetPhotoUploadUI() {
+// Reset photo upload UI without marking as deleted (used during modal reset/cleanup only)
+function resetPhotoUploadOnlyUI() {
   const fileInput = document.getElementById('modal_padya_gamaka_photo_input');
   const uploadArea = document.getElementById('gamaka_photo_upload_area');
   const previewContainer = document.getElementById('gamaka_photo_preview_container');
+  const pathDisplay = document.getElementById('gamaka_photo_path_display');
 
   fileInput.value = '';
   fileInput.dataset.selectedFile = '';
+  // DO NOT clear photoPath.value or set dataset.deleted here
+  // Only reset the file input and UI elements
   
-  // Only hide preview if there's no existing path
-  const photoPath = document.getElementById('modal_padya_gamaka_photo_path');
-  if (!photoPath.value) {
-    uploadArea.style.display = 'block';
-    previewContainer.style.display = 'none';
+  if (pathDisplay) {
+    pathDisplay.textContent = '';
   }
+  
+  uploadArea.style.display = 'block';
+  previewContainer.style.display = 'none';
 }
 
 function displayGamakaPhotoPreview(photoPath, authorName) {
@@ -1675,10 +1720,10 @@ function displayGamakaPhotoPreview(photoPath, authorName) {
       uploadArea.style.display = 'none';
       previewContainer.style.display = 'block';
     } else {
-      clearPhotoUpload();
+      resetPhotoUploadUI();
     }
   } else {
-    clearPhotoUpload();
+    resetPhotoUploadUI();
   }
 }
 
@@ -1773,11 +1818,9 @@ function initializeAudioUpload() {
   // Replace existing audio button
   if (replaceBtn) {
     replaceBtn.addEventListener('click', () => {
-      // Mark old file for deletion when replacing
-      const audioPath = document.getElementById('modal_padya_gamaka_audio_path');
-      if (audioPath && audioPath.value) {
-        audioPath.dataset.deleted = 'true';
-      }
+      // Store flag that user wants to replace (but don't mark as deleted yet)
+      // The deleted flag will be set when a file is actually selected
+      fileInput.dataset.isReplacing = 'true';
       fileInput.click();
     });
   }
@@ -1837,6 +1880,18 @@ function handleAudioSelection(file) {
   if (file.size > maxSize) {
     showAlert("ಆಡಿಯೊ ಗಾತ್ರ 50MB ಗಿಂತ ಹೆಚ್ಚಾಗಿರಬಾರದು", "warning");
     return;
+  }
+
+  // If user is replacing, DO NOT mark as deleted yet - they're just uploading a new file
+  // Mark for replacement, which means: keep the metadata flag true but don't set deleted flag
+  const fileInput = document.getElementById('modal_padya_gamaka_audio_input');
+  const isReplacing = fileInput.dataset.isReplacing === 'true';
+  
+  if (isReplacing) {
+    // When replacing: mark that a new file is selected (don't set deleted flag)
+    fileInput.dataset.isReplacingWithNewFile = 'true';
+    fileInput.dataset.isReplacing = '';  // Clear the replace flag
+    console.log('[Audio] Replacement file selected - new file will overwrite old one');
   }
 
   // Show preview
@@ -1904,6 +1959,26 @@ function resetAudioUploadUI() {
     uploadArea.style.display = 'block';
     previewContainer.style.display = 'none';
   }
+}
+
+// Reset audio upload UI without marking as deleted (used during modal reset/cleanup only)
+function resetAudioUploadOnlyUI() {
+  const fileInput = document.getElementById('modal_padya_gamaka_audio_input');
+  const uploadArea = document.getElementById('gamaka_audio_upload_area');
+  const previewContainer = document.getElementById('gamaka_audio_preview_container');
+  const pathDisplay = document.getElementById('gamaka_audio_path_display');
+
+  fileInput.value = '';
+  fileInput.dataset.selectedFile = '';
+  // DO NOT clear audioPath.value or set dataset.deleted here
+  // Only reset the file input and UI elements
+  
+  if (pathDisplay) {
+    pathDisplay.textContent = '';
+  }
+  
+  uploadArea.style.display = 'block';
+  previewContainer.style.display = 'none';
 }
 
 async function uploadGamakaAudio(parvaNumber, sandhiNumber, padyaNumber, ragaName, authorName) {
@@ -1989,10 +2064,10 @@ function displayGamakaAudioPreview(audioPath, authorName) {
       uploadArea.style.display = 'none';
       previewContainer.style.display = 'block';
     } else {
-      clearAudioUpload();
+      resetAudioUploadUI();
     }
   } else {
-    clearAudioUpload();
+    resetAudioUploadUI();
   }
 }
 

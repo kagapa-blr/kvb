@@ -1,9 +1,8 @@
-import logging
-
 from flask import Blueprint, render_template, session, redirect, url_for
 from utils.auth_decorator import login_required
+from utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 admin_ui_routes = Blueprint("admin_routes", __name__)
 

@@ -1,8 +1,7 @@
-import logging
-
 from flask import Blueprint, render_template
+from utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 additonal_web_routes = Blueprint("additonal_web_routes", __name__)
 

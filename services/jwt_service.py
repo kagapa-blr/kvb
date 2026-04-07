@@ -4,15 +4,15 @@ Handles token generation, verification, and password reset token management
 """
 
 import os
-import logging
 from datetime import datetime, timedelta
 from functools import wraps
 import jwt
 from dotenv import load_dotenv
 from flask import request, jsonify
+from utils.logger import get_logger
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = get_logger()
 
 # Load JWT configuration from environment
 JWT_SECRET = os.getenv('JWT_SECRET_KEY', os.getenv('FLASK_SECRET_KEY', 'your-secret-key'))
