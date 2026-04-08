@@ -294,8 +294,9 @@ function initializeAdditionalButtons() {
                     console.log(`[AdditionalButtons] Opening modal: ${config.id}`);
                 }
             } else if (config.type === 'page' && config.url) {
-                // Open in new tab
-                window.open(config.url, '_blank').focus();
+                // Open in new tab with base path
+                const fullUrl = apiClient.baseUrl + config.url;
+                window.open(fullUrl, '_blank').focus();
             } else if (config.type === 'api') {
                 // Load API content and show in modal
                 loadAdditionalContent(buttonText, config);
