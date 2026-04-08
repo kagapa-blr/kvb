@@ -60,6 +60,7 @@ const ApiEndpoints = {
     create: "/api/gamaka",
     get: (id) => `/api/gamaka/${id}`,
     update: (id) => `/api/gamaka/${id}`,
+    partialUpdateByPadya: "/api/gamaka/update-by-padya",
     delete: (id) => `/api/gamaka/${id}`,
     byPadya: (queryParams = "") => `/api/gamaka/padya${queryParams}`,
     parseFilename: "/api/audio/parse-filename",
