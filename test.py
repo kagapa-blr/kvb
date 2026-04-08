@@ -30,6 +30,8 @@ def txt_to_csv_and_rename_photos(input_txt_file, output_csv_file, photos_dir):
             parva = parts[2]
             sandhi = parts[3]
             padya = parts[4]
+            if int(padya)==0:
+                padya=1
 
             # Reconstruct the original photo filename
             original_filename = "_".join(parts[5:])

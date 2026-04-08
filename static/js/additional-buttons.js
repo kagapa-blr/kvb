@@ -19,7 +19,6 @@ window.openModal = openModal;
 function initializeAdditionalButtons() {
     const additionalPages = {
         'ಹೆಚ್ಚಿನ ಶೋಧನೆ': { type: 'modal', id: 'modal1' },
-
         'ಅಕಾರಾದಿ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.akaradiSuchi },
         'ಲೇಖನ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.lekanSuchi },
         'ಗಾದೆಗಳ ಸೂಚಿ': { type: 'page', url: ApiEndpoints.ADDITIONAL.gadeSuchi },
