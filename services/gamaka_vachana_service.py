@@ -259,20 +259,19 @@ class GamakaVachanaService:
         if not padya_numbers:
             raise Exception("No padya_numbers found for sandhi update")
 
-        # Save single copy of photo/audio if provided
+        # Save single copy of photo if provided
         photo_path = None
-        audio_path = None
-
+        # audio_path = None   # <-- audio disabled
         if photo and photo.filename:
             if not GamakaVachanaService.allowed_file(photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS):
                 raise Exception("Unsupported photo file type")
             photo_path = GamakaVachanaService.save_uploaded_file(photo, parva_number, sandhi_number, padya_numbers[0])
 
-        if audio and audio.filename:
-            if not GamakaVachanaService.allowed_file(audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS):
-                raise Exception("Unsupported audio file type")
-            audio_path = GamakaVachanaService.save_uploaded_file(audio, parva_number, sandhi_number, padya_numbers[0])
-
+        # Commented out audio handling
+        # if audio and audio.filename:
+        #     if not GamakaVachanaService.allowed_file(audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS):
+        #         raise Exception("Unsupported audio file type")
+        #     audio_path = GamakaVachanaService.save_uploaded_file(audio, parva_number, sandhi_number, padya_numbers[0])
         updated_entries = []
 
         try:
@@ -297,9 +296,8 @@ class GamakaVachanaService:
                 # Assign same DB path for all padyas
                 if photo_path:
                     gamaka.gamaka_vachakar_photo_path = photo_path
-                if audio_path:
-                    gamaka.gamaka_vachakar_audio_path = audio_path
-
+                # if audio_path:
+                #     gamaka.gamaka_vachakar_audio_path = audio_path
                 updated_entries.append(gamaka)
 
             db.session.commit()
