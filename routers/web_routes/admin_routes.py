@@ -28,3 +28,7 @@ def dashboard():
 @login_required
 def gadesuchigalu():
     return render_template('admin/gadesuchigalu.html')
+
+@admin_ui_routes.route('/admin/gamaka')
+def manage_gamaka():
+    return render_template('admin/gamaka.html')
