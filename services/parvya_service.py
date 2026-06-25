@@ -846,25 +846,23 @@ class PadyaService:
     # ---------------------------------------------
     # FETCH UNIQUE PADYA
     # ---------------------------------------------
-
     def get_unique(
-        self,
-        parva_number,
-        sandhi_number,
-        padya_number,
-        author_name=None,
-        raga=None,
-        **kwargs,
-    ):
+            self,
+            parva_number,
+            sandhi_number,
+            padya_number,
+            **kwargs,
+            ):
+        # Fetch the Padya record
         record = (
-            Padya.query.join(Sandhi)
-            .join(Parva)
-            .filter(
-                Parva.parva_number == parva_number,
-                Sandhi.sandhi_number == sandhi_number,
-                Padya.padya_number == padya_number,
-            )
-            .first()
+                Padya.query.join(Sandhi)
+                .join(Parva)
+                .filter(
+                        Parva.parva_number == parva_number,
+                        Sandhi.sandhi_number == sandhi_number,
+                        Padya.padya_number == padya_number,
+                        )
+                .first()
         )
 
         if not record:
@@ -874,115 +872,39 @@ class PadyaService:
         sandhi = record.sandhi
         parva = sandhi.parva if sandhi else None
 
-        # Fetch GamakaVachana data for this padya
-        gamaka_query = GamakaVachana.query.filter_by(
-            parva_number=parva_number,
-            sandhi_number=sandhi_number,
-            padya_number=padya_number
-        )
-
-        # Filter by author name and raga if provided
-        if author_name and author_name.strip():
-            gamaka_query = gamaka_query.filter_by(gamaka_vachakara_name=author_name.strip())
-        if raga and raga.strip():
-            gamaka_query = gamaka_query.filter_by(raga=raga.strip())
-
-        gamaka_vachana_list = gamaka_query.all()
+        # Fetch GamakaVachana entry directly via service
+        gamaka = GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, padya_number)
 
         gamaka_vachana_data = []
-        
-        if gamaka_vachana_list:
-            # Case 1: DB has records - use DB-first, FS-fallback for paths
-            for gv in gamaka_vachana_list:
-                # Get photo path using same logic as audio:
-                # 1. Use DB value if present
-                # 2. Search filesystem if DB is empty
-                # 3. Return None if found nowhere
-                photo_path = get_gamaka_photo_path_with_fs_check(
-                    gv, parva_number, sandhi_number, padya_number
-                )
-
-                # Get audio path with same filesystem fallback logic
-                audio_path = get_gamaka_audio_path_with_fs_check(
-                    gv, parva_number, sandhi_number, padya_number
-                )
-
-                gamaka_vachana_data.append({
-                    "id": gv.id,
-                    "gamaka_vachakara_name": gv.gamaka_vachakara_name,
-                    "raga": gv.raga,
-                    "gamaka_vachakar_photo_path": photo_path,
-                    "gamaka_vachakar_audio_path": audio_path,
-                })
-        else:
-            # Case 2: No DB records - search filesystem directly
-            try:
-                from flask import current_app
-                if current_app:
-                    static_folder = current_app.static_folder
-                    if static_folder:
-                        # Search for photos
-                        photos_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
-                        photo_matches = []
-                        if os.path.isdir(photos_dir):
-                            photo_matches = GamakaPathBuilder.find_photos(
-                                photos_dir, parva_number, sandhi_number, padya_number
-                            )
-
-                        # Search for audios
-                        audio_dir = os.path.join(static_folder, 'audio', 'gamakaAudio')
-                        audio_matches = []
-                        if os.path.isdir(audio_dir):
-                            audio_matches = GamakaPathBuilder.find_audios(
-                                audio_dir, parva_number, sandhi_number, padya_number
-                            )
-
-                        # If we found any files, create a "virtual" gamaka entry
-                        if photo_matches or audio_matches:
-                            photo_path = None
-                            audio_path = None
-
-                            if photo_matches:
-                                photo_path = GamakaPathBuilder.construct_relative_photo_path(
-                                    parva_number, sandhi_number, padya_number, photo_matches[0]
-                                )
-
-                            if audio_matches:
-                                audio_path = GamakaPathBuilder.construct_relative_audio_path(
-                                    parva_number, sandhi_number, padya_number, audio_matches[0]
-                                )
-
-                            gamaka_vachana_data.append({
-                                "id": None,
-                                "gamaka_vachakara_name": None,
-                                "raga": None,
-                                "gamaka_vachakar_photo_path": photo_path,
-                                "gamaka_vachakar_audio_path": audio_path,
-                            })
-            except Exception as e:
-                logger.debug(f"Error searching filesystem for gamaka files: {e}")
-
-
+        if gamaka:
+            gamaka_vachana_data.append({
+                    "id": gamaka.id,
+                    "gamaka_vachakara_name": gamaka.gamaka_vachakara_name,
+                    "raga": gamaka.raga,
+                    "gamaka_vachakar_photo_path": gamaka.gamaka_vachakar_photo_path,  # DB path only
+                    "gamaka_vachakar_audio_path": gamaka.gamaka_vachakar_audio_path,  # DB path only
+                    })
 
         return {
-            "id": record.id,
-            "parva_number": parva_number,
-            "parva_name": parva.name if parva else "",
-            "sandhi_number": sandhi_number,
-            "sandhi_name": sandhi.name if sandhi else "",
-            "padya_number": record.padya_number,
-            "padya": record.padya,
-            "artha": record.artha,
-            "tippani": record.tippani,
-            "gadya": record.gadya,
-            "suchane": record.suchane,
-            "pathantar": record.pathantar,
-            "created": record.created.isoformat() if record.created and hasattr(record.created, 'isoformat') else record.created,
-            "updated": record.updated.isoformat() if record.updated and hasattr(record.updated, 'isoformat') else record.updated,
-            "updated_by": record.updated_by,
-            "gamaka_vachana": gamaka_vachana_data,
-        }, 200
-
+                "id": record.id,
+                "parva_number": parva_number,
+                "parva_name": parva.name if parva else "",
+                "sandhi_number": sandhi_number,
+                "sandhi_name": sandhi.name if sandhi else "",
+                "padya_number": record.padya_number,
+                "padya": record.padya,
+                "artha": record.artha,
+                "tippani": record.tippani,
+                "gadya": record.gadya,
+                "suchane": record.suchane,
+                "pathantar": record.pathantar,
+                "created": record.created.isoformat() if record.created and hasattr(record.created,
+                                                                                    'isoformat') else record.created,
+                "updated": record.updated.isoformat() if record.updated and hasattr(record.updated,
+                                                                                    'isoformat') else record.updated,
+                "updated_by": record.updated_by,
+                "gamaka_vachana": gamaka_vachana_data,
+                }, 200
     # ---------------------------------------------
     # CREATE
     # ---------------------------------------------

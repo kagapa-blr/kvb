@@ -1,4 +1,3 @@
-import logging
 import os
 import secrets
 from datetime import timedelta
@@ -12,8 +11,7 @@ from model.models import db, User, Parva, Sandhi, Padya
 from routers.additional import additonal_bp
 from routers.api_routes.additional_api_routes import additional_api_routes
 from routers.api_routes.gadesuchi_api_routes import gadesuchi_api_routes
-
-from routers.gamaka_vachana import gamaka_bp
+from routers.api_routes.gamaka import gamaka_bp
 from routers.parvya import parvya_bp
 from routers.users import users_bp
 from routers.web_routes.additional_web_routes import additonal_web_routes
@@ -25,10 +23,9 @@ from services.user_management import (
     request_password_reset,
     reset_password_with_token,
     change_password
-)
+    )
 from utils.auth_decorator import login_required
 from utils.logger import get_logger
-
 logger = get_logger(logger_name='main')
 
 # Load environment variables
@@ -69,24 +66,16 @@ app.register_blueprint(additonal_web_routes, url_prefix='/additional')
 
 app.register_blueprint(additional_api_routes, url_prefix='/api/v1/additional')
 app.register_blueprint(gadesuchi_api_routes, url_prefix='/api/v1/additional/gadesuchi')
-
-
 @app.before_request
 def make_session_permanent():
     """Extend session for 30 minutes on each request."""
     session.permanent = True
-
-
 @app.route('/')
 def index():
     return render_template('kavya.html')
-
-
 @app.route('/kavya')
 def kavya():
     return render_template('kavya.html')
-
-
 @app.route('/admin')
 @login_required
 def admin():
@@ -109,22 +98,18 @@ def admin():
         total_sandhis = Sandhi.query.count()
 
         return render_template(
-            'admin/dashboard.html',
-            total_users=total_users,
-            total_padyas=total_padyas,
-            total_parvas=total_parvas,
-            total_sandhis=total_sandhis
-        )
+                'admin/dashboard.html',
+                total_users=total_users,
+                total_padyas=total_padyas,
+                total_parvas=total_parvas,
+                total_sandhis=total_sandhis
+                )
     except Exception as e:
         logger.error(f'Error loading admin dashboard: {str(e)}')
         return render_template('admin.html', error=str(e))
-
-
 @app.route('/stats')
 def new_admin():
     return render_template('statistics.html')
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """
@@ -187,8 +172,6 @@ def login():
             return render_template('login.html', error='ಡೇಟಾಬೇಸ್ ದೋಷ. ದಯವಿಟ್ಟು ನಂತರ ಪುನಃ ಪ್ರಯತ್ನಿಸಿ.')
 
     return render_template('login.html')
-
-
 @app.route('/logout')
 def logout():
     """
@@ -210,8 +193,6 @@ def logout():
     logger.info(f'User {username} logged out')
 
     return redirect(url_for('index'))
-
-
 @app.route('/api/v1/auth/forgot-password', methods=['POST'])
 def forgot_password():
     """
@@ -241,17 +222,15 @@ def forgot_password():
 
         if success:
             return jsonify({
-                'message': 'Password reset token generated',
-                'reset_token': result
-            }), 200
+                    'message': 'Password reset token generated',
+                    'reset_token': result
+                    }), 200
         else:
             return jsonify({'error': result}), 400
 
     except Exception as e:
         logger.error(f'Error in forgot_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
-
-
 @app.route('/api/v1/auth/reset-password', methods=['POST'])
 def reset_password():
     """
@@ -290,8 +269,6 @@ def reset_password():
     except Exception as e:
         logger.error(f'Error in reset_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
-
-
 @app.route('/api/v1/auth/change-password', methods=['POST'])
 @require_jwt
 def change_password_route():
@@ -333,8 +310,6 @@ def change_password_route():
     except Exception as e:
         logger.error(f'Error in change_password: {str(e)}')
         return jsonify({'error': f'Server error: {str(e)}'}), 500
-
-
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -357,13 +332,13 @@ def profile():
         if request.method == 'GET':
             # Display profile with existing data
             return render_template(
-                'profile.html',
-                user={
-                    'username': user.username,
-                    'email': user.email or '',
-                    'phone_number': user.phone_number or ''
-                }
-            )
+                    'profile.html',
+                    user={
+                            'username': user.username,
+                            'email': user.email or '',
+                            'phone_number': user.phone_number or ''
+                            }
+                    )
 
         elif request.method == 'POST':
             # Update profile
@@ -400,10 +375,9 @@ def profile():
         flash(f'Error: {str(e)}', 'error')
         return redirect(url_for('admin'))
 
-
 if __name__ == '__main__':
     app.run(
-        debug=False,
-        host='0.0.0.0',
-        port=8443
-    )
+            debug=False,
+            host='0.0.0.0',
+            port=8443
+            )

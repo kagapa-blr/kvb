@@ -1,442 +1,541 @@
 import os
-
-from sqlalchemy.exc import IntegrityError
+import shutil
+from io import BytesIO
+from werkzeug.utils import secure_filename
 
 from model.models import GamakaVachana, db
-from utils.path_builder import GamakaPathBuilder
 from utils.logger import get_logger
-
-logger = get_logger()
-
-
+logger = get_logger(logger_name="gamaka_vachana_service")
 class GamakaVachanaService:
-    """Service layer for GamakaVachana with DB-first, filesystem-fallback path resolution."""
+    PHOTO_FOLDER = "static/photos/gamakaPhotos"
+    AUDIO_FOLDER = "static/audio/gamakaAudio"
 
+    PHOTO_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+    AUDIO_EXTENSIONS = {"mp3", "wav", "ogg"}
+    # =======================================================
+    # Folder Management
+    # =======================================================
     @staticmethod
-    def _serialize(gamaka):
-        if not gamaka:
-            return None
-
-        return {
-            "id": gamaka.id,
-            "parva_number": gamaka.parva_number,
-            "sandhi_number": gamaka.sandhi_number,
-            "padya_number": gamaka.padya_number,
-            "raga": gamaka.raga,
-            "gamaka_vachakara_name": gamaka.gamaka_vachakara_name,
-            "gamaka_vachakar_photo_path": gamaka.gamaka_vachakar_photo_path,
-            "gamaka_vachakar_audio_path": gamaka.gamaka_vachakar_audio_path,
-        }
-
+    def create_folders():
+        os.makedirs(GamakaVachanaService.PHOTO_FOLDER, exist_ok=True)
+        os.makedirs(GamakaVachanaService.AUDIO_FOLDER, exist_ok=True)
+    # =======================================================
+    # Validation Helpers
+    # =======================================================
     @staticmethod
-    def create(
-            parva_number,
-            sandhi_number,
-            padya_number,
-            raga,
-            gamaka_vachakara_name,
-            gamaka_vachakar_photo_path=None,
-            gamaka_vachakar_audio_path=None,
-    ):
-        photo_path = GamakaPathBuilder.normalize_path(gamaka_vachakar_photo_path)
-        audio_path = GamakaPathBuilder.normalize_path(gamaka_vachakar_audio_path)
-
-        gamaka = GamakaVachana(
-            parva_number=parva_number,
-            sandhi_number=sandhi_number,
-            padya_number=padya_number,
-            raga=raga,
-            gamaka_vachakara_name=gamaka_vachakara_name,
-            gamaka_vachakar_photo_path=photo_path,
-            gamaka_vachakar_audio_path=audio_path,
+    def allowed_file(filename, allowed_extensions):
+        return (
+                filename is not None
+                and "." in filename
+                and filename.rsplit(".", 1)[1].lower() in allowed_extensions
         )
+    @staticmethod
+    def validate_required_numbers(parva_number, sandhi_number, padya_number):
+        if parva_number is None or sandhi_number is None or padya_number is None:
+            raise Exception("parva_number, sandhi_number and padya_number are required")
+    @staticmethod
+    def validate_create_data(data):
+        required_fields = [
+                "parva_number",
+                "sandhi_number",
+                "padya_number",
+                "gamaka_vachakara_name",
+                ]
 
-        try:
-            db.session.add(gamaka)
-            db.session.commit()
-            logger.info(
-                f"Created GamakaVachana id={gamaka.id} for "
-                f"{parva_number}/{sandhi_number}/{padya_number}"
-            )
-            return gamaka
-        except IntegrityError:
-            db.session.rollback()
-            logger.exception(
-                f"IntegrityError while creating GamakaVachana for "
-                f"{parva_number}/{sandhi_number}/{padya_number}, "
-                f"name={gamaka_vachakara_name}"
-            )
-            raise
-
+        missing = [field for field in required_fields if data.get(field) in (None, "")]
+        if missing:
+            raise Exception(f"Missing required fields: {', '.join(missing)}")
+    # =======================================================
+    # Query Helpers
+    # =======================================================
+    @staticmethod
+    def get_by_numbers(parva_number, sandhi_number, padya_number):
+        return GamakaVachana.query.filter_by(
+                parva_number=parva_number,
+                sandhi_number=sandhi_number,
+                padya_number=padya_number,
+                ).first()
+    @staticmethod
+    def get(parva_number, sandhi_number, padya_number):
+        return GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, padya_number)
     @staticmethod
     def get_all():
-        return (
-            db.session.query(GamakaVachana)
-            .order_by(
-                GamakaVachana.parva_number.asc(),
-                GamakaVachana.sandhi_number.asc(),
-                GamakaVachana.padya_number.asc(),
-                GamakaVachana.id.asc(),
-            )
-            .all()
-        )
-
+        return GamakaVachana.query.order_by(
+                GamakaVachana.parva_number,
+                GamakaVachana.sandhi_number,
+                GamakaVachana.padya_number,
+                ).all()
+    # =======================================================
+    # File Helpers
+    # =======================================================
     @staticmethod
-    def get_by_id(gamaka_id):
-        return db.session.get(GamakaVachana, gamaka_id)
-
+    def get_file_extension(filename):
+        if not filename or "." not in filename:
+            raise Exception("Invalid filename")
+        return filename.rsplit(".", 1)[1].lower()
     @staticmethod
-    def get_by_padya(parva_number, sandhi_number, padya_number):
-        return (
-            db.session.query(GamakaVachana)
-            .filter_by(
-                parva_number=parva_number,
-                sandhi_number=sandhi_number,
-                padya_number=padya_number,
-            )
-            .order_by(GamakaVachana.id.asc())
-            .all()
-        )
-
+    def get_target_folder_by_extension(extension):
+        if extension in GamakaVachanaService.PHOTO_EXTENSIONS:
+            return GamakaVachanaService.PHOTO_FOLDER
+        if extension in GamakaVachanaService.AUDIO_EXTENSIONS:
+            return GamakaVachanaService.AUDIO_FOLDER
+        raise Exception("Unsupported file type")
     @staticmethod
-    def update(
-            gamaka_id,
-            raga=None,
-            gamaka_vachakara_name=None,
-            gamaka_vachakar_photo_path=None,
-            gamaka_vachakar_audio_path=None,
-    ):
-        gamaka = db.session.get(GamakaVachana, gamaka_id)
-        if not gamaka:
+    def delete_file_if_exists(filepath):
+        if filepath and os.path.exists(filepath):
+            os.remove(filepath)
+    @staticmethod
+    def build_filename(parva_number, sandhi_number, padya_number, extension):
+        return secure_filename(f"{parva_number}_{sandhi_number}_{padya_number}.{extension}")
+    @staticmethod
+    def save_uploaded_file(file, parva_number, sandhi_number, padya_number):
+        if not file or not getattr(file, "filename", None):
             return None
 
-        if raga is not None:
-            gamaka.raga = raga
-        if gamaka_vachakara_name is not None:
-            gamaka.gamaka_vachakara_name = gamaka_vachakara_name
-        if gamaka_vachakar_photo_path is not None:
-            gamaka.gamaka_vachakar_photo_path = GamakaPathBuilder.normalize_path(
-                gamaka_vachakar_photo_path
-            )
-        if gamaka_vachakar_audio_path is not None:
-            gamaka.gamaka_vachakar_audio_path = GamakaPathBuilder.normalize_path(
-                gamaka_vachakar_audio_path
-            )
+        if file.filename.strip() == "":
+            return None
+
+        GamakaVachanaService.create_folders()
+
+        extension = GamakaVachanaService.get_file_extension(file.filename)
+        folder = GamakaVachanaService.get_target_folder_by_extension(extension)
+        filename = GamakaVachanaService.build_filename(
+                parva_number, sandhi_number, padya_number, extension
+                )
+        filepath = os.path.join(folder, filename)
+
+        file.save(filepath)
+        return filepath.replace("\\", "/")
+    @staticmethod
+    def read_uploaded_file_bytes(file, allowed_extensions):
+        if not file or not getattr(file, "filename", None):
+            return None
+
+        if file.filename.strip() == "":
+            return None
+
+        if not GamakaVachanaService.allowed_file(file.filename, allowed_extensions):
+            raise Exception(f"Unsupported file type: {file.filename}")
+
+        file.stream.seek(0)
+        content = file.read()
+        file.stream.seek(0)
+        return content
+    @staticmethod
+    def save_bytes_file(content, original_filename, parva_number, sandhi_number, padya_number):
+        if content is None:
+            return None
+
+        GamakaVachanaService.create_folders()
+
+        extension = GamakaVachanaService.get_file_extension(original_filename)
+        folder = GamakaVachanaService.get_target_folder_by_extension(extension)
+        filename = GamakaVachanaService.build_filename(
+                parva_number, sandhi_number, padya_number, extension
+                )
+        filepath = os.path.join(folder, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(content)
+
+        return filepath.replace("\\", "/")
+    # =======================================================
+    # CREATE
+    # =======================================================
+    @staticmethod
+    def create(data, photo=None, audio=None):
+        GamakaVachanaService.validate_create_data(data)
+
+        parva_number = int(data["parva_number"])
+        sandhi_number = int(data["sandhi_number"])
+        padya_number = int(data["padya_number"])
+
+        if GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, padya_number):
+            raise Exception("Gamaka already exists")
 
         try:
+            photo_path = None
+            audio_path = None
+
+            if photo and photo.filename:
+                if not GamakaVachanaService.allowed_file(
+                        photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS
+                        ):
+                    raise Exception("Unsupported photo file type")
+                photo_path = GamakaVachanaService.save_uploaded_file(
+                        photo, parva_number, sandhi_number, padya_number
+                        )
+
+            if audio and audio.filename:
+                if not GamakaVachanaService.allowed_file(
+                        audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS
+                        ):
+                    raise Exception("Unsupported audio file type")
+                audio_path = GamakaVachanaService.save_uploaded_file(
+                        audio, parva_number, sandhi_number, padya_number
+                        )
+
+            gamaka = GamakaVachana(
+                    parva_number=parva_number,
+                    sandhi_number=sandhi_number,
+                    padya_number=padya_number,
+                    raga=data.get("raga"),
+                    gamaka_vachakara_name=data["gamaka_vachakara_name"],
+                    gamaka_vachakar_photo_path=photo_path,
+                    gamaka_vachakar_audio_path=audio_path,
+                    )
+
+            db.session.add(gamaka)
             db.session.commit()
-            logger.info(f"Updated GamakaVachana id={gamaka_id}")
             return gamaka
-        except IntegrityError:
+
+        except Exception:
             db.session.rollback()
-            logger.exception(f"IntegrityError while updating GamakaVachana id={gamaka_id}")
+            raise
+    # =======================================================
+    # UPDATE SINGLE
+    # =======================================================
+    @staticmethod
+    def update(parva_number, sandhi_number, padya_number, data, photo=None, audio=None):
+        gamaka = GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, padya_number)
+        if not gamaka:
+            raise Exception("Gamaka not found")
+
+        try:
+            if "raga" in data:
+                gamaka.raga = data.get("raga") or gamaka.raga
+
+            if "gamaka_vachakara_name" in data and data.get("gamaka_vachakara_name"):
+                gamaka.gamaka_vachakara_name = data["gamaka_vachakara_name"]
+
+            if photo and photo.filename:
+                if not GamakaVachanaService.allowed_file(
+                        photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS
+                        ):
+                    raise Exception("Unsupported photo file type")
+
+                old_photo = gamaka.gamaka_vachakar_photo_path
+                new_photo_path = GamakaVachanaService.save_uploaded_file(
+                        photo, parva_number, sandhi_number, padya_number
+                        )
+                gamaka.gamaka_vachakar_photo_path = new_photo_path
+                if old_photo and old_photo != new_photo_path:
+                    GamakaVachanaService.delete_file_if_exists(old_photo)
+
+            if audio and audio.filename:
+                if not GamakaVachanaService.allowed_file(
+                        audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS
+                        ):
+                    raise Exception("Unsupported audio file type")
+
+                old_audio = gamaka.gamaka_vachakar_audio_path
+                new_audio_path = GamakaVachanaService.save_uploaded_file(
+                        audio, parva_number, sandhi_number, padya_number
+                        )
+                gamaka.gamaka_vachakar_audio_path = new_audio_path
+                if old_audio and old_audio != new_audio_path:
+                    GamakaVachanaService.delete_file_if_exists(old_audio)
+
+            db.session.commit()
+            return gamaka
+
+        except Exception:
+            db.session.rollback()
+            raise
+    # =======================================================
+    # BULK UPDATE SANDHI
+    # =======================================================
+    @staticmethod
+    def update_sandhi(parva_number, sandhi_number, data, photo=None, audio=None):
+        from model.models import Padya, Sandhi, Parva
+        # Get all padya numbers for this sandhi by joining through Sandhi and Parva
+        padyas = (
+                Padya.query.join(Sandhi).join(Parva)
+                .filter(Parva.parva_number == parva_number, Sandhi.sandhi_number == sandhi_number)
+                .all()
+        )
+        padya_numbers = data.get("padya_numbers") or sorted([p.padya_number for p in padyas])
+
+        if not padya_numbers:
+            raise Exception("No padya_numbers found for sandhi update")
+
+        # Save single copy of photo/audio if provided
+        photo_path = None
+        audio_path = None
+
+        if photo and photo.filename:
+            if not GamakaVachanaService.allowed_file(photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS):
+                raise Exception("Unsupported photo file type")
+            photo_path = GamakaVachanaService.save_uploaded_file(photo, parva_number, sandhi_number, padya_numbers[0])
+
+        if audio and audio.filename:
+            if not GamakaVachanaService.allowed_file(audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS):
+                raise Exception("Unsupported audio file type")
+            audio_path = GamakaVachanaService.save_uploaded_file(audio, parva_number, sandhi_number, padya_numbers[0])
+
+        updated_entries = []
+
+        try:
+            for padya_number in padya_numbers:
+                gamaka = GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, int(padya_number))
+
+                # If gamaka doesn't exist, create new entry since padya exists
+                if not gamaka:
+                    gamaka = GamakaVachana(
+                            parva_number=parva_number,
+                            sandhi_number=sandhi_number,
+                            padya_number=int(padya_number),
+                            )
+                    db.session.add(gamaka)
+
+                # Update fields
+                if "raga" in data:
+                    gamaka.raga = data.get("raga") or gamaka.raga
+                if "gamaka_vachakara_name" in data and data.get("gamaka_vachakara_name"):
+                    gamaka.gamaka_vachakara_name = data.get("gamaka_vachakara_name")
+
+                # Assign same DB path for all padyas
+                if photo_path:
+                    gamaka.gamaka_vachakar_photo_path = photo_path
+                if audio_path:
+                    gamaka.gamaka_vachakar_audio_path = audio_path
+
+                updated_entries.append(gamaka)
+
+            db.session.commit()
+            return updated_entries
+
+        except Exception:
+            db.session.rollback()
+            raise
+    @staticmethod
+    def update_parva(parva_number, data, photo=None, audio=None):
+        from model.models import Padya, Sandhi, Parva
+        # Get all (sandhi_number, padya_number) pairs for this parva
+        padyas = (
+                Padya.query.join(Sandhi).join(Parva)
+                .filter(Parva.parva_number == parva_number)
+                .all()
+        )
+        padya_list = data.get("padya_list") or [(p.sandhi.sandhi_number, p.padya_number) for p in padyas]
+
+        if not padya_list:
+            raise Exception("No padya_list found for parva update")
+
+        # Save single copy of photo/audio if provided
+        photo_path = None
+        audio_path = None
+
+        if photo and photo.filename:
+            if not GamakaVachanaService.allowed_file(photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS):
+                raise Exception("Unsupported photo file type")
+            first_sandhi, first_padya = padya_list[0]
+            photo_path = GamakaVachanaService.save_uploaded_file(photo, parva_number, first_sandhi, first_padya)
+
+        if audio and audio.filename:
+            if not GamakaVachanaService.allowed_file(audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS):
+                raise Exception("Unsupported audio file type")
+            first_sandhi, first_padya = padya_list[0]
+            audio_path = GamakaVachanaService.save_uploaded_file(audio, parva_number, first_sandhi, first_padya)
+
+        updated_entries = []
+
+        try:
+            for sandhi_number, padya_number in padya_list:
+                gamaka = GamakaVachanaService.get_by_numbers(parva_number, int(sandhi_number), int(padya_number))
+
+                # Create missing gamaka entry if padya exists
+                if not gamaka:
+                    gamaka = GamakaVachana(
+                            parva_number=parva_number,
+                            sandhi_number=int(sandhi_number),
+                            padya_number=int(padya_number),
+                            )
+                    db.session.add(gamaka)
+
+                if "raga" in data:
+                    gamaka.raga = data.get("raga") or gamaka.raga
+                if "gamaka_vachakara_name" in data and data.get("gamaka_vachakara_name"):
+                    gamaka.gamaka_vachakara_name = data.get("gamaka_vachakara_name")
+
+                # Assign same DB path for all padyas
+                if photo_path:
+                    gamaka.gamaka_vachakar_photo_path = photo_path
+                if audio_path:
+                    gamaka.gamaka_vachakar_audio_path = audio_path
+
+                updated_entries.append(gamaka)
+
+            db.session.commit()
+            return updated_entries
+
+        except Exception:
+            db.session.rollback()
+            raise
+    @staticmethod
+    def update_padya_list(parva_number, sandhi_number, padya_numbers, data, photo=None, audio=None):
+        from model.models import Padya, Sandhi, Parva
+        if not padya_numbers:
+            # Auto-discover all padya numbers for this sandhi
+            padyas = (
+                    Padya.query.join(Sandhi).join(Parva)
+                    .filter(Parva.parva_number == parva_number, Sandhi.sandhi_number == sandhi_number)
+                    .all()
+            )
+            padya_numbers = [p.padya_number for p in padyas]
+
+        if not padya_numbers:
+            raise Exception("No padya_numbers found for padya list update")
+
+        # Save single copy of photo/audio if provided
+        photo_path = None
+        audio_path = None
+
+        if photo and photo.filename:
+            if not GamakaVachanaService.allowed_file(photo.filename, GamakaVachanaService.PHOTO_EXTENSIONS):
+                raise Exception("Unsupported photo file type")
+            photo_path = GamakaVachanaService.save_uploaded_file(photo, parva_number, sandhi_number, padya_numbers[0])
+
+        if audio and audio.filename:
+            if not GamakaVachanaService.allowed_file(audio.filename, GamakaVachanaService.AUDIO_EXTENSIONS):
+                raise Exception("Unsupported audio file type")
+            audio_path = GamakaVachanaService.save_uploaded_file(audio, parva_number, sandhi_number, padya_numbers[0])
+
+        updated_entries = []
+
+        try:
+            for padya_number in padya_numbers:
+                gamaka = GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, int(padya_number))
+
+                # Create missing gamaka entry if padya exists
+                if not gamaka:
+                    gamaka = GamakaVachana(
+                            parva_number=parva_number,
+                            sandhi_number=sandhi_number,
+                            padya_number=int(padya_number),
+                            )
+                    db.session.add(gamaka)
+
+                if "raga" in data:
+                    gamaka.raga = data.get("raga") or gamaka.raga
+                if "gamaka_vachakara_name" in data and data.get("gamaka_vachakara_name"):
+                    gamaka.gamaka_vachakara_name = data.get("gamaka_vachakara_name")
+
+                # Assign same DB path for all padyas
+                if photo_path:
+                    gamaka.gamaka_vachakar_photo_path = photo_path
+                if audio_path:
+                    gamaka.gamaka_vachakar_audio_path = audio_path
+
+                updated_entries.append(gamaka)
+
+            db.session.commit()
+            return updated_entries
+
+        except Exception:
+            db.session.rollback()
             raise
 
+
+    # =======================================================
+    # DELETE
+    # =======================================================
+
     @staticmethod
-    def delete(gamaka_id):
-        gamaka = db.session.get(GamakaVachana, gamaka_id)
+    def delete(parva_number, sandhi_number, padya_number):
+        gamaka = GamakaVachanaService.get_by_numbers(parva_number, sandhi_number, padya_number)
         if not gamaka:
-            return False
+            raise Exception("Gamaka not found")
 
         try:
+            photo_path = gamaka.gamaka_vachakar_photo_path
+            audio_path = gamaka.gamaka_vachakar_audio_path
+
             db.session.delete(gamaka)
             db.session.commit()
-            logger.info(f"Deleted GamakaVachana id={gamaka_id}")
+
+            GamakaVachanaService.delete_file_if_exists(photo_path)
+            GamakaVachanaService.delete_file_if_exists(audio_path)
+
             return True
+
         except Exception:
             db.session.rollback()
-            logger.exception(f"Error while deleting GamakaVachana id={gamaka_id}")
             raise
-
+    # =======================================================
+    # SYNC FILES
+    # =======================================================
     @staticmethod
-    def _get_first_entry(parva_number, sandhi_number, padya_number):
-        return (
-            db.session.query(GamakaVachana)
-            .filter_by(
-                parva_number=parva_number,
-                sandhi_number=sandhi_number,
-                padya_number=padya_number,
-            )
-            .order_by(GamakaVachana.id.asc())
-            .first()
-        )
+    def sync_files():
+        GamakaVachanaService.create_folders()
 
-    @staticmethod
-    def get_or_resolve_photo_path(parva_number, sandhi_number, padya_number, photos_dir=None):
-        """
-        Check DB first; if missing, search filesystem; if found, update DB and return path.
-        """
-        gamaka = GamakaVachanaService._get_first_entry(
-            parva_number, sandhi_number, padya_number
-        )
-        if not gamaka:
-            return None
+        folders = [
+                (GamakaVachanaService.PHOTO_FOLDER, "photo"),
+                (GamakaVachanaService.AUDIO_FOLDER, "audio"),
+                ]
 
-        if gamaka.gamaka_vachakar_photo_path:
-            normalized = GamakaPathBuilder.normalize_path(
-                gamaka.gamaka_vachakar_photo_path
-            )
-            if normalized:
-                return normalized
-
-        if not photos_dir or not os.path.isdir(photos_dir):
-            return None
-
-        matches = GamakaPathBuilder.find_photos(
-            photos_dir, parva_number, sandhi_number, padya_number
-        )
-        if not matches:
-            return None
-
-        relative_path = GamakaPathBuilder.construct_relative_photo_path(
-            parva_number,
-            sandhi_number,
-            padya_number,
-            matches[0],
-        )
+        updated = 0
+        logger.info(f"Syncing files started: {folders}")
 
         try:
-            gamaka.gamaka_vachakar_photo_path = relative_path
+            for folder, file_type in folders:
+                for filename in os.listdir(folder):
+                    logger.info(f"Syncing {filename}")
+
+                    name, ext = os.path.splitext(filename)
+                    name = name.replace("-", "_")
+                    parts = name.split("_")
+
+                    if len(parts) < 3:
+                        continue
+
+                    try:
+                        parva_number = int(parts[0].lstrip("0") or "0")
+                        sandhi_number = int(parts[1].lstrip("0") or "0")
+                        padya_number = int(parts[2].lstrip("0") or "0")
+                    except ValueError:
+                        continue
+
+                    gamaka = GamakaVachanaService.get_by_numbers(
+                            parva_number, sandhi_number, padya_number
+                            )
+                    if not gamaka:
+                        continue
+
+                    correct_name = secure_filename(
+                            f"{parva_number}_{sandhi_number}_{padya_number}{ext.lower()}"
+                            )
+                    old_path = os.path.join(folder, filename)
+                    new_path = os.path.join(folder, correct_name)
+
+                    # Rename file if needed
+                    if filename != correct_name:
+                        if os.path.exists(new_path):
+                            os.remove(new_path)
+                        shutil.move(old_path, new_path)
+                        logger.info(f"Renamed {filename} -> {correct_name}")
+
+                    db_path = new_path.replace("\\", "/")
+
+                    # Check if file actually exists in filesystem
+                    if not os.path.exists(new_path):
+                        logger.warning(f"File missing in filesystem: {new_path}")
+                        if file_type == "photo":
+                            gamaka.gamaka_vachakar_photo_path = None
+                        else:
+                            gamaka.gamaka_vachakar_audio_path = None
+                    else:
+                        if file_type == "photo":
+                            gamaka.gamaka_vachakar_photo_path = db_path
+                        else:
+                            gamaka.gamaka_vachakar_audio_path = db_path
+
+                    updated += 1
+
             db.session.commit()
-            logger.info(
-                f"Resolved and updated photo path for gamaka id={gamaka.id}: "
-                f"{relative_path}"
-            )
-        except Exception:
-            db.session.rollback()
-            logger.exception(
-                f"Failed updating photo path for gamaka id={gamaka.id}"
-            )
-            raise
+            return {"message": "Sync completed", "updated": updated}
 
-        return relative_path
-
-    @staticmethod
-    def get_or_resolve_audio_path(parva_number, sandhi_number, padya_number, audio_dir=None):
-        """
-        Check DB first; if missing, search filesystem; if found, update DB and return path.
-        """
-        gamaka = GamakaVachanaService._get_first_entry(
-            parva_number, sandhi_number, padya_number
-        )
-        if not gamaka:
-            return None
-
-        if gamaka.gamaka_vachakar_audio_path:
-            normalized = GamakaPathBuilder.normalize_path(
-                gamaka.gamaka_vachakar_audio_path
-            )
-            if normalized:
-                return normalized
-
-        if not audio_dir or not os.path.isdir(audio_dir):
-            return None
-
-        matches = GamakaPathBuilder.find_audios(
-            audio_dir, parva_number, sandhi_number, padya_number
-        )
-        if not matches:
-            return None
-
-        relative_path = GamakaPathBuilder.construct_relative_audio_path(
-            parva_number,
-            sandhi_number,
-            padya_number,
-            matches[0],
-        )
-
-        try:
-            gamaka.gamaka_vachakar_audio_path = relative_path
-            db.session.commit()
-            logger.info(
-                f"Resolved and updated audio path for gamaka id={gamaka.id}: "
-                f"{relative_path}"
-            )
-        except Exception:
-            db.session.rollback()
-            logger.exception(
-                f"Failed updating audio path for gamaka id={gamaka.id}"
-            )
-            raise
-
-        return relative_path
-    # Alias methods for router compatibility
-    @staticmethod
-    def get_photo_with_filesystem_check(parva_number, sandhi_number, padya_number, photos_dir=None):
-        """Alias for get_or_resolve_photo_path for router compatibility."""
-        return GamakaVachanaService.get_or_resolve_photo_path(
-            parva_number, sandhi_number, padya_number, photos_dir
-        )
-
-    @staticmethod
-    def get_audio_with_filesystem_check(parva_number, sandhi_number, padya_number, audio_dir=None):
-        """Alias for get_or_resolve_audio_path for router compatibility."""
-        audio_path = GamakaVachanaService.get_or_resolve_audio_path(
-            parva_number, sandhi_number, padya_number, audio_dir
-        )
-        
-        if audio_path:
-            return {
-                "found": True,
-                "audio_path": audio_path,
-                "parva_number": parva_number,
-                "sandhi_number": sandhi_number,
-                "padya_number": padya_number
-            }
-        
-        return {
-            "found": False,
-            "audio_path": None,
-            "parva_number": parva_number,
-            "sandhi_number": sandhi_number,
-            "padya_number": padya_number
-        }
-
-    @staticmethod
-    def find_photo_file(parva_number, sandhi_number, padya_number, photos_dir=None):
-        """
-        Find photo file in filesystem for given parva/sandhi/padya.
-        Returns relative path if found, None otherwise. Does NOT update DB.
-        """
-        try:
-            from flask import current_app
-            if not photos_dir and current_app:
-                static_folder = current_app.static_folder
-                photos_dir = os.path.join(static_folder, 'photos', 'gamakaPhotos')
-            
-            if not os.path.isdir(photos_dir):
-                return None
-            
-            matches = GamakaPathBuilder.find_photos(photos_dir, parva_number, sandhi_number, padya_number)
-            if matches:
-                return GamakaPathBuilder.construct_relative_photo_path(
-                    parva_number, sandhi_number, padya_number, matches[0]
-                )
-        except Exception as e:
-            logger.debug(f"Error finding photo file: {e}")
-        
-        return None
-
-    @staticmethod
-    def find_audio_file(parva_number, sandhi_number, padya_number, audio_dir=None):
-        """
-        Find audio file in filesystem for given parva/sandhi/padya.
-        Returns relative path if found, None otherwise. Does NOT update DB.
-        """
-        try:
-            from flask import current_app
-            if not audio_dir and current_app:
-                static_folder = current_app.static_folder
-                audio_dir = os.path.join(static_folder, 'audio', 'gamakaAudio')
-            
-            if not os.path.isdir(audio_dir):
-                return None
-            
-            matches = GamakaPathBuilder.find_audios(audio_dir, parva_number, sandhi_number, padya_number)
-            if matches:
-                return GamakaPathBuilder.construct_relative_audio_path(
-                    parva_number, sandhi_number, padya_number, matches[0]
-                )
-        except Exception as e:
-            logger.debug(f"Error finding audio file: {e}")
-        
-        return None
-
-    @staticmethod
-    def update_audio_path(gamaka_id, audio_path):
-        """Update audio path for a gamaka vachana entry."""
-        try:
-            gamaka = db.session.get(GamakaVachana, gamaka_id)
-            if not gamaka:
-                logger.warning(f"GamakaVachana id={gamaka_id} not found")
-                return False
-            
-            normalized = GamakaPathBuilder.normalize_path(audio_path)
-            gamaka.gamaka_vachakar_audio_path = normalized
-            db.session.commit()
-            logger.info(f"Updated audio path for GamakaVachana id={gamaka_id}: {normalized}")
-            return True
         except Exception as e:
             db.session.rollback()
-            logger.exception(f"Error updating audio path for GamakaVachana id={gamaka_id}: {e}")
-            return False
-
-    @staticmethod
-    def parse_and_map_audio_file(filename):
-        """
-        Parse an audio filename to extract parva/sandhi/padya numbers.
-        Returns dict with parse_result and optionally found entries.
-        """
-        try:
-            # Simple parser for formats: "1-1-1.mp3" or "01-01-01.mp3"
-            name_without_ext = os.path.splitext(filename)[0]
-            parts = name_without_ext.split('-')
-            
-            if len(parts) < 3:
-                return {
-                    "parse_result": {
-                        "valid": False,
-                        "message": f"Invalid audio filename format: {filename}. Expected: parva-sandhi-padya.ext"
-                    }
-                }
-            
-            try:
-                parva_number = int(parts[0])
-                sandhi_number = int(parts[1])
-                padya_number = int(parts[2])
-            except ValueError:
-                return {
-                    "parse_result": {
-                        "valid": False,
-                        "message": f"Could not parse numbers from filename: {filename}"
-                    }
-                }
-            
-            # Find matching entries
-            entries = GamakaVachanaService.get_by_padya(parva_number, sandhi_number, padya_number)
-            
-            return {
-                "parse_result": {
-                    "valid": True,
-                    "parva_number": parva_number,
-                    "sandhi_number": sandhi_number,
-                    "padya_number": padya_number,
-                    "entries_found": len(entries)
-                },
-                "entries": [GamakaVachanaService._serialize(e) for e in entries] if entries else []
-            }
-        except Exception as e:
-            logger.exception(f"Error parsing audio filename: {e}")
-            return {
-                "parse_result": {
-                    "valid": False,
-                    "message": str(e)
-                }
-            }
-
-    @staticmethod
-    def process_audio_directory(directory_path):
-        """
-        Process all audio files in a directory.
-        Returns list of results for each file processed.
-        """
-        results = []
-        try:
-            if not os.path.isdir(directory_path):
-                logger.warning(f"Directory not found: {directory_path}")
-                return results
-            
-            for filename in os.listdir(directory_path):
-                # Only process audio files
-                if GamakaPathBuilder.AUDIO_EXTENSIONS and not any(filename.lower().endswith(ext) for ext in GamakaPathBuilder.AUDIO_EXTENSIONS):
-                    continue
-                
-                result = GamakaVachanaService.parse_and_map_audio_file(filename)
-                result['filename'] = filename
-                results.append(result)
-            
-            logger.info(f"Processed {len(results)} audio files from directory: {directory_path}")
-        except Exception as e:
-            logger.exception(f"Error processing audio directory: {e}")
-        
-        return results
+            logger.error(f"Sync failed: {e}")
+            raise

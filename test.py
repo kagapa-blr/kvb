@@ -160,7 +160,7 @@ class GamakaPhotoProcessor:
     def __init__(
         self,
         photos_dir: str,
-        api_base_url: str = "http://localhost:8443",
+        api_base_url: str = "https://kagapa.com/kvb",
         api_endpoint: str = "/api/gamaka/update-by-padya"
     ):
         self.photos_dir = photos_dir

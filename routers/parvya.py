@@ -325,6 +325,7 @@ def get_padya_numbers_by_sandhi(sandhi_id):
     methods=["GET"],
 )
 def get_padya(parva_number, sandhi_number, padya_number):
+    logger.info(f"getting padya for {parva_number} and {sandhi_number} and {padya_number}")
     # Optional query parameters to filter GamakaVachana by author and raga
     author_name = request.args.get("author_name", "").strip() or None
     raga = request.args.get("raga", "").strip() or None
