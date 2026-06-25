@@ -475,6 +475,7 @@ class GamakaVachanaService:
                 ]
 
         updated = 0
+        created = 0
         logger.info(f"Syncing files started: {folders}")
 
         try:
@@ -483,6 +484,8 @@ class GamakaVachanaService:
                     logger.info(f"Syncing {filename}")
 
                     name, ext = os.path.splitext(filename)
+
+                    # Normalize separators: replace '-' with '_'
                     name = name.replace("-", "_")
                     parts = name.split("_")
 
@@ -499,9 +502,8 @@ class GamakaVachanaService:
                     gamaka = GamakaVachanaService.get_by_numbers(
                             parva_number, sandhi_number, padya_number
                             )
-                    if not gamaka:
-                        continue
 
+                    # Always enforce underscore naming convention
                     correct_name = secure_filename(
                             f"{parva_number}_{sandhi_number}_{padya_number}{ext.lower()}"
                             )
@@ -517,23 +519,44 @@ class GamakaVachanaService:
 
                     db_path = new_path.replace("\\", "/")
 
-                    # Check if file actually exists in filesystem
-                    if not os.path.exists(new_path):
-                        logger.warning(f"File missing in filesystem: {new_path}")
-                        if file_type == "photo":
-                            gamaka.gamaka_vachakar_photo_path = None
+                    # If DB entry exists, update it
+                    if gamaka:
+                        if not os.path.exists(new_path):
+                            logger.warning(f"File missing in filesystem: {new_path}")
+                            if file_type == "photo":
+                                gamaka.gamaka_vachakar_photo_path = None
+                            else:
+                                gamaka.gamaka_vachakar_audio_path = None
                         else:
-                            gamaka.gamaka_vachakar_audio_path = None
-                    else:
-                        if file_type == "photo":
-                            gamaka.gamaka_vachakar_photo_path = db_path
-                        else:
-                            gamaka.gamaka_vachakar_audio_path = db_path
+                            if file_type == "photo":
+                                gamaka.gamaka_vachakar_photo_path = db_path
+                            else:
+                                gamaka.gamaka_vachakar_audio_path = db_path
+                        updated += 1
 
-                    updated += 1
+                    # If DB entry does not exist, create a new one
+                    else:
+                        if os.path.exists(new_path):
+                            from model.models import GamakaVachana
+                            new_entry = GamakaVachana(
+                                    parva_number=parva_number,
+                                    sandhi_number=sandhi_number,
+                                    padya_number=padya_number,
+                                    gamaka_vachakara_name=None,
+                                    raga=None,
+                                    gamaka_vachakar_photo_path=db_path if file_type == "photo" else None,
+                                    gamaka_vachakar_audio_path=db_path if file_type == "audio" else None,
+                                    )
+                            db.session.add(new_entry)
+                            created += 1
+                            logger.info(f"Created new DB entry for {correct_name}")
 
             db.session.commit()
-            return {"message": "Sync completed", "updated": updated}
+            return {
+                    "message": "Sync completed",
+                    "updated": updated,
+                    "created": created
+                    }
 
         except Exception as e:
             db.session.rollback()

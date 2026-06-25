@@ -149,7 +149,7 @@ class GamakaVachana(db.Model):
 
     raga = db.Column(db.String(255), nullable=True)
 
-    gamaka_vachakara_name = db.Column(db.String(255), nullable=False)
+    gamaka_vachakara_name = db.Column(db.String(255), nullable=True)
     gamaka_vachakar_photo_path = db.Column(db.String(500))
     gamaka_vachakar_audio_path = db.Column(db.String(500))
 
