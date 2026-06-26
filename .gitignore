@@ -13,3 +13,6 @@ static/photos
 *.pyd
 *.swp
 .DS_Store
+temp
+temp.py
+photosofsingers
